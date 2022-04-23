@@ -8,6 +8,15 @@
  */
 
 plugins {
-    id 'jspear.java-library-conventions'
+    id 'jspear.java-application-conventions'
+}
+
+dependencies {
+    implementation project(':lib')
+}
+
+application {
+    // Define the main class for the application.
+    mainClass = 'it.unicam.quasylab.jspear.examples.engine.Engine'
 }
 

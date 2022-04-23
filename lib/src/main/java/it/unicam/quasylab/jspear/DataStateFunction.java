@@ -30,6 +30,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 @FunctionalInterface
 public interface DataStateFunction {
 
+    DataStateFunction TICK_FUNCTION = (rg, ds) -> ds;
+
     /**
      * Given an random generateor, used to evaluate random expressions, and a data state samples an outcome of this
      * expression.

@@ -23,10 +23,8 @@
 package it.unicam.quasylab.jspear;
 
 import org.apache.commons.math3.random.RandomGenerator;
-import org.checkerframework.checker.units.qual.A;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
@@ -138,7 +136,7 @@ public class EvolutionSequence {
 
     private void startSamplinngsOfStep(int j) {
         if (monitor != null) {
-            monitor.startSamplinngsOfStep(j);
+            monitor.startSamplingsOfStep(j);
         }
     }
 

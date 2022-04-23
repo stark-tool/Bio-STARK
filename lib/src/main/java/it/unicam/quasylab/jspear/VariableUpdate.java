@@ -19,12 +19,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package it.unicam.quasylab.jspear;
 
-/**
- * Class used to identify a variable in a model.
- */
-public record Variable(VariableRegistry registry, int index, String name) {
+import it.unicam.quasylab.jspear.Variable;
 
+public record VariableUpdate(Variable var, double value) {
 
+    public VariableUpdate {
+        if (var == null) {
+            throw new IllegalArgumentException("No variable provided!");
+        }
+    }
 }

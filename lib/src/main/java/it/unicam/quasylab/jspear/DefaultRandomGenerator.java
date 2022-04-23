@@ -19,12 +19,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package it.unicam.quasylab.jspear;
 
-/**
- * Class used to identify a variable in a model.
- */
-public record Variable(VariableRegistry registry, int index, String name) {
+import org.apache.commons.math3.random.AbstractRandomGenerator;
 
+import java.util.Random;
 
+public class DefaultRandomGenerator extends AbstractRandomGenerator {
+
+    private Random random;
+
+    @Override
+    public void setSeed(long seed) {
+        this.random = new Random(seed);
+    }
+
+    @Override
+    public double nextDouble() {
+        return random.nextDouble();
+    }
 }

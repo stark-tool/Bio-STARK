@@ -22,6 +22,9 @@
 
 package it.unicam.quasylab.jspear;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.function.IntToDoubleFunction;
 import java.util.stream.IntStream;
 
@@ -54,6 +57,17 @@ public class DataState {
         this.registry = registry;
         this.data = IntStream.range(0, registry.size()).parallel().mapToDouble(initFunction).toArray();
     }
+
+    private DataState(VariableRegistry registry, double[] data) {
+        this.registry = registry;
+        this.data = data;
+    }
+
+    public DataState(VariableRegistry variableRegistry, Map<Variable, Double> values) {
+        this(variableRegistry);
+        values.forEach((key, value) -> this.data[key.index()] = value);
+    }
+
 
     /**
      * Returns the size of this data state, namely the number of stored variables.
@@ -103,4 +117,13 @@ public class DataState {
         return getValue(var.index());
     }
 
+    public DataState set(Variable var, double value) {
+        return set(List.of(new VariableUpdate(var, value)));
+    }
+
+    public DataState set(List<VariableUpdate> updates) {
+        double[] values = Arrays.copyOf(this.data, this.data.length);
+        updates.forEach(vu -> values[vu.var().index()] = vu.value());
+        return new DataState(this.registry, values);
+    }
 }

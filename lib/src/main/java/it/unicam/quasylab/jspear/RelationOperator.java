@@ -26,6 +26,7 @@ public enum RelationOperator {
 
     LESS_THAN,
     LESS_OR_EQUAL_THAN,
+    EQUAL_TO,
     GREATER_THAN,
     GREATER_OR_EQUAL_THAN;
 
@@ -33,6 +34,7 @@ public enum RelationOperator {
         return switch (this) {
             case LESS_THAN -> v1<v2;
             case LESS_OR_EQUAL_THAN -> v1<=v2;
+            case EQUAL_TO ->  v1 == v2;
             case GREATER_OR_EQUAL_THAN -> v1>=v2;
             case GREATER_THAN -> v1>v2;
         };

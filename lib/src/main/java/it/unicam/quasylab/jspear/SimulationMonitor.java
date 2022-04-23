@@ -32,7 +32,7 @@ public interface SimulationMonitor {
      *
      * @param step an integer identifying a time step.
      */
-    void startSamplinngsOfStep(int step);
+    void startSamplingsOfStep(int step);
 
     /**
      * This method is invoked when the sampling of step <code>n</code> terminated.

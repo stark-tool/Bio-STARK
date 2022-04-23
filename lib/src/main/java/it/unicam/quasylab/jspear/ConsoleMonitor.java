@@ -19,12 +19,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package it.unicam.quasylab.jspear;
 
-/**
- * Class used to identify a variable in a model.
- */
-public record Variable(VariableRegistry registry, int index, String name) {
+package it.unicam.quasylab.jspear;import it.unicam.quasylab.jspear.SimulationMonitor;
+
+public class ConsoleMonitor implements SimulationMonitor {
+
+    private final String label;
+    private long last;
+
+    public ConsoleMonitor(String label) {
+        this.label = label;
+    }
 
 
+    @Override
+    public void startSamplingsOfStep(int step) {
+        System.out.println(label+": Sampling of step "+step+" started.");
+        last = System.currentTimeMillis();
+    }
+
+    @Override
+    public void endSamplingsOfStep(int step) {
+        long elapsed = System.currentTimeMillis() - last;
+        System.out.println(label+": Sampling of step "+step+" completed.");
+        System.out.println(label+": Elapsed time "+(elapsed/1000.0)+"s");
+    }
+
+    @Override
+    public boolean hasBeenCancelled() {
+        return false;
+    }
 }

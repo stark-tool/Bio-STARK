@@ -24,6 +24,7 @@ package it.unicam.quasylab.jspear;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Instances of used to define the set of variables occurring in a model.
@@ -101,4 +102,54 @@ public final class VariableRegistry {
             return v.index();
         }
     }
+
+    /**
+     * Returns a predicate used to check if in the data set the given variable is
+     * greater or equal
+     *
+     * @param var
+     * @return
+     */
+    public Predicate<DataState> greaterOrEqualThan(String var, double value) {
+        return getPredicate(var, RelationOperator.GREATER_OR_EQUAL_THAN, value);
+    }
+
+    public Predicate<DataState> greaterThan(String var, double value) {
+        return getPredicate(var, RelationOperator.GREATER_THAN, value);
+    }
+
+    public Predicate<DataState> equalsTo(String var, double value) {
+        return getPredicate(var, RelationOperator.EQUAL_TO, value);
+    }
+
+    public Predicate<DataState> lessOrEqualThan(String var, double value) {
+        return getPredicate(var, RelationOperator.LESS_OR_EQUAL_THAN, value);
+    }
+
+    public Predicate<DataState> lessThan(String var, double value) {
+        return getPredicate(var, RelationOperator.LESS_THAN, value);
+    }
+
+
+    private Predicate<DataState> getPredicate(String var, RelationOperator op, double value) {
+        Variable variable = getVariable(var);
+        if (variable == null) {
+            throw new IllegalArgumentException(String.format("Variable %s is unknown!",var));
+        }
+        return (ds -> op.eval(ds.getValue(variable), value));
+    }
+
+
+    public DataStateFunction set(String var, double value) {
+        return set(var, (rg, ds) -> value);
+    }
+
+    public DataStateFunction set(String var, DataStateRandomExpression expr ) {
+        Variable variable = getVariable(var);
+        if (variable == null) {
+            throw new IllegalArgumentException(String.format("Variable %s is unknown!",var));
+        }
+        return (rg, ds) -> ds.set(variable, expr.eval(rg, ds));
+    }
+
 }
