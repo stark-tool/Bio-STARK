@@ -152,4 +152,12 @@ public final class VariableRegistry {
         return (rg, ds) -> ds.set(variable, expr.eval(rg, ds));
     }
 
+    public DataStateRandomExpression get(String name) {
+        Variable variable = getVariable(name);
+        if (variable == null) {
+            throw new IllegalArgumentException(String.format("Variable %s is unknown!", name));
+        }
+        return (rg, ds) -> ds.getValue(variable);
+    }
+
 }

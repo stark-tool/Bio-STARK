@@ -40,13 +40,13 @@ public class PerturbedEvolutionSequence extends EvolutionSequence {
     }
 
     @Override
-    protected SampleSet<SystemState> generateNextStep() {
+    protected synchronized SampleSet<SystemState> generateNextStep() {
         this.p = this.p.step();
         return doApply(super.generateNextStep());
     }
 
 
-    protected SampleSet<SystemState> doApply(SampleSet<SystemState> sample) {
+    protected synchronized SampleSet<SystemState> doApply(SampleSet<SystemState> sample) {
         Optional<DataStateFunction> perturbationFunction = this.p.effect();
         if (perturbationFunction.isPresent()) {
             return sample.apply(getRandomGenerator(), (rg, s) -> s.apply(rg, perturbationFunction.get()), size);

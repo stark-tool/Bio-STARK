@@ -25,16 +25,13 @@ package it.unicam.quasylab.jspear.examples.engine;
 import it.unicam.quasylab.jspear.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.DoubleStream;
 
 public class Main {
 
     public final static String[] VARIABLES =
-            new String[] { "P1", "P2", "P3", "P4", "P5", "P5", "stress",  "temp", "cool", "speed"};
+            new String[] { "P1", "P2", "P3", "P4", "P5", "P6", "stress",  "temp", "cool", "speed", "ch_temp", "ch_wrn", "ch_speed", "ch_out"};
     public final static double ON = 0;
     public final static double OFF = 1;
     public final static double SLOW = 2;
@@ -44,7 +41,7 @@ public class Main {
     public final static double HOT = 6;
     public final static double LOW = 7;
     private static final double MIN_TEMP = 0;
-    private static final double MAX_TEMP = 0;
+    private static final double MAX_TEMP = 150;
     private static final double STRESS_INCR = 0.1;
     private static final VariableRegistry variableRegistry = new VariableRegistry(VARIABLES);
     private static final Variable p1 = variableRegistry.getVariable("P1");
@@ -55,22 +52,89 @@ public class Main {
     private static final Variable p6 = variableRegistry.getVariable("P6");
     private static final Variable stress = variableRegistry.getVariable("stress");
     private static final Variable temp = variableRegistry.getVariable("temp");
+    private static final Variable ch_temp = variableRegistry.getVariable("ch_temp");
     private static final Variable cool = variableRegistry.getVariable("cool");
     private static final Variable speed = variableRegistry.getVariable("speed");
-
+    private static final Variable ch_wrn = variableRegistry.getVariable("ch_wrn");
+    private static final double INITIAL_TEMP_VALUE = 95.0;
+    private static final double TEMP_OFFSET = -2;
+    private static final int NUMBER_OF_PERTURBATIONS = 5;
+    private static final int NUMBER_OF_STEPS_BEFORE_PERTURBATION = 100;
+    private static final double ETA1 = 0.5;
+    private static final double ETA1_ = 0.5;
+    private static final int START_INTERVAL1 = NUMBER_OF_STEPS_BEFORE_PERTURBATION;
+    private static final int END_INTERVAL1 = NUMBER_OF_STEPS_BEFORE_PERTURBATION+NUMBER_OF_PERTURBATIONS-1;
+    private static final int END_OF_OBSERVATION = 1000;
+    private static final double ETA2 = 0.5;
+    private static final double ETA3 = 0.5;
 
 
     public static void main(String[] args) {
-        Controller controller = getController();
-        DataState state = getInitialState();
-        ControlledSystem system = new ControlledSystem(controller, (rg, ds) -> ds.set(getEnvironmentUpdates(rg, ds)), state);
-        EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), new DefaultRandomGenerator(), rg -> system, 100);
-        RobustnessFormula formula = getRubustnessFormula();
-        System.out.println(formula.eval(100, 0, sequence));
+        try {
+            Controller controller = getController();
+            DataState state = getInitialState(INITIAL_TEMP_VALUE);
+            ControlledSystem system = new ControlledSystem(controller, (rg, ds) -> ds.set(getEnvironmentUpdates(rg, ds)), state);
+            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), new DefaultRandomGenerator(), rg -> system, 10);
+            sequence.generateUpTo(20);
+            EvolutionSequence perturbedEvolutionSequence = sequence.apply(getPerturbation(),0,10);
+            perturbedEvolutionSequence.generateUpTo(1000);
+//            perturbedEvolutionSequence.generateUpTo(1000);
+            //RobustnessFormula formula = getFormula1();
+            //System.out.println(formula.eval(10, 0, sequence));
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        }
     }
 
-    private static RobustnessFormula getRubustnessFormula() {
-        return null;
+    private static RobustnessFormula getFormula1() {
+        return new AtomicRobustnessFormula(getPerturbation(),
+                new MinIntervalDistanceExpression(
+                        new AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/120),
+                        START_INTERVAL1,
+                        END_INTERVAL1
+                ),
+                RelationOperator.GREATER_THAN,
+                ETA1
+        );
+    }
+
+    private static RobustnessFormula getRobustnessFormula() {
+        RobustnessFormula f1 = getFormula1();
+        AtomicRobustnessFormula f2 = new AtomicRobustnessFormula(getPerturbation(),
+                new MaxIntervalDistanceExpression(
+                        new AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/120),
+                        START_INTERVAL1,
+                        END_INTERVAL1
+                ),
+                RelationOperator.LESS_THAN,
+                ETA1_
+        );
+        AtomicRobustnessFormula f3 = new AtomicRobustnessFormula(getPerturbation(),
+                new MaxIntervalDistanceExpression(
+                        new AtomicDistanceExpression(ds -> (ds.getValue(ch_wrn)==HOT?1.0:0.0)),
+                        START_INTERVAL1,
+                        END_OF_OBSERVATION
+                ),
+                RelationOperator.LESS_THAN,
+                ETA2
+        );
+        AtomicRobustnessFormula f4 = new AtomicRobustnessFormula(getPerturbation(),
+                new MinIntervalDistanceExpression(
+                        new AtomicDistanceExpression(ds -> ds.getValue(stress)),
+                        START_INTERVAL1,
+                        END_OF_OBSERVATION
+                ),
+                RelationOperator.GREATER_THAN,
+                ETA3
+        );
+        return new AlwaysRobustnenessFormula(
+             new ImplicationRobustnessFormula(
+                     new ConjunctionRobustnessFormula(f1, f2),
+                     new ConjunctionRobustnessFormula(f3, f4)
+             ),
+            0,
+            NUMBER_OF_STEPS_BEFORE_PERTURBATION
+        );
     }
 
 
@@ -86,13 +150,13 @@ public class Main {
                 Controller.ifThenElse(
                         variableRegistry.equalsTo("ch_speed", SLOW),
                         Controller.doAction(variableRegistry.set("speed", SLOW).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl")),
-                        Controller.doAction(variableRegistry.set("ch_in", SLOW).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl"))
+                        Controller.doAction(variableRegistry.set("speed", variableRegistry.get("ch_speed")).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl"))
                 )
         );
         registry.set("IDS",
                 Controller.ifThenElse(
                         variableRegistry.greaterThan("temp", 100.0).and(variableRegistry.equalsTo("cool", OFF)),
-                        Controller.doAction(variableRegistry.set("ch_wrn", HOT).compose(variableRegistry.set("ch_speed", LOW)).compose(variableRegistry.set("ch_out", OFF)),registry.get("IDS")),
+                        Controller.doAction(variableRegistry.set("ch_wrn", HOT).compose(variableRegistry.set("ch_speed", LOW)).compose(variableRegistry.set("ch_out", FULL)),registry.get("IDS")),
                         Controller.doAction(variableRegistry.set("ch_wrn", OK).compose(variableRegistry.set("ch_speed", HALF)).compose(variableRegistry.set("ch_out", HALF)),registry.get("IDS"))
                 )
         );
@@ -120,8 +184,20 @@ public class Main {
         if (isStressing(vP1, vP2, vP3, vP4, vP5, vP6)) {
             updates.add(new VariableUpdate(stress,Math.max(0,Math.min(1,vStress+STRESS_INCR))));
         }
-        updates.add(new VariableUpdate(temp, nextTempValue(vTemp, getTemperatureVariation(rg, vCool, vSpeed))));
+        double newTemp = nextTempValue(vTemp, getTemperatureVariation(rg, vCool, vSpeed));
+        updates.add(new VariableUpdate(temp, newTemp));
+        updates.add(new VariableUpdate(ch_temp, newTemp));
         return updates;
+    }
+
+    private static Perturbation getPerturbation() {
+        //return new AfterPerturbation(NUMBER_OF_STEPS_BEFORE_PERTURBATION, new IterativePerturbation(NUMBER_OF_PERTURBATIONS, new AtomicPerturbation(0, this::perturbationFunction)));
+        return new IterativePerturbation(NUMBER_OF_PERTURBATIONS, new AtomicPerturbation(0, Main::perturbationFunction));
+    }
+
+    private static DataState perturbationFunction(RandomGenerator rg, DataState state) {
+        double vTemp = state.getValue(temp);
+        return state.set(ch_temp, vTemp+ rg.nextDouble()*TEMP_OFFSET);
     }
 
     private static double nextTempValue(double vTemp, double v) {
@@ -145,10 +221,11 @@ public class Main {
         return DoubleStream.of(vP1, vP2, vP3, vP4, vP5, vP6).filter(d -> d>=100).count()>3;
     }
 
-    public static DataState getInitialState() {
+    public static DataState getInitialState(double vTemp) {
         Map<Variable, Double> values = new HashMap<>();
+        values.put(temp, vTemp);
         values.put(cool, OFF);
-        values.put(speed, SLOW);
+        values.put(speed, HALF);
         return new DataState(variableRegistry, values);
     }
 }

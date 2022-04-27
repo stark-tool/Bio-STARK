@@ -22,17 +22,34 @@
 
 package it.unicam.quasylab.jspear;
 
-public sealed interface RobustnessFormula permits
-        AtomicRobustnessFormula,
-        ConjunctionRobustnessFormula,
-        DisjunctionRobustnessFormula,
-        ImplicationRobustnessFormula,
-        NegationRobustnessFormula,
-        TrueRobustnessFormula,
-        UntilRobustnessFormula,
-        AlwaysRobustnenessFormula,
-        EventuallyRobustnessFormula {
+import java.util.Optional;
 
-    boolean eval(int sampleSize, int step, EvolutionSequence sequence);
+//TODO: Add comments.
+public final class AfterPerturbation implements Perturbation {
+    private final int steps;
+    private final IterativePerturbation body;
 
+    public AfterPerturbation(int steps, IterativePerturbation body) {
+        this.steps = steps;
+        this.body = body;
+    }
+
+    @Override
+    public Optional<DataStateFunction> effect() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Perturbation step() {
+        if (steps > 1) {
+            return new AfterPerturbation(steps-1, body);
+        } else {
+            return body;
+        }
+    }
+
+    @Override
+    public boolean isDone() {
+        return false;
+    }
 }

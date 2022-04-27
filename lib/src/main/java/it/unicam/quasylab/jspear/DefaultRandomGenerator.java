@@ -28,7 +28,7 @@ import java.util.Random;
 
 public class DefaultRandomGenerator extends AbstractRandomGenerator {
 
-    private Random random;
+    private Random random = new Random();
 
     @Override
     public void setSeed(long seed) {

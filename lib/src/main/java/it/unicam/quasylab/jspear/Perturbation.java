@@ -29,7 +29,7 @@ import java.util.Optional;
 /**
  * This interface model a perturbation applied to a given sample set.
  */
-public sealed interface Perturbation permits NonePerturbation, AtomicPerturbation, SequentialPerturbation, IterativePerturbation {
+public sealed interface Perturbation permits AfterPerturbation, AtomicPerturbation, IterativePerturbation, NonePerturbation, SequentialPerturbation {
 
 
     Perturbation NONE = new NonePerturbation();

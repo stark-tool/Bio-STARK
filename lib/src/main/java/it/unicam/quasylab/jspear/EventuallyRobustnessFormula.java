@@ -22,17 +22,9 @@
 
 package it.unicam.quasylab.jspear;
 
-public sealed interface RobustnessFormula permits
-        AtomicRobustnessFormula,
-        ConjunctionRobustnessFormula,
-        DisjunctionRobustnessFormula,
-        ImplicationRobustnessFormula,
-        NegationRobustnessFormula,
-        TrueRobustnessFormula,
-        UntilRobustnessFormula,
-        AlwaysRobustnenessFormula,
-        EventuallyRobustnessFormula {
-
-    boolean eval(int sampleSize, int step, EvolutionSequence sequence);
-
+public final class EventuallyRobustnessFormula implements RobustnessFormula {
+    @Override
+    public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
+        return false;
+    }
 }

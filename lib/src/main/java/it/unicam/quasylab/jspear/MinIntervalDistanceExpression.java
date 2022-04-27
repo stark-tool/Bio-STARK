@@ -46,7 +46,7 @@ public final class MinIntervalDistanceExpression implements DistanceExpression {
             throw new IllegalArgumentException();
         }
         return IntStream.range(from, to)
-                .parallel()
+                .sequential()
                 .mapToDouble(i -> argument.compute(i, seq1, seq2))
                 .min()
                 .orElse(Double.NaN);

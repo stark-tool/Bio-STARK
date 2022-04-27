@@ -122,6 +122,7 @@ public class EvolutionSequence {
     protected void doAdd(SampleSet<SystemState> sampling) {
         lastGenerated = sampling;
         sequence.add(lastGenerated);
+        System.out.println(lastGenerated.size());
     }
 
     protected SampleSet<SystemState> generateNextStep() {
