@@ -106,9 +106,9 @@ public class EvolutionSequence {
     }
 
     /**
-     * This method is used to generate the evolution sequence up to
+     * This method is used to generate the evolution sequence up to the given index.
      *
-     * @param n
+     * @param n index of the last generated samplings.
      */
     public synchronized void generateUpTo(int n) {
         while (getLastGeneratedStep()<n) {
@@ -160,7 +160,7 @@ public class EvolutionSequence {
         if (from<0) {
             throw new IllegalArgumentException();
         }
-        return new PerturbedEvolutionSequence(this.monitor, this.rg, subSequence(from-1), get(from), perturbation, size);
+        return new PerturbedEvolutionSequence(this.monitor, this.rg, subSequence(from-1), get(from).replica(size), perturbation);
     }
 
 }

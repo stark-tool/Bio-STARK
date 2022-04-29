@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -125,16 +124,26 @@ public class SampleSet<T extends SystemState> {
     }
 
     /**
-     * Returns a new sample set obtained by applying <code>k</code> times a given random function to all the elements of this sample set.
+     * Returns a new sample set obtained by applying a given function to all the elements of this sample set.
      * @param rg random generator used to sample random values.
      * @param function function used to generate a new element.
-     * @param k number of new elements generated from each existing element
      * @return a new sample set obtained by applying <code>k</code> times a given random function to all the elements of this sample set.
      */
-    public SampleSet<T> apply(RandomGenerator rg, BiFunction<RandomGenerator, T, T> function, int k) {
+    public SampleSet<T> apply(RandomGenerator rg, BiFunction<RandomGenerator, T, T> function) {
         return new SampleSet<>(
-                this.stream().parallel().flatMap(s -> IntStream.range(0, k).mapToObj(i -> function.apply(rg, s))).toList()
+                this.stream().parallel().map(s -> function.apply(rg, s)).toList()
         );
     }
 
+    /**
+     * Returns a sample set obtained from this one by replicating all the elements the given number of times.
+     *
+     * @param k number of copies.
+     * @return a sample set obtained from this one by replicating all the elements the given number of times.
+     */
+    public SampleSet<T> replica(int k) {
+        return new SampleSet<>(
+                this.stream().flatMap(e -> IntStream.range(0, k).mapToObj(i -> e)).toList()
+        );
+    }
 }

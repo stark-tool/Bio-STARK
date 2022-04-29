@@ -74,13 +74,13 @@ public class Main {
             Controller controller = getController();
             DataState state = getInitialState(INITIAL_TEMP_VALUE);
             ControlledSystem system = new ControlledSystem(controller, (rg, ds) -> ds.set(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), new DefaultRandomGenerator(), rg -> system, 10);
-            sequence.generateUpTo(20);
-            EvolutionSequence perturbedEvolutionSequence = sequence.apply(getPerturbation(),0,10);
-            perturbedEvolutionSequence.generateUpTo(1000);
+            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), new DefaultRandomGenerator(), rg -> system, 100);
+//            sequence.generateUpTo(1000);
+//            EvolutionSequence perturbedEvolutionSequence = sequence.apply(getPerturbation(),0,100);
 //            perturbedEvolutionSequence.generateUpTo(1000);
-            //RobustnessFormula formula = getFormula1();
-            //System.out.println(formula.eval(10, 0, sequence));
+//            perturbedEvolutionSequence.generateUpTo(1000);
+            RobustnessFormula formula = getRobustnessFormula();
+            System.out.println(formula.eval(100, 0, sequence));
         } catch (RuntimeException e) {
             e.printStackTrace();
         }

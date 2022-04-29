@@ -30,12 +30,10 @@ import java.util.Optional;
 public class PerturbedEvolutionSequence extends EvolutionSequence {
 
     private Perturbation p;
-    private final int size;
 
-    protected PerturbedEvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> last, Perturbation p, int size) {
+    protected PerturbedEvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> last, Perturbation p) {
         super(monitor, rg, originalSequence,last);
         this.p = p;
-        this.size = size;
         doAdd(doApply(last));
     }
 
@@ -49,7 +47,7 @@ public class PerturbedEvolutionSequence extends EvolutionSequence {
     protected synchronized SampleSet<SystemState> doApply(SampleSet<SystemState> sample) {
         Optional<DataStateFunction> perturbationFunction = this.p.effect();
         if (perturbationFunction.isPresent()) {
-            return sample.apply(getRandomGenerator(), (rg, s) -> s.apply(rg, perturbationFunction.get()), size);
+            return sample.apply(getRandomGenerator(), (rg, s) -> s.apply(rg, perturbationFunction.get()));
         } else {
             return sample;
         }
