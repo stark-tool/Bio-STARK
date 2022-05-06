@@ -101,7 +101,7 @@ public class SampleSet<T extends SystemState> {
         double[] otherData = other.evalPenaltyFunction(f);
         int k = otherData.length/thisData.length;
         return IntStream.range(0, thisData.length).parallel()
-                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, thisData[i]-otherData[i*k+j])).sum())
+                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, otherData[i*k+j]-thisData[i])).sum())
                 .sum()/otherData.length;
     }
 

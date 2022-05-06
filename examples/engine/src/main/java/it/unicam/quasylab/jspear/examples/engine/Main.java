@@ -25,13 +25,14 @@ package it.unicam.quasylab.jspear.examples.engine;
 import it.unicam.quasylab.jspear.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.DoubleStream;
 
 public class Main {
 
     public final static String[] VARIABLES =
-            new String[] { "P1", "P2", "P3", "P4", "P5", "P6", "stress",  "temp", "cool", "speed", "ch_temp", "ch_wrn", "ch_speed", "ch_out"};
+            new String[] { "P1", "P2", "P3", "P4", "P5", "P6", "stress",  "temp", "cool", "speed", "ch_temp", "ch_wrn", "ch_speed", "ch_out", "ch_in"};
     public final static double ON = 0;
     public final static double OFF = 1;
     public final static double SLOW = 2;
@@ -56,34 +57,53 @@ public class Main {
     private static final Variable cool = variableRegistry.getVariable("cool");
     private static final Variable speed = variableRegistry.getVariable("speed");
     private static final Variable ch_wrn = variableRegistry.getVariable("ch_wrn");
+
+    private static final Variable ch_in = variableRegistry.getVariable("ch_in");
+
     private static final double INITIAL_TEMP_VALUE = 95.0;
-    private static final double TEMP_OFFSET = -2;
-    private static final int NUMBER_OF_PERTURBATIONS = 5;
-    private static final int NUMBER_OF_STEPS_BEFORE_PERTURBATION = 100;
-    private static final double ETA1 = 0.5;
-    private static final double ETA1_ = 0.5;
+    private static final double TEMP_OFFSET = -20;
+    private static final int NUMBER_OF_PERTURBATIONS = 50;
+    private static final int NUMBER_OF_STEPS_BEFORE_PERTURBATION = 0;
+    private static final double ETA1 = 0.0;
+    private static final double ETA1_ = 1.0;
     private static final int START_INTERVAL1 = NUMBER_OF_STEPS_BEFORE_PERTURBATION;
     private static final int END_INTERVAL1 = NUMBER_OF_STEPS_BEFORE_PERTURBATION+NUMBER_OF_PERTURBATIONS-1;
     private static final int END_OF_OBSERVATION = 1000;
-    private static final double ETA2 = 0.5;
-    private static final double ETA3 = 0.5;
+    private static final double ETA2 = 1.0;
+    private static final double ETA3 = 0.0;
 
 
-    public static void main(String[] args) {
-        try {
+    public static void main(String[] args) throws IOException {
+//        try {
             Controller controller = getController();
             DataState state = getInitialState(INITIAL_TEMP_VALUE);
             ControlledSystem system = new ControlledSystem(controller, (rg, ds) -> ds.set(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), new DefaultRandomGenerator(), rg -> system, 100);
-//            sequence.generateUpTo(1000);
-//            EvolutionSequence perturbedEvolutionSequence = sequence.apply(getPerturbation(),0,100);
-//            perturbedEvolutionSequence.generateUpTo(1000);
-//            perturbedEvolutionSequence.generateUpTo(1000);
-            RobustnessFormula formula = getRobustnessFormula();
-            System.out.println(formula.eval(100, 0, sequence));
-        } catch (RuntimeException e) {
-            e.printStackTrace();
-        }
+            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), new DefaultRandomGenerator(), rg -> system, 10);
+            EvolutionSequence sequence2 = sequence.apply(getPerturbation(),0, 10);
+            sequence.generateUpTo(150);
+            sequence2.generateUpTo(150);
+            DistanceExpression expr = new MaxIntervalDistanceExpression(
+                    new AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/120),
+                    START_INTERVAL1,
+                    END_INTERVAL1
+            );
+            DistanceExpression expr2 = new AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/120);
+            Util.writeToCSV("./test.csv", Util.evalDataStateExpression(sequence, 200, ds -> ds.getValue(temp)));
+            Util.writeToCSV("./testDistance.csv", Util.evalDistanceExpression(sequence, sequence2, 200, expr, expr2));
+//            for(int i=0; i<100; i++) {
+//                System.out.println(i+" MAX> "+expr.compute(i,sequence, sequence2));
+//                System.out.println(i+" ATOM> "+new AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/120).compute(i,sequence, sequence2));
+//            }
+////            System.out.println(sequence.get(75).distance(ds -> ds.getValue(stress), sequence2.get(75)));
+////            sequence.generateUpTo(1000);
+////            EvolutionSequence perturbedEvolutionSequence = sequence.apply(getPerturbation(),0,100);
+////            perturbedEvolutionSequence.generateUpTo(1000);
+////            perturbedEvolutionSequence.generateUpTo(1000);
+////            RobustnessFormula formula = getFormula1();
+////            System.out.println(formula.eval(100, 0, sequence));
+//        } catch (RuntimeException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private static RobustnessFormula getFormula1() {
