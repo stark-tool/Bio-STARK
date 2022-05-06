@@ -150,7 +150,7 @@ public class Main {
                 Controller.ifThenElse(
                         variableRegistry.equalsTo("ch_speed", SLOW),
                         Controller.doAction(variableRegistry.set("speed", SLOW).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl")),
-                        Controller.doAction(variableRegistry.set("speed", variableRegistry.get("ch_speed")).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl"))
+                        Controller.doAction(variableRegistry.set("speed", variableRegistry.get("ch_in")).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl"))
                 )
         );
         registry.set("IDS",
