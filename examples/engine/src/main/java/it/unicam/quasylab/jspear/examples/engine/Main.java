@@ -65,12 +65,12 @@ public class Main {
     private static final int NUMBER_OF_PERTURBATIONS = 50;
     private static final int NUMBER_OF_STEPS_BEFORE_PERTURBATION = 0;
     private static final double ETA1 = 0.0;
-    private static final double ETA1_ = 1.0;
+    private static final double ETA2 = 1.0;
     private static final int START_INTERVAL1 = NUMBER_OF_STEPS_BEFORE_PERTURBATION;
     private static final int END_INTERVAL1 = NUMBER_OF_STEPS_BEFORE_PERTURBATION+NUMBER_OF_PERTURBATIONS-1;
     private static final int END_OF_OBSERVATION = 1000;
-    private static final double ETA2 = 1.0;
-    private static final double ETA3 = 0.0;
+    private static final double ETA3 = 1.0;
+    private static final double ETA4 = 0.0;
 
 
     public static void main(String[] args) throws IOException {
