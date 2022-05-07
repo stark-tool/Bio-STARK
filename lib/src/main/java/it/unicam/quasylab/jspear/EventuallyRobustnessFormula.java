@@ -22,9 +22,22 @@
 
 package it.unicam.quasylab.jspear;
 
+import java.util.stream.IntStream;
+
 public final class EventuallyRobustnessFormula implements RobustnessFormula {
+    private final RobustnessFormula arg;
+    private final int from;
+    private final int to;
+
+    public EventuallyRobustnessFormula(RobustnessFormula arg, int from, int to) {
+        this.arg = arg;
+        this.from = from;
+        this.to = to;
+    }
+
     @Override
     public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return false;
+        return IntStream.of(from, to).parallel().anyMatch(i -> arg.eval(sampleSize, step+i, sequence));
     }
+
 }
