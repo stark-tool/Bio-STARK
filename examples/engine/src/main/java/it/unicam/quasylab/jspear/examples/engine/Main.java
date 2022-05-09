@@ -98,7 +98,7 @@ public class Main {
             System.out.println("Evaluation of phi5 at step "+test_step+": "+PHI5.eval(100, test_step, sequence));
             System.out.println("Evaluation of phi at step 0: "+PHI.eval(100, 0, sequence));
 
-            DistanceExpression expr = new AtomicDistanceExpression(ds -> ds.getValue(temp));
+            DistanceExpression expr = new AtomicDistanceExpression(ds -> (ds.getValue(temp)/Math.abs(MAX_TEMP-MIN_TEMP)));
             DistanceExpression expr2 = new AtomicDistanceExpression(ds -> (ds.getValue(ch_wrn)==HOT?1.0:0.0));
             DistanceExpression expr3 = new AtomicDistanceExpression(ds -> ds.getValue(stress));
 
