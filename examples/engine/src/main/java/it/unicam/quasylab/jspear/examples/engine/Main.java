@@ -110,6 +110,27 @@ public class Main {
 
             Util.writeToCSV("./testStress.csv", Util.evalDistanceExpression(sequence, sequence2_tau, 90, 220, expr3));
 
+            int m = 100;
+            double[][] warn = new double[m][1];
+            double[][] st = new double[m][1];
+            for(int i=0; i<m; i++){
+                DistanceExpression MaxExpr2 = new MaxIntervalDistanceExpression(
+                        new AtomicDistanceExpression(ds -> (ds.getValue(ch_wrn)==HOT?1.0:0.0)),
+                        TAU+i,
+                        K+i
+                );
+                DistanceExpression MaxExpr3 = new MaxIntervalDistanceExpression(
+                        new AtomicDistanceExpression(ds -> ds.getValue(stress)),
+                        TAU+i,
+                        K+i
+                );
+                EvolutionSequence sequence3 = sequence.apply(getPerturbation(),TAU+i, 100);
+                warn[i][0] = MaxExpr2.compute(0,sequence,sequence3);
+                st[i][0] = MaxExpr3.compute(0,sequence,sequence3);
+            }
+            Util.writeToCSV("./testIntervalWarn.csv",warn);
+            Util.writeToCSV("./testIntervalSt.csv",st);
+
         } catch (RuntimeException e) {
             e.printStackTrace();
         }

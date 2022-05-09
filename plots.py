@@ -57,3 +57,25 @@ legend = ax.legend()
 plt.title("Variation of stress wrt different offset intervals")
 plt.savefig("stress.png")
 plt.show()
+
+WRN_max = numpy.genfromtxt("testIntervalWarn.csv", names=["wrn_max"])
+STRESS_max = numpy.genfromtxt("testIntervalSt.csv", names=["stress_max"])
+
+plt.plot(range(100,200),WRN_max['wrn_max'])
+plt.title("Evaluation of distances wrt warning over time")
+plt.savefig("time_wrn.png")
+plt.show()
+
+plt.plot(range(100,200),STRESS_max['stress_max'])
+plt.title("Evaluation of distances wrt stress over time")
+plt.savefig("time_stress.png")
+plt.show()
+
+
+fix, ax = plt.subplots()
+ax.plot(range(100,200),WRN_max['wrn_max'],label="warning")
+ax.plot(range(100,200),STRESS_max['stress_max'],label="stress")
+legend = ax.legend()
+plt.title("Evaluation of distances over time")
+plt.savefig("time.png")
+plt.show()
