@@ -63,16 +63,13 @@ public class Main {
     private static final double INITIAL_TEMP_VALUE = 95.0;
     private static final double TEMP_OFFSET = -1.5;
     private static final int N = 100;
-//    private static final int NUMBER_OF_STEPS_BEFORE_PERTURBATION = 500;
-    private static final double ETA1 = 0.0;
-    private static final double ETA2 = 0.02;
     private static final int TAU = 100;
     private static final int TAU2 = 250;
     private static final int TAU3 = 300;
- //   private static final int END_INTERVAL1 = NUMBER_OF_STEPS_BEFORE_PERTURBATION+NUMBER_OF_PERTURBATIONS-1;
     private static final int K = TAU+N+10;
-
     private static final int H = 5000;
+    private static final double ETA1 = 0.0;
+    private static final double ETA2 = 0.02;
     private static final double ETA3 = 0.035;
     private static final double ETA4 = 0.3;
 
@@ -91,25 +88,28 @@ public class Main {
             RobustnessFormula PHI2 = getFormula2();
             RobustnessFormula PHI3 = getFormula3();
             RobustnessFormula PHI4 = getFormula4();
-            RobustnessFormula PHI5 = new ImplicationRobustnessFormula(
-                     new ConjunctionRobustnessFormula(PHI1, PHI2),
-                     new ConjunctionRobustnessFormula(PHI3, PHI4)
-            );
+            RobustnessFormula PHI5 = getFormula5();
             RobustnessFormula PHI = getFinalFormula();
-            System.out.println("Evaluation of phi1 "+PHI1.eval(100, 50, sequence));
-            System.out.println("Evaluation of phi2 "+PHI2.eval(100, 50, sequence));
-            System.out.println("Evaluation of phi3 "+PHI3.eval(100, 50, sequence));
-            System.out.println("Evaluation of phi4 "+PHI4.eval(100, 50, sequence));
-            System.out.println("Evaluation of phi5 "+PHI5.eval(100, 50, sequence));
-            System.out.println("Evaluation of phi " + PHI.eval(100, 0, sequence));
+            int test_step = 50;
+            System.out.println("Evaluation of phi1 at step "+test_step+": "+PHI1.eval(100, test_step, sequence));
+            System.out.println("Evaluation of phi2 at step "+test_step+": "+PHI2.eval(100, test_step, sequence));
+            System.out.println("Evaluation of phi3 at step "+test_step+": "+PHI3.eval(100, test_step, sequence));
+            System.out.println("Evaluation of phi4 at step "+test_step+": "+PHI4.eval(100, test_step, sequence));
+            System.out.println("Evaluation of phi5 at step "+test_step+": "+PHI5.eval(100, test_step, sequence));
+            System.out.println("Evaluation of phi at step 0: "+PHI.eval(100, 0, sequence));
 
             DistanceExpression expr = new AtomicDistanceExpression(ds -> ds.getValue(temp));
             DistanceExpression expr2 = new AtomicDistanceExpression(ds -> (ds.getValue(ch_wrn)==HOT?1.0:0.0));
             DistanceExpression expr3 = new AtomicDistanceExpression(ds -> ds.getValue(stress));
 
+            Util.writeToCSV("./testTemperature.csv", Util.evalDistanceExpression(sequence, sequence2_tau, 90, 300, expr));
+
             Util.writeToCSV("./testWarning_tau.csv", Util.evalDistanceExpression(sequence, sequence2_tau, 90, 210, expr2));
             Util.writeToCSV("./testWarning_tau2.csv", Util.evalDistanceExpression(sequence, sequence2_tau2, 240,360, expr2));
             Util.writeToCSV("./testWarning_tau3.csv", Util.evalDistanceExpression(sequence, sequence2_tau3, 290, 410, expr2));
+
+            Util.writeToCSV("./testStress.csv", Util.evalDistanceExpression(sequence, sequence2_tau, 90, 220, expr3));
+
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
@@ -178,59 +178,12 @@ public class Main {
     }
 
 
-
-    private static RobustnessFormula getRobustnessFormula() {
-        RobustnessFormula f1 = getFormula1();
-        AtomicRobustnessFormula f2 = new AtomicRobustnessFormula(getPerturbation(),
-                new MaxIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
-                        TAU,
-                        TAU+N-1
-                ),
-                RelationOperator.LESS_THAN,
-                ETA2
-        );
-        AtomicRobustnessFormula f3 = new AtomicRobustnessFormula(getPerturbation(),
-                new MaxIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> (ds.getValue(ch_wrn)==HOT?1.0:0.0)),
-                        TAU,
-                        K
-                ),
-                RelationOperator.LESS_THAN,
-                ETA3
-        );
-        AtomicRobustnessFormula f4 = new AtomicRobustnessFormula(getPerturbation(),
-                new MinIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> ds.getValue(stress)),
-                        TAU,
-                        K
-                ),
-                RelationOperator.GREATER_OR_EQUAL_THAN,
-                ETA4
-        );
-        return new EventuallyRobustnessFormula(
-             new ImplicationRobustnessFormula(
-                     new ConjunctionRobustnessFormula(f1, f2),
-                     new ConjunctionRobustnessFormula(f3, f4)
-             ),
-            1,
-            H
-        );
-    }
-
-
     public static Controller getController() {
         ControllerRegistry registry = new ControllerRegistry();
         registry.set("Ctrl",
                 Controller.ifThenElse(
                         variableRegistry.greaterOrEqualThan("ch_temp", 99.8),
                         Controller.doAction(variableRegistry.set("cool", ON), registry.get("Cooling")),
-                        //Controller.doTick(registry.get("Check"))));
-                        //Controller.ifThenElse(
-                        //        variableRegistry.equalsTo("ch_speed", SLOW),
-                        //        Controller.doAction(variableRegistry.set("speed", SLOW).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl")),
-                        //        Controller.doAction(variableRegistry.set("speed", variableRegistry.get("ch_in")).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl"))
-                        //)
                         registry.get("Check")
                 ));
         registry.set("Cooling",Controller.doTick(4, registry.get("Check")));
@@ -279,7 +232,6 @@ public class Main {
     }
 
     private static Perturbation getPerturbation() {
-        //return new AfterPerturbation(NUMBER_OF_STEPS_BEFORE_PERTURBATION, new IterativePerturbation(NUMBER_OF_PERTURBATIONS, new AtomicPerturbation(0, this::perturbationFunction)));
         return new IterativePerturbation(N, new AtomicPerturbation(0, Main::perturbationFunction));
     }
 
