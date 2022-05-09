@@ -61,18 +61,20 @@ public class Main {
     private static final Variable ch_in = variableRegistry.getVariable("ch_in");
 
     private static final double INITIAL_TEMP_VALUE = 95.0;
-    private static final double TEMP_OFFSET = -1;
+    private static final double TEMP_OFFSET = -1.5;
     private static final int N = 100;
-    //    private static final int NUMBER_OF_STEPS_BEFORE_PERTURBATION = 250;
+//    private static final int NUMBER_OF_STEPS_BEFORE_PERTURBATION = 500;
     private static final double ETA1 = 0.0;
-    private static final double ETA2 = 0.3;
-    private static final int TAU = 250;
-    //   private static final int END_INTERVAL1 = NUMBER_OF_STEPS_BEFORE_PERTURBATION+NUMBER_OF_PERTURBATIONS-1;
+    private static final double ETA2 = 0.02;
+    private static final int TAU = 100;
+    private static final int TAU2 = 250;
+    private static final int TAU3 = 300;
+ //   private static final int END_INTERVAL1 = NUMBER_OF_STEPS_BEFORE_PERTURBATION+NUMBER_OF_PERTURBATIONS-1;
     private static final int K = TAU+N+10;
 
     private static final int H = 5000;
-    private static final double ETA3 = 0.1;
-    private static final double ETA4 = 0.4;
+    private static final double ETA3 = 0.035;
+    private static final double ETA4 = 0.3;
 
 
     public static void main(String[] args) throws IOException {
@@ -80,49 +82,38 @@ public class Main {
             Controller controller = getController();
             DataState state = getInitialState(INITIAL_TEMP_VALUE);
             ControlledSystem system = new ControlledSystem(controller, (rg, ds) -> ds.set(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, 100);
-            EvolutionSequence sequence2 = sequence.apply(getPerturbation(),TAU, 100);
-            sequence.generateUpTo(500);
-            sequence2.generateUpTo(500);
-            DistanceExpression expr =
-                    //new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpression(ds -> ds.getValue(stress));
-            //AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/120),
-            //TAU,
-            //TAU+N-1
-            //);
-            DistanceExpression expr2 =
-                    new AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP));
-//            Util.writeToCSV("./test.csv", Util.evalDataStateExpression(sequence, 200, ds -> ds.getValue(temp)));
-            //           Util.writeToCSV("./testDistance.csv", Util.evalDistanceExpression(sequence, sequence2, 200, expr, expr2));
-            for(int i=0; i<500; i++) {
-                System.out.println(i+" stress "+expr.compute(i,sequence, sequence2));
-                System.out.println(i+" temperature "+expr2.compute(i,sequence, sequence2));
-            }
-//            System.out.println(sequence.get(75).distance(ds -> ds.getValue(stress), sequence2.get(75)));
-//            sequence.generateUpTo(1000);
-//            EvolutionSequence perturbedEvolutionSequence = sequence.apply(getPerturbation(),0,100);
-//            perturbedEvolutionSequence.generateUpTo(1000);
-//            perturbedEvolutionSequence.generateUpTo(1000);
-//            RobustnessFormula PHI1 = getFormula1();
-//            RobustnessFormula PHI2 = getFormula2();
-//            RobustnessFormula PHI3 = getFormula3();
-//            RobustnessFormula PHI4 = getFormula4();
-//            RobustnessFormula PHI5 = new ImplicationRobustnessFormula(
-//                    new ConjunctionRobustnessFormula(PHI1, PHI2),
-//                    new ConjunctionRobustnessFormula(PHI3, PHI4)
-//            );
-//            RobustnessFormula PHI = getFinalFormula();
-//            System.out.println("Evaluation of phi1 "+PHI1.eval(100, 50, sequence));
-//            System.out.println("Evaluation of phi2 "+PHI2.eval(100, 50, sequence));
-//            System.out.println("Evaluation of phi3 "+PHI3.eval(100, 50, sequence));
-//            System.out.println("Evaluation of phi4 "+PHI4.eval(100, 50, sequence));
-//            System.out.println("Evaluation of phi5 "+PHI5.eval(100, 50, sequence));
-//            System.out.println("Evaluation of phi "+PHI.eval(100, 0, sequence));
+            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), new DefaultRandomGenerator(), rg -> system, 100);
+            EvolutionSequence sequence2_tau = sequence.apply(getPerturbation(),TAU, 100);
+            EvolutionSequence sequence2_tau2 = sequence.apply(getPerturbation(),TAU2, 100);
+            EvolutionSequence sequence2_tau3 = sequence.apply(getPerturbation(),TAU3, 100);
+
+            RobustnessFormula PHI1 = getFormula1();
+            RobustnessFormula PHI2 = getFormula2();
+            RobustnessFormula PHI3 = getFormula3();
+            RobustnessFormula PHI4 = getFormula4();
+            RobustnessFormula PHI5 = new ImplicationRobustnessFormula(
+                     new ConjunctionRobustnessFormula(PHI1, PHI2),
+                     new ConjunctionRobustnessFormula(PHI3, PHI4)
+            );
+            RobustnessFormula PHI = getFinalFormula();
+            System.out.println("Evaluation of phi1 "+PHI1.eval(100, 50, sequence));
+            System.out.println("Evaluation of phi2 "+PHI2.eval(100, 50, sequence));
+            System.out.println("Evaluation of phi3 "+PHI3.eval(100, 50, sequence));
+            System.out.println("Evaluation of phi4 "+PHI4.eval(100, 50, sequence));
+            System.out.println("Evaluation of phi5 "+PHI5.eval(100, 50, sequence));
+            System.out.println("Evaluation of phi " + PHI.eval(100, 0, sequence));
+
+            DistanceExpression expr = new AtomicDistanceExpression(ds -> ds.getValue(temp));
+            DistanceExpression expr2 = new AtomicDistanceExpression(ds -> (ds.getValue(ch_wrn)==HOT?1.0:0.0));
+            DistanceExpression expr3 = new AtomicDistanceExpression(ds -> ds.getValue(stress));
+
+            Util.writeToCSV("./testWarning_tau.csv", Util.evalDistanceExpression(sequence, sequence2_tau, 90, 210, expr2));
+            Util.writeToCSV("./testWarning_tau2.csv", Util.evalDistanceExpression(sequence, sequence2_tau2, 240,360, expr2));
+            Util.writeToCSV("./testWarning_tau3.csv", Util.evalDistanceExpression(sequence, sequence2_tau3, 290, 410, expr2));
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
-    }
+   }
 
     private static RobustnessFormula getFormula1() {
         return new AtomicRobustnessFormula(getPerturbation(),
@@ -192,7 +183,7 @@ public class Main {
         RobustnessFormula f1 = getFormula1();
         AtomicRobustnessFormula f2 = new AtomicRobustnessFormula(getPerturbation(),
                 new MaxIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/120),
+                        new AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
                         TAU,
                         TAU+N-1
                 ),
@@ -217,13 +208,13 @@ public class Main {
                 RelationOperator.GREATER_OR_EQUAL_THAN,
                 ETA4
         );
-        return new AlwaysRobustnenessFormula(
-                new ImplicationRobustnessFormula(
-                        new ConjunctionRobustnessFormula(f1, f2),
-                        new ConjunctionRobustnessFormula(f3, f4)
-                ),
-                1,
-                H
+        return new EventuallyRobustnessFormula(
+             new ImplicationRobustnessFormula(
+                     new ConjunctionRobustnessFormula(f1, f2),
+                     new ConjunctionRobustnessFormula(f3, f4)
+             ),
+            1,
+            H
         );
     }
 
@@ -234,7 +225,14 @@ public class Main {
                 Controller.ifThenElse(
                         variableRegistry.greaterOrEqualThan("ch_temp", 99.8),
                         Controller.doAction(variableRegistry.set("cool", ON), registry.get("Cooling")),
-                        Controller.doTick(registry.get("Check"))));
+                        //Controller.doTick(registry.get("Check"))));
+                        //Controller.ifThenElse(
+                        //        variableRegistry.equalsTo("ch_speed", SLOW),
+                        //        Controller.doAction(variableRegistry.set("speed", SLOW).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl")),
+                        //        Controller.doAction(variableRegistry.set("speed", variableRegistry.get("ch_in")).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl"))
+                        //)
+                        registry.get("Check")
+                ));
         registry.set("Cooling",Controller.doTick(4, registry.get("Check")));
         registry.set("Check",
                 Controller.ifThenElse(
@@ -245,7 +243,7 @@ public class Main {
         );
         registry.set("IDS",
                 Controller.ifThenElse(
-                        variableRegistry.greaterThan("temp", 100.0).and(variableRegistry.equalsTo("cool", OFF)),
+                        variableRegistry.greaterThan("temp", 101.0).and(variableRegistry.equalsTo("cool", OFF)),
                         Controller.doAction(variableRegistry.set("ch_wrn", HOT).compose(variableRegistry.set("ch_speed", LOW)).compose(variableRegistry.set("ch_out", FULL)),registry.get("IDS")),
                         Controller.doAction(variableRegistry.set("ch_wrn", OK).compose(variableRegistry.set("ch_speed", HALF)).compose(variableRegistry.set("ch_out", HALF)),registry.get("IDS"))
                 )
@@ -316,6 +314,13 @@ public class Main {
         values.put(temp, vTemp);
         values.put(cool, OFF);
         values.put(speed, HALF);
+        values.put(ch_in, HALF);
+        values.put(p1, vTemp);
+        values.put(p2, vTemp);
+        values.put(p3, vTemp);
+        values.put(p4, vTemp);
+        values.put(p5, vTemp);
+        values.put(p6, vTemp);
         return new DataState(variableRegistry, values);
     }
 }
