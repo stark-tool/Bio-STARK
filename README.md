@@ -15,7 +15,7 @@ Hence, JSPEAR includes:
  * A function that permits evaluating a distance expression between an evolution sequence and its perturbed variant. A distance expression is evaluated, following a syntax driven procedure, by applying the estimation of the Wasserstein distance considered in the previous step at the involved time steps. 
  * A procedure that checks if a given evolution sequence satisfies a given formula.
 
-The [lib](./lib) folder contains all the JAVA classes that are necessary to implement all the procedures, mechanisms, and functions described above.
+The [lib](./lib) folder contains all the [JAVA classes](./lib/src/main/java/it/unicam/quasylab/jspear/) that are necessary to implement all the procedures, mechanisms, and functions described above.
 
 In the [examples/engine](./examples/engine) folder you can find the script [Main.java](./examples/engine/src/main/java/it/unicam/quasylab/jspear/examples/engine/Main.java) containing various tests showcasing the various features of JSPEAR over the case study of a refrigerated engine system that is subject to cyber-physical attacks aimed at inflicting overstress of equipment. 
 
