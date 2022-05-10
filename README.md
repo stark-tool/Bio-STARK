@@ -30,3 +30,30 @@ git clone https://github.com/quasylab/jspear.git
 ```
 
 Run this command in the folder where you want to download the tool.
+
+## How to run experiments
+
+You will need
+* A text editor or IDE (we used [IntelliJ IDEA](https://www.jetbrains.com/idea/))
+* A JAVA Development Kit (JDK). We used version 18. To ensure compatibility with Gradle, please use any version between 8 and 18.
+* A [Gradle](https://docs.gradle.org/current/userguide/userguide.html) distribution. We used version 7.4.2.
+
+Firstly, you need to review the files in the project directory by executing:
+
+settings.gradle
+
+Then, you simply need to run the Main.java file:
+
+java Main
+
+To obtain the plots, Python3 (>= 3.9) is needed. Moreover, the following Python packages must be available:
+
+    numpy >= 1.18.4
+    scipy >= 1.4.1
+    matplotlib >= 3.0.3
+
+If all the needed packages are installed in your system, you have to execute:
+
+python plots.py
+
+after you have obtained the CSV files generated from the JAVA script.
