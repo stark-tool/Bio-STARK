@@ -45,7 +45,7 @@ public final class MinIntervalDistanceExpression implements DistanceExpression {
         if (step<0) {
             throw new IllegalArgumentException();
         }
-        return IntStream.range(from, to)
+        return IntStream.range(from+step, to+step)
                 .sequential()
                 .mapToDouble(i -> argument.compute(i, seq1, seq2))
                 .min()
