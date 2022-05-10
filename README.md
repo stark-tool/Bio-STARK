@@ -23,7 +23,7 @@ We have used the Python script [plots.py](./plots.py) to draw plots from the CSV
 
 ## Download 
 
-To download JSPEAR you have just to clone GitHub project:
+To download JSPEAR you have to clone the GitHub project:
 
 ```
 git clone https://github.com/quasylab/jspear.git
