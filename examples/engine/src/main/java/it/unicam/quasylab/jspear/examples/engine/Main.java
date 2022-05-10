@@ -120,6 +120,7 @@ public class Main {
                     TAU,
                     K
             );
+
             int m = 50;
             double[][] warn = new double[m][1];
             double[][] st = new double[m][1];
@@ -128,6 +129,7 @@ public class Main {
                 warn[i][0] = MaxExpr2.compute(i,sequence,sequence3);
                 st[i][0] = MaxExpr3.compute(i,sequence,sequence3);
             }
+
             Util.writeToCSV("./testIntervalWarn.csv",warn);
             Util.writeToCSV("./testIntervalSt.csv",st);
 

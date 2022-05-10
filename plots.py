@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon May  9 13:45:11 2022
-
-@author: valentinac
-"""
 
 
 import numpy.random as rnd
