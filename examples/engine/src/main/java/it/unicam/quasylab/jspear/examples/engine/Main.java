@@ -120,7 +120,7 @@ public class Main {
                     TAU,
                     K
             );
-            int m = 100;
+            int m = 50;
             double[][] warn = new double[m][1];
             double[][] st = new double[m][1];
             for(int i=0; i<m; i++){
