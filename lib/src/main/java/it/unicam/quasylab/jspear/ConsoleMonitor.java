@@ -34,15 +34,15 @@ public class ConsoleMonitor implements SimulationMonitor {
 
     @Override
     public void startSamplingsOfStep(int step) {
-        //System.out.println(label+": Sampling of step "+step+" started.");
+        System.out.println(label+": Sampling of step "+step+" started.");
         last = System.currentTimeMillis();
     }
 
     @Override
     public void endSamplingsOfStep(int step) {
         long elapsed = System.currentTimeMillis() - last;
-        //System.out.println(label+": Sampling of step "+step+" completed.");
-        //System.out.println(label+": Elapsed time "+(elapsed/1000.0)+"s");
+        System.out.println(label+": Sampling of step "+step+" completed.");
+        System.out.println(label+": Elapsed time "+(elapsed/1000.0)+"s");
     }
 
     @Override
