@@ -12,3 +12,4 @@ rootProject.name = 'it.unicam.quasylab.jspear'
 include('lib')
 include('examples')
 include('examples:engine')
+include('examples:vehicle')
