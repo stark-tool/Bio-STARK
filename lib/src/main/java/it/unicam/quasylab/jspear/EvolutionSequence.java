@@ -168,4 +168,10 @@ public class EvolutionSequence {
         return new PerturbedEvolutionSequence(this.monitor, this.rg, subSequence(from-1), get(from).replica(size), perturbation);
     }
 
+    public double[] compute(Perturbation perturbation, int from, int size, DistanceExpression expr, int t1, int t2) {
+        return expr.compute(t1, t2, this, this.apply(perturbation, from, size));
+    }
+
+
+
 }
