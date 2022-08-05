@@ -41,4 +41,10 @@ class SpecificationLoaderTest {
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(RANDOM_WALK)).openStream());
         assertNotNull(spec);
     }
+    @Test
+    void loadEngineSpecification() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(ENGINE)).openStream());
+        assertNotNull(spec);
+    }
 }

@@ -1,23 +1,27 @@
-parameter MIN_TEMP = 0;
-parameter MAX_TEMP = 120;
-parameter STRESS_INCR = 0.1;
+
+param MIN_TEMP = 0;
+param MAX_TEMP = 120;
+param STRESS_INCR = 0.1;
+
 
 type speed_value = LOW|HALF|FULL;
 type warning_value = OK|HOT;
 
+
 variables {
-  real[MIN_TEMP, MAX_TEMP] P[6];
-  real[0,1] stress;
-  real[MIN_TEMP, MAX_TEMP] temp;
-  boolean cool;
+  array P range [MIN_TEMP, MAX_TEMP];
+  real stress range [0,1];
+  real temp range [MIN_TEMP, MAX_TEMP];
+  bool cool;
   speed_value speed;
-  real[MIN_TEMP, MAX_TEMP] ch_temp;
+  real ch_temp range [MIN_TEMP, MAX_TEMP];
   warning_value ch_wrn;
   speed_value ch_speed;
   speed_value ch_out;
   speed_value ch_in;
 }
 
+/*
 function temperatureUpdateInOneStep(boolean cool, speed_value speed) {
   if (cool) {
     return U[-1.2, -0.8];
@@ -100,3 +104,4 @@ controller {
   }
   state ENG = Ctrl||IDS
 }
+*/
