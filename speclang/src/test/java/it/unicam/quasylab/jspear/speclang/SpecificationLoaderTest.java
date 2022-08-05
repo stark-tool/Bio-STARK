@@ -32,12 +32,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SpecificationLoaderTest {
 
-    public static final String CODE1 = "./RandomWalk.jspec";
+    public static final String RANDOM_WALK = "./RandomWalk.jspec";
+    public static final String ENGINE = "./Engine.jspec";
 
     @Test
-    void loadSpecificationFromCode1() throws IOException {
+    void loadRandomWalkSpecification() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
-        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(CODE1)).openStream());
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(RANDOM_WALK)).openStream());
         assertNotNull(spec);
     }
 }

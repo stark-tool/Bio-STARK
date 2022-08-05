@@ -1,0 +1,102 @@
+parameter MIN_TEMP = 0;
+parameter MAX_TEMP = 120;
+parameter STRESS_INCR = 0.1;
+
+type speed_value = LOW|HALF|FULL;
+type warning_value = OK|HOT;
+
+variables {
+  real[MIN_TEMP, MAX_TEMP] P[6];
+  real[0,1] stress;
+  real[MIN_TEMP, MAX_TEMP] temp;
+  boolean cool;
+  speed_value speed;
+  real[MIN_TEMP, MAX_TEMP] ch_temp;
+  warning_value ch_wrn;
+  speed_value ch_speed;
+  speed_value ch_out;
+  speed_value ch_in;
+}
+
+function temperatureUpdateInOneStep(boolean cool, speed_value speed) {
+  if (cool) {
+    return U[-1.2, -0.8];
+  } else {
+    switch (speed) {
+      case SLOW: return U[0.1, 0.3];
+      case HALF: return U[0.3, 0.7];
+      case FULL: return U[0.7, 1.2];
+    }
+  }
+}
+
+function isStressed(real P[]) {
+  int counter = 0;
+  for(int i=0; P.length; i++) {
+    if (P[i]>100) {
+      counter = counter+1;
+    }
+  }
+  return (counter>3);
+}
+
+function isStressed(real P[]) {
+  return P.count(it > 100)>3;
+}
+
+
+environment {
+  let deltaTemp = temperatureUpdateInOneStep(cool, speed)
+  in
+    temp' = temp + deltaTemp;
+    ch_temp' = ch_temp + deltaTemp;
+    P'[2..6] = P[1..5];
+    P'[1] = temp;
+    when isStressed(P) stress' = stress+STRESS_INCR;
+}
+
+controller {
+  state Ctrl = if (ch_temp >= 99.8) Cooling{ cool' = ON; } else Check;
+  state Check = if (ch_speed == SLOW) Ctrl{ speed' = SLOW; cool' = OFF; } else
+                  Ctrl{ speed' = ch_in; cool' = OFF; }
+  state Cooling = skip*4.Check
+  state IDS = if (temp>101.0)&(cool=OFF) then IDS{ ch_wrn' = HOT; ch_speed' = LOW; ch_out'=FULL;}
+    else IDS{ ch_wrn' = OK; ch_speed' = HALF; ch_out' = HALF;}
+  state ENG = Ctrl||IDS
+}
+
+controller {
+  state Ctrl {
+    if (ch_temp >= 99.8) {
+      cool' = ON;
+      step Cooling;
+    } else {
+      exec Check;
+    }
+  }
+  state Check {
+    if (ch_speed == SLOW) {
+      speed' = SLOW;
+      cool' = OFF;
+      step Ctrl;
+    } else {
+      speed' = ch_in;
+      cool' = OFF;
+      step Ctrl;
+    }
+  }
+  state Cooling {
+    4*skip;
+    exec Check;
+  }
+  state IDS {
+    if (temp>101.0)&(cool=OFF) {
+      ch_wrn' = HOT; ch_speed' = LOW; ch_out'=FULL;
+      step IDS;
+    } else {
+      ch_wrn' = OK; ch_speed' = HALF; ch_out' = HALF;
+      step IDS;
+    }
+  }
+  state ENG = Ctrl||IDS
+}
