@@ -22,6 +22,7 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
+import com.google.gson.internal.LinkedHashTreeMap;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
@@ -38,6 +39,12 @@ public class SymbolTable implements TypeContext {
     private final Map<String, JSpearSpecificationLanguageParser.ConstantDeclarationContext> constants = new HashMap<>();
 
     private final Map<String, JSpearSpecificationLanguageParser.ParameterDeclarationContext> parameters = new HashMap<>();
+
+    private final Map<String, JSpearSpecificationLanguageParser.PenaltyDeclarationContext> penalties = new HashMap<>();
+
+    private final Map<String, JSpearSpecificationLanguageParser.StateDeclarationContext> states = new HashMap<>();
+
+    private final Map<String, JSpearSpecificationLanguageParser.SystemDeclarationContext> systems = new HashMap<>();
 
     private final Map<String, JSpearType> typesOfRefereneableElements = new HashMap<>();
     private final Map<String, JSpearType[]> functionArguments = new HashMap<>();
@@ -106,34 +113,57 @@ public class SymbolTable implements TypeContext {
     }
 
     public void recordConstant(String name, JSpearType type, JSpearSpecificationLanguageParser.ConstantDeclarationContext ctx) {
+        if (symbols.containsKey(name)) {
+            throw new IllegalArgumentException();
+        }
+        this.symbols.put(name, ctx);
         this.constants.put(name, ctx);
         this.typesOfRefereneableElements.put(name, type);
     }
 
     public void recordParameter(String name, JSpearType type, JSpearSpecificationLanguageParser.ParameterDeclarationContext ctx) {
+        if (symbols.containsKey(name)) {
+            throw new IllegalArgumentException();
+        }
+        this.symbols.put(name, ctx);
         this.parameters.put(name, ctx);
         this.typesOfRefereneableElements.put(name, type);
     }
 
     public void recordVariable(String name, JSpearType type, JSpearSpecificationLanguageParser.VariableDeclarationContext ctx) {
+        if (symbols.containsKey(name)) {
+            throw new IllegalArgumentException();
+        }
+        this.symbols.put(name, ctx);
         this.variables.put(name, ctx);
         this.typesOfRefereneableElements.put(name, type);
     }
 
     public void recordPenaltyFunction(String name, JSpearSpecificationLanguageParser.PenaltyDeclarationContext ctx) {
-        //TODO: FIXME!
+        if (symbols.containsKey(name)) {
+            throw new IllegalArgumentException();
+        }
+        this.symbols.put(name, ctx);
+        this.penalties.put(name, ctx);
     }
 
-    public void recordControllerState(String text, JSpearSpecificationLanguageParser.StateDeclarationContext state) {
-        //TODO: FIXME!
+    public void recordControllerState(String name, JSpearSpecificationLanguageParser.StateDeclarationContext ctx) {
+        if (symbols.containsKey(name)) {
+            throw new IllegalArgumentException();
+        }
+        this.symbols.put(name, ctx);
+        this.states.put(name, ctx);
     }
 
-    public boolean isAState(String text) {
-        //TODO: FIXME!
-        return false;
+    public boolean isAState(String name) {
+        return this.states.containsKey(name);
     }
 
-    public void recordSystemDeclaration(Token name, JSpearSpecificationLanguageParser.SystemDeclarationContext ctx) {
-        //TODO: FIXME!
+    public void recordSystemDeclaration(String name, JSpearSpecificationLanguageParser.SystemDeclarationContext ctx) {
+        if (symbols.containsKey(name)) {
+            throw new IllegalArgumentException();
+        }
+        this.symbols.put(name, ctx);
+        this.systems.put(name, ctx);
     }
 }

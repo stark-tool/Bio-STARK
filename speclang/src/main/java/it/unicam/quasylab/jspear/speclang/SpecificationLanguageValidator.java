@@ -95,7 +95,7 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
     @Override
     public Boolean visitSystemDeclaration(JSpearSpecificationLanguageParser.SystemDeclarationContext ctx) {
         if (checkIfNotDuplicated(ctx.name.getText(), ctx)) {
-            this.symbols.recordSystemDeclaration(ctx.name, ctx);
+            this.symbols.recordSystemDeclaration(ctx.name.getText(), ctx);
             boolean flag = true;
             for (JSpearSpecificationLanguageParser.InitialAssignmentContext init: ctx.initialAssignments) {
                 flag &= init.accept(this);
