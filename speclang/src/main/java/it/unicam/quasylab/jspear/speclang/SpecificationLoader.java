@@ -22,6 +22,18 @@
 package it.unicam.quasylab.jspear.speclang;
 
 import it.unicam.quasylab.jspear.SystemSpecification;
+import it.unicam.quasylab.jspear.VariableRegistry;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.function.Consumer;
 
 public class SpecificationLoader {
 
@@ -33,34 +45,77 @@ public class SpecificationLoader {
     }
 
 
-
-    SystemSpecification load(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext model) {
-        checkSingleVariableDefinition(model);
-        checkSingleEnvironmentDeclaration(model);
-        checkSingleControllerDeclaration(model);
-        validateModel(model);
-        return null;
+    private ParseTree getParseTree(CharStream source) {
+        JSpearSpecificationLanguageLexer lexer = new JSpearSpecificationLanguageLexer(source);
+        CommonTokenStream tokens =  new CommonTokenStream(lexer);
+        JSpearSpecificationLanguageParser parser = new JSpearSpecificationLanguageParser(tokens);
+        ParseErrorListener errorListener = new ParseErrorListener(errors);
+        parser.addErrorListener(errorListener);
+        JSpearSpecificationLanguageParser.JSpearSpecificationModelContext parseTree = parser.jSpearSpecificationModel();
+        if (errors.withErrors()) {
+            return null;
+        } else {
+            return parseTree;
+        }
     }
 
-    private void validateModel(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext model) {
+    public SystemSpecification loadSpecification(CharStream source) {
+        ParseTree parseTree = getParseTree(source);
+        if (parseTree != null) {
+            return load(parseTree);
+        } else {
+            return null;
+        }
+    }
+
+    public SystemSpecification loadSpecification(InputStream code) throws IOException {
+        return loadSpecification(CharStreams.fromStream(code));
+    }
+
+    public SystemSpecification loadSpecification(String code) {
+        return loadSpecification(CharStreams.fromString(code));
+    }
+
+    public SystemSpecification loadSpecification(File file) throws IOException {
+        return loadSpecification(CharStreams.fromReader(new FileReader(file)));
+    }
+
+    private SystemSpecification load(ParseTree model) {
+        doTask(this::checkSingleControllerDeclaration, model);
+        doTask(this::checkSingleEnvironmentDeclaration, model);
+        doTask(this::checkSingleVariableDefinition, model);
+        doTask(this::validateModel, model);
+        if (errors.withErrors()) {
+            return null;
+        }
+        return new SystemSpecification(new VariableRegistry(), new HashMap<>(), new HashMap<>());
+    }
+
+    private void doTask(Consumer<ParseTree> task, ParseTree model) {
+        if (!errors.withErrors()) {
+            task.accept(model);
+        }
+    }
+
+    private void validateModel(ParseTree model) {
         model.accept(new SpecificationLanguageValidator(this.errors));
     }
 
-    private void checkSingleEnvironmentDeclaration(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext model) {
+    private void checkSingleEnvironmentDeclaration(ParseTree model) {
         int elements = model.accept(new ElementBlockCounter(ElementType.ENVIRONMENT_DECLARATION));
         if (elements>1) {
             errors.record(ParseUtil.duplicatedEnvironmentDeclaration());
         }
     }
 
-    private void checkSingleControllerDeclaration(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext model) {
+    private void checkSingleControllerDeclaration(ParseTree model) {
         int elements = model.accept(new ElementBlockCounter(ElementType.CONTROLLER_DECLARATION));
         if (elements>1) {
             errors.record(ParseUtil.duplicatedControllerDeclaration());
         }
     }
 
-    private void checkSingleVariableDefinition(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext model) {
+    private void checkSingleVariableDefinition(ParseTree model) {
         int elements = model.accept(new ElementBlockCounter(ElementType.VARIABLES_DECLARATION));
         if (elements == 0) {
             errors.record(ParseUtil.missingVariablesDeclaration());

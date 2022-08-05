@@ -1,0 +1,10 @@
+variables {
+    real x range [0, 100];
+    real y range [0, 100];
+}
+
+environment {
+    x' = x + N[0,1];
+    y' = y + N[0,1];
+}
+

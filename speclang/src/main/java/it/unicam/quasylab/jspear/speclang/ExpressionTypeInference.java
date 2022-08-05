@@ -212,4 +212,42 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
         return checkNumerical(ctx.arg);
     }
 
+    //TODO: Check the correct usage of random expressions!
+
+    @Override
+    public JSpearType visitNormalExpression(JSpearSpecificationLanguageParser.NormalExpressionContext ctx) {
+        if (checkType(JSpearType.REAL_TYPE, ctx.mean)&checkType(JSpearType.REAL_TYPE, ctx.variance)) {
+            return JSpearType.REAL_TYPE;
+        } else {
+            return JSpearType.ERROR_TYPE;
+        }
+    }
+
+    @Override
+    public JSpearType visitUniformExpression(JSpearSpecificationLanguageParser.UniformExpressionContext ctx) {
+        JSpearType type = JSpearType.ANY_TYPE;
+        for (JSpearSpecificationLanguageParser.ExpressionContext v: ctx.values) {
+            JSpearType current = v.accept(this);
+            if (type.canBeMergedWith(current)) {
+                type = JSpearType.merge(type, current);
+            } else {
+                this.errors.record(ParseUtil.typeError(type, current, v.start));
+                return JSpearType.ERROR_TYPE;
+            }
+        }
+        return JSpearType.ARRAY_TYPE;
+    }
+
+    @Override
+    public JSpearType visitRandomExpression(JSpearSpecificationLanguageParser.RandomExpressionContext ctx) {
+        if (ctx.from != null) {
+            if (checkType(JSpearType.REAL_TYPE, ctx.from)&checkType(JSpearType.REAL_TYPE, ctx.to)) {
+                return JSpearType.REAL_TYPE;
+            } else {
+                return JSpearType.ERROR_TYPE;
+            }
+        } else {
+            return JSpearType.REAL_TYPE;
+        }
+    }
 }
