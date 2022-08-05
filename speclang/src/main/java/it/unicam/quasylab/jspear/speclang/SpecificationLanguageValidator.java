@@ -48,6 +48,16 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
     }
 
     @Override
+    protected Boolean defaultResult() {
+        return true;
+    }
+
+    @Override
+    protected Boolean aggregateResult(Boolean aggregate, Boolean nextResult) {
+        return aggregate&nextResult;
+    }
+
+    @Override
     public Boolean visitFunctionDeclaration(JSpearSpecificationLanguageParser.FunctionDeclarationContext ctx) {
         if (checkIfNotDuplicated(ctx.name.getText(), ctx)) {
             JSpearType[] argumentType = ctx.arguments.stream().map(a -> typeOf(a.type())).toArray(JSpearType[]::new);
@@ -294,18 +304,18 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
             if (checkIfNotDuplicated(var.name.getText(), var)) {
                 JSpearType type = typeOf(var.type());
                 symbols.recordVariable(var.name.getText(), type, var);
-                if (type == JSpearType.BOOLEAN_TYPE) {
-                    if (var.from != null) {
-                        errors.record(ParseUtil.illegalRangeInterval(var.name));
-                        flag = false;
-                    }
-                } else {
+                if (type.isNumerical()||type.isAnArray()) {
                     if (var.from == null) {
                         errors.record(ParseUtil.rangeIntervalIsMissing(var.name));
                         flag = false;
                     } else {
                         type = (type.isAnArray()?JSpearType.REAL_TYPE:type);
                         flag = inference.checkType(type, var.from)&&inference.checkType(type, var.to);
+                    }
+                } else {
+                    if (var.from != null) {
+                        errors.record(ParseUtil.illegalRangeInterval(var.name));
+                        flag = false;
                     }
                 }
             } else {

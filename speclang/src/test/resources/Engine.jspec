@@ -3,10 +3,8 @@ param MIN_TEMP = 0;
 param MAX_TEMP = 120;
 param STRESS_INCR = 0.1;
 
-
 type speed_value = LOW|HALF|FULL;
 type warning_value = OK|HOT;
-
 
 variables {
   array P range [MIN_TEMP, MAX_TEMP];

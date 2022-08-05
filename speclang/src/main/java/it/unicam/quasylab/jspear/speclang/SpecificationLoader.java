@@ -136,6 +136,15 @@ public class SpecificationLoader {
         }
 
         @Override
+        public Integer visitJSpearSpecificationModel(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext ctx) {
+            int counter = 0;
+            for (JSpearSpecificationLanguageParser.ElementContext e: ctx.element()) {
+                counter += e.accept(this);
+            }
+            return counter;
+        }
+
+        @Override
         public Integer visitFunctionDeclaration(JSpearSpecificationLanguageParser.FunctionDeclarationContext ctx) {
             return 0;
         }
@@ -162,7 +171,7 @@ public class SpecificationLoader {
 
         @Override
         public Integer visitParameterDeclaration(JSpearSpecificationLanguageParser.ParameterDeclarationContext ctx) {
-            return super.visitParameterDeclaration(ctx);
+            return 0;
         }
 
         @Override

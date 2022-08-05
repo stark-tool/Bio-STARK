@@ -22,25 +22,25 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-public enum JSpearType {
-
-    ERROR_TYPE,
-    BOOLEAN_TYPE,
-    INTEGER_TYPE,
-    REAL_TYPE,
-    ARRAY_TYPE,
-    ANY_TYPE;
+public sealed interface JSpearType permits JSpearErrorType, JSpearBooleanType, JSpearIntegerType, JSpearRealType, JSpearArrayType, JSpearCustomType, JSpearAnyType {
 
 
+    JSpearType ERROR_TYPE = new JSpearErrorType();
+    JSpearType BOOLEAN_TYPE = new JSpearBooleanType();
+    JSpearType INTEGER_TYPE = new JSpearIntegerType();
+
+    JSpearType REAL_TYPE = new JSpearRealType();
+
+    JSpearType ARRAY_TYPE = new JSpearArrayType();
+
+    JSpearType ANY_TYPE = new JSpearAnyType();
+
+
+
+    JSpearType merge(JSpearType other);
 
     static JSpearType merge(JSpearType one, JSpearType other) {
-        if ((other==ANY_TYPE)||(one.isCompatibleWith(other))) {
-            return one;
-        }
-        if ((one==ANY_TYPE)||(other.isCompatibleWith(one))) {
-            return other;
-        }
-        return ERROR_TYPE;
+        return one.merge(other);
     }
 
     /**
@@ -51,25 +51,15 @@ public enum JSpearType {
      * @param other a type.
      * @return true if <code>this</code> type is compatible with the <code>other</code>.
      */
-    public boolean isCompatibleWith(JSpearType other) {
-        return (this==ERROR_TYPE)||(this==other)||((this==REAL_TYPE)&&(other==INTEGER_TYPE));
-    }
+    boolean isCompatibleWith(JSpearType other);
 
-    boolean isNumerical() {
-        return (this==INTEGER_TYPE)||(this==REAL_TYPE);
-    }
+    boolean isNumerical();
 
-    boolean isAnArray() {
-        return (this==ARRAY_TYPE);
-    }
+    boolean isAnArray();
 
 
-    boolean isError() {
-        return (this==ERROR_TYPE);
-    }
+    boolean isError();
 
 
-    public boolean canBeMergedWith(JSpearType other) {
-        return (this==ANY_TYPE)||(other==ANY_TYPE)||(this.isCompatibleWith(other)||other.isCompatibleWith(this));
-    }
+    boolean canBeMergedWith(JSpearType other);
 }

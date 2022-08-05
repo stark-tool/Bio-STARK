@@ -5,7 +5,7 @@ grammar JSpearSpecificationLanguage;
 }
 
 
-jSpearSpecificationModel : element* ;
+jSpearSpecificationModel : element* EOF ;
 
 element: constantDeclaration
 | parameterDeclaration
@@ -120,9 +120,9 @@ type: 'int' #integerType
 | 'bool' #booleanType
 | name=ID #customType;
 
-parameterDeclaration: 'param' name=ID '=' expression;
+parameterDeclaration: 'param' name=ID '=' expression ';';
 
-constantDeclaration: 'const' name=ID '=' expression;
+constantDeclaration: 'const' name=ID '=' expression ';';
 
 expression:       left=expression op=('&'|'&&') right=expression                      # andExpression
           | left=expression op=('|'|'||') right=expression                      # orExpression
