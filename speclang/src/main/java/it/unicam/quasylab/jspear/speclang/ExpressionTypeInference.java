@@ -77,15 +77,10 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
 
     @Override
     public JSpearType visitArrayExpression(JSpearSpecificationLanguageParser.ArrayExpressionContext ctx) {
-        JSpearType type = null;
         for (JSpearSpecificationLanguageParser.ExpressionContext element: ctx.elements) {
-            type = JSpearType.merge(type, element.accept(this));
+            checkType(JSpearType.REAL_TYPE, element);
         }
-        if (type == null) {
-            return JSpearType.emptyArrayType();
-        } else {
-            return JSpearType.arrayOf(type);
-        }
+        return JSpearType.ARRAY_TYPE;
     }
 
     @Override
@@ -111,7 +106,7 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
             return JSpearType.ERROR_TYPE;
         }
         if (type.isAnArray()&&(ctx.first != null)&&(ctx.last==null)) {
-            return type.getContent();
+            return JSpearType.REAL_TYPE;
         }
         return type;
     }
@@ -150,7 +145,7 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
         checkType(JSpearType.BOOLEAN_TYPE, ctx.guard);
         JSpearType thenType = ctx.thenBranch.accept(this);
         JSpearType elseType = ctx.elseBranch.accept(this);
-        if (!thenType.isCompatibleWith(elseType)) {
+        if (!thenType.canBeMergedWith(elseType)) {
             errors.record(ParseUtil.typeError(thenType, elseType, ctx.elseBranch.start));
             return JSpearType.ERROR_TYPE;
         }

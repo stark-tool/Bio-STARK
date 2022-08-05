@@ -39,7 +39,7 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
     }
 
     @Override
-    public Boolean visitJspearSpecificationModel(JSpearSpecificationLanguageParser.JspearSpecificationModelContext ctx) {
+    public Boolean visitJSpearSpecificationModel(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext ctx) {
         boolean flag = true;
         for (JSpearSpecificationLanguageParser.ElementContext element: ctx.element()) {
             flag &= element.accept(this);
@@ -69,6 +69,18 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
     }
 
     private JSpearType typeOf(JSpearSpecificationLanguageParser.TypeContext type) {
+        if (type instanceof JSpearSpecificationLanguageParser.BooleanTypeContext) {
+            return JSpearType.BOOLEAN_TYPE;
+        }
+        if (type instanceof JSpearSpecificationLanguageParser.IntegerTypeContext) {
+            return JSpearType.INTEGER_TYPE;
+        }
+        if (type instanceof JSpearSpecificationLanguageParser.RealTypeContext) {
+            return JSpearType.REAL_TYPE;
+        }
+        if (type instanceof JSpearSpecificationLanguageParser.ArrayTypeContext) {
+            return JSpearType.ARRAY_TYPE;
+        }
         return JSpearType.ERROR_TYPE;
     }
 
@@ -253,7 +265,7 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
             return Optional.empty();
         }
         if (type.isAnArray()&&(target.first != null)&&(target.last==null)) {
-            return Optional.of(type.getContent());
+            return Optional.of(JSpearType.REAL_TYPE);
         }
         return Optional.of(type);
     }
@@ -277,9 +289,25 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
     @Override
     public Boolean visitVariablesDeclaration(JSpearSpecificationLanguageParser.VariablesDeclarationContext ctx) {
         boolean flag = true;
+        ExpressionTypeInference inference = new ExpressionTypeInference(symbols, errors);
         for (JSpearSpecificationLanguageParser.VariableDeclarationContext var: ctx.variableDeclaration()) {
             if (checkIfNotDuplicated(var.name.getText(), var)) {
-                symbols.recordVariable(var.name.getText(), typeOf(var.type()), var);
+                JSpearType type = typeOf(var.type());
+                symbols.recordVariable(var.name.getText(), type, var);
+                if (type == JSpearType.BOOLEAN_TYPE) {
+                    if (var.from != null) {
+                        errors.record(ParseUtil.illegalRangeInterval(var.name));
+                        flag = false;
+                    }
+                } else {
+                    if (var.from == null) {
+                        errors.record(ParseUtil.rangeIntervalIsMissing(var.name));
+                        flag = false;
+                    } else {
+                        type = (type.isAnArray()?JSpearType.REAL_TYPE:type);
+                        flag = inference.checkType(type, var.from)&&inference.checkType(type, var.to);
+                    }
+                }
             } else {
                 flag = false;
             }

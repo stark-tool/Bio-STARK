@@ -5,7 +5,7 @@ grammar JSpearSpecificationLanguage;
 }
 
 
-jspearSpecificationModel : element* ;
+jSpearSpecificationModel : element* ;
 
 element: constantDeclaration
 | parameterDeclaration
@@ -28,7 +28,7 @@ functionStatement:
 ;
 
 switchStatement: 'switch' name=ID '{'
-    switchCases += caseStatement
+    (switchCases += caseStatement)+
 '}';
 
 caseStatement: 'case' name=ID ':' functionStatement;
@@ -112,10 +112,11 @@ variablesDeclaration: 'variables' '{'
                          variableDeclaration*
                        '}';
 
-variableDeclaration: type name=ID ';';
+variableDeclaration: type name=ID 'range' ('[' from=expression ',' to=expression ']')? ';';
 
-type: 'int' '[' from=expression ',' to=expression ']' #integerType
-| 'real' '[' from=expression ',' to=expression ']' #realType
+type: 'int' #integerType
+| 'real' #realType
+| 'array' #arrayType
 | 'bool' #booleanType
 | name=ID #customType;
 

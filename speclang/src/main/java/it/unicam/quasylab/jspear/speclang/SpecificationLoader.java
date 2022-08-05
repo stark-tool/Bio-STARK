@@ -34,7 +34,7 @@ public class SpecificationLoader {
 
 
 
-    SystemSpecification load(JSpearSpecificationLanguageParser.JspearSpecificationModelContext model) {
+    SystemSpecification load(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext model) {
         checkSingleVariableDefinition(model);
         checkSingleEnvironmentDeclaration(model);
         checkSingleControllerDeclaration(model);
@@ -42,25 +42,25 @@ public class SpecificationLoader {
         return null;
     }
 
-    private void validateModel(JSpearSpecificationLanguageParser.JspearSpecificationModelContext model) {
+    private void validateModel(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext model) {
         model.accept(new SpecificationLanguageValidator(this.errors));
     }
 
-    private void checkSingleEnvironmentDeclaration(JSpearSpecificationLanguageParser.JspearSpecificationModelContext model) {
+    private void checkSingleEnvironmentDeclaration(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext model) {
         int elements = model.accept(new ElementBlockCounter(ElementType.ENVIRONMENT_DECLARATION));
         if (elements>1) {
             errors.record(ParseUtil.duplicatedEnvironmentDeclaration());
         }
     }
 
-    private void checkSingleControllerDeclaration(JSpearSpecificationLanguageParser.JspearSpecificationModelContext model) {
+    private void checkSingleControllerDeclaration(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext model) {
         int elements = model.accept(new ElementBlockCounter(ElementType.CONTROLLER_DECLARATION));
         if (elements>1) {
             errors.record(ParseUtil.duplicatedControllerDeclaration());
         }
     }
 
-    private void checkSingleVariableDefinition(JSpearSpecificationLanguageParser.JspearSpecificationModelContext model) {
+    private void checkSingleVariableDefinition(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext model) {
         int elements = model.accept(new ElementBlockCounter(ElementType.VARIABLES_DECLARATION));
         if (elements == 0) {
             errors.record(ParseUtil.missingVariablesDeclaration());

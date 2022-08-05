@@ -40,6 +40,8 @@ public class ParseUtil {
     private static final String ILLEGAL_USE_OF_ARRAY_SYNTAX = "Illegal use of %s as an array at line %d char %d.";
     private static final String UNKNOWN_STATE_MESSAGE = "State %s used at line %d char %d is unknown.";
     private static final String UNKNOWN_VARIABLE_MESSAGE = "Variable %s used at line %d char %d is unknown.";
+    private static final String ILLEGAL_RANGE_INTERVAL_MESSAGE = "Illegal usage of range declaration for variable %s at line %d char %d.";
+    private static final String RANGE_INTERVAL_IS_MISSING_MESSAGE = "Range declaration is missing for variable %s at line %d char %d.";
 
     public static ParseError missingVariablesDeclaration() {
         return new ParseError(MISSING_VARIABLE_DECLARATION,0,0);
@@ -139,5 +141,21 @@ public class ParseUtil {
 
     private static String getUnknownVariableMessage(Token token) {
         return String.format(UNKNOWN_VARIABLE_MESSAGE, token.getText(), token.getLine(), token.getCharPositionInLine());
+    }
+
+    public static ParseError illegalRangeInterval(Token token) {
+        return new ParseError(getIllegalRangeIntervalMessage(token), token.getLine(), token.getCharPositionInLine());
+    }
+
+    private static String getIllegalRangeIntervalMessage(Token token) {
+        return String.format(ILLEGAL_RANGE_INTERVAL_MESSAGE, token.getText(), token.getLine(), token.getCharPositionInLine());
+    }
+
+    public static ParseError rangeIntervalIsMissing(Token token) {
+        return new ParseError(getRangeIntervalIsMissingMessage(token), token.getLine(), token.getCharPositionInLine());
+    }
+
+    private static String getRangeIntervalIsMissingMessage(Token token) {
+        return String.format(RANGE_INTERVAL_IS_MISSING_MESSAGE, token.getText(), token.getLine(), token.getCharPositionInLine());
     }
 }

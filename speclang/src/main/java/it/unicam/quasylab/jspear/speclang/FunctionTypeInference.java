@@ -34,10 +34,10 @@ public class FunctionTypeInference extends JSpearSpecificationLanguageBaseVisito
 
     @Override
     public JSpearType visitSwitchStatement(JSpearSpecificationLanguageParser.SwitchStatementContext ctx) {
-        JSpearType switchType = null;
+        JSpearType switchType = JSpearType.ANY_TYPE;
         for (JSpearSpecificationLanguageParser.CaseStatementContext switchCase: ctx.switchCases) {
             JSpearType caseType = switchCase.functionStatement().accept(this);
-            if ((switchType == null)||(switchType.isCompatibleWith(caseType))) {
+            if (switchType.canBeMergedWith(caseType)) {
                 switchType = JSpearType.merge(switchType, caseType);
             } else {
                 errors.record(ParseUtil.typeError(switchType, caseType, switchCase.functionStatement().start));
@@ -53,7 +53,7 @@ public class FunctionTypeInference extends JSpearSpecificationLanguageBaseVisito
         JSpearType ifType = ctx.thenStatement.accept(this);
         if (ctx.elseStatement != null) {
             JSpearType elseType = ctx.elseStatement.accept(this);
-            if (ifType.isCompatibleWith(elseType)) {
+            if (ifType.canBeMergedWith(elseType)) {
                 ifType = JSpearType.merge(ifType, elseType);
             } else {
                 errors.record(ParseUtil.typeError(ifType, elseType, ctx.elseStatement.start));

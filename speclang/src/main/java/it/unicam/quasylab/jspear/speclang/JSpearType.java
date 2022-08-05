@@ -22,146 +22,54 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-public interface JSpearType {
+public enum JSpearType {
 
-    JSpearType ERROR_TYPE = new JSpearErrorType();
-    JSpearType BOOLEAN_TYPE = new JSpearBooleanType();
-    JSpearType REAL_TYPE = new JSpearRealType();
-    JSpearType INTEGER_TYPE = new JSpearIntegerType();
+    ERROR_TYPE,
+    BOOLEAN_TYPE,
+    INTEGER_TYPE,
+    REAL_TYPE,
+    ARRAY_TYPE,
+    ANY_TYPE;
 
-    static JSpearType merge(JSpearType switchType, JSpearType caseType) {
-        return null;
+
+
+    static JSpearType merge(JSpearType one, JSpearType other) {
+        if ((other==ANY_TYPE)||(one.isCompatibleWith(other))) {
+            return one;
+        }
+        if ((one==ANY_TYPE)||(other.isCompatibleWith(one))) {
+            return other;
+        }
+        return ERROR_TYPE;
     }
 
-    static JSpearType emptyArrayType() {
-        return null;
+    /**
+     * This method returns true if <code>this</code> type is compatible with
+     * the <code>other</code>. Namely, if we can assign to a variable of <code>this</code>
+     * type a value of the <code>other</code> type.
+     *
+     * @param other a type.
+     * @return true if <code>this</code> type is compatible with the <code>other</code>.
+     */
+    public boolean isCompatibleWith(JSpearType other) {
+        return (this==ERROR_TYPE)||(this==other)||((this==REAL_TYPE)&&(other==INTEGER_TYPE));
     }
 
-    static JSpearType arrayOf(JSpearType type) {
-        return null;
+    boolean isNumerical() {
+        return (this==INTEGER_TYPE)||(this==REAL_TYPE);
     }
 
-    default boolean isCompatibleWith(JSpearType switchType) {
-        return this.equals(switchType);
+    boolean isAnArray() {
+        return (this==ARRAY_TYPE);
     }
 
-    default boolean isNumerical() {
-        return false;//TODO: Fix!!!
+
+    boolean isError() {
+        return (this==ERROR_TYPE);
     }
 
-    default boolean isAnArray() {
-        return false;
-    }
 
-    default JSpearType getContent() {
-        return JSpearType.ERROR_TYPE; //FIXME!!!
-    }
-
-    default boolean isError() {
-        return true; //FIXME!!!
-    }
-
-    enum JSpearTypeEnum {
-        REAL,
-        INTEGER,
-        BOOLEAN,
-        ERROR,
-        CUSTOM;
-    }
-
-    double valueOf(double v);
-
-    double valueOf(int v);
-
-    double valueOf(String v);
-
-    double valueOf(boolean b);
-
-    class JSpearErrorType implements JSpearType {
-        @Override
-        public double valueOf(double v) {
-            return Double.NaN;
-        }
-
-        @Override
-        public double valueOf(int v) {
-            return Double.NaN;
-        }
-
-        @Override
-        public double valueOf(String v) {
-            return Double.NaN;
-        }
-
-        @Override
-        public double valueOf(boolean b) {
-            return Double.NaN;
-        }
-    }
-
-    class JSpearBooleanType implements JSpearType {
-        @Override
-        public double valueOf(double v) {
-            return 0;
-        }
-
-        @Override
-        public double valueOf(int v) {
-            return 0;
-        }
-
-        @Override
-        public double valueOf(String v) {
-            return 0;
-        }
-
-        @Override
-        public double valueOf(boolean b) {
-            return 0;
-        }
-    }
-
-    class JSpearRealType implements JSpearType {
-        @Override
-        public double valueOf(double v) {
-            return 0;
-        }
-
-        @Override
-        public double valueOf(int v) {
-            return 0;
-        }
-
-        @Override
-        public double valueOf(String v) {
-            return 0;
-        }
-
-        @Override
-        public double valueOf(boolean b) {
-            return 0;
-        }
-    }
-
-    class JSpearIntegerType implements JSpearType {
-        @Override
-        public double valueOf(double v) {
-            return 0;
-        }
-
-        @Override
-        public double valueOf(int v) {
-            return 0;
-        }
-
-        @Override
-        public double valueOf(String v) {
-            return 0;
-        }
-
-        @Override
-        public double valueOf(boolean b) {
-            return 0;
-        }
+    public boolean canBeMergedWith(JSpearType other) {
+        return (this==ANY_TYPE)||(other==ANY_TYPE)||(this.isCompatibleWith(other)||other.isCompatibleWith(this));
     }
 }
