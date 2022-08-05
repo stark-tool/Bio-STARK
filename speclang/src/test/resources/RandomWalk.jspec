@@ -6,7 +6,7 @@ variables {
 }
 
 environment {
-    x' = x + N[0,1];
-    y' = y + N[0,1];
+    x' = x + U[-1,0,1];
+    y' = y + U[-1,0,1];
 }
 

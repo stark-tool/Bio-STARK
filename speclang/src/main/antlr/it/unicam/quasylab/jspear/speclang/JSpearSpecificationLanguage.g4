@@ -148,6 +148,11 @@ expression:       left=expression op=('&'|'&&') right=expression                
           | 'N' '[' mean=expression ',' variance=expression ']' #normalExpression
           | 'U' '[' values += expression (',' values += expression)* ']' #uniformExpression
           | 'R' ('[' from = expression ',' to = expression ']')?     #randomExpression
+          | 'it'                                                     #lambdaParameterExpression
+          | target=ID '.' 'count' '(' (guard=expression)? ')' #countArrayElementExpression
+          | target=ID '.' 'min' '(' (guard=expression)? ')' #minArrayElementExpression
+          | target=ID '.' 'max' '(' (guard=expression)? ')' #maxArrayElementExpression
+          | target=ID '.' 'mean' '(' (guard=expression)? ')' #meanArrayElementExpression
           ;
 
 

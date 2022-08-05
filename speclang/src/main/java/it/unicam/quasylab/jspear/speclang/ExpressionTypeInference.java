@@ -123,8 +123,11 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
 
     @Override
     public JSpearType visitRelationExpression(JSpearSpecificationLanguageParser.RelationExpressionContext ctx) {
-        checkNumerical(ctx.left);
-        checkNumerical(ctx.right);
+        JSpearType leftType = ctx.left.accept(this);
+        JSpearType rightType = ctx.right.accept(this);
+        if (!leftType.canBeMergedWith(rightType)) {
+            this.errors.record(ParseUtil.typeError(leftType,rightType, ctx.right.start));
+        }
         return JSpearType.BOOLEAN_TYPE;
     }
 
@@ -235,7 +238,7 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
                 return JSpearType.ERROR_TYPE;
             }
         }
-        return JSpearType.ARRAY_TYPE;
+        return type;
     }
 
     @Override
@@ -250,4 +253,6 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
             return JSpearType.REAL_TYPE;
         }
     }
+
+
 }
