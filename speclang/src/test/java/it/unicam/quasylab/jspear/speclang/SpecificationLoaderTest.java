@@ -34,6 +34,7 @@ class SpecificationLoaderTest {
 
     public static final String RANDOM_WALK = "./RandomWalk.jspec";
     public static final String ENGINE = "./Engine.jspec";
+    public static final String VEHICLE = "./Vehicle.jspec";
 
     @Test
     void loadRandomWalkSpecification() throws IOException {
@@ -45,6 +46,12 @@ class SpecificationLoaderTest {
     void loadEngineSpecification() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(ENGINE)).openStream());
+        assertNotNull(spec);
+    }
+    @Test
+    void loadVehicleSpecification() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
         assertNotNull(spec);
     }
 }

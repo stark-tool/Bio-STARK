@@ -1,4 +1,3 @@
-
 param MIN_TEMP = 0;
 param MAX_TEMP = 120;
 param STRESS_INCR = 0.1;
@@ -24,6 +23,74 @@ environment {
     ch_wrn' = HOT;
 }
 
+function temperatureUpdateInOneStep(bool cool, speed_value speed) {
+  if (cool) {
+    return R[-1.2, -0.8];
+  } else {
+    switch speed {
+      case LOW: return R[0.1, 0.3];
+      case HALF: return R[0.3, 0.7];
+      case FULL: return R[0.7, 1.2];
+    }
+  }
+}
+
+function isStressed(array P) {
+  if ((P.count(it > 100))>3) { return true;}
+  else{ return false; }
+  /*return ((P.count(it > 100))>3);*/
+}
+
+environment {
+  let deltaTemp = temperatureUpdateInOneStep(cool, speed)
+  in
+    temp' = temp + deltaTemp;
+    ch_temp' = ch_temp + deltaTemp;
+    P'[2:6] = P[1:5];
+    P'[1] = temp;
+    when isStressed(P) stress' = stress + STRESS_INCR;
+}
+
+controller {
+  state Ctrl {
+    if (ch_temp >= 99.8) {
+      cool' = true;
+      step Cooling;
+    } else {
+      exec Check;
+    }
+  }
+  state Check {
+    if (ch_speed == LOW) {
+      speed' = LOW;
+      cool' = false;
+      step Ctrl;
+    } else {
+      speed' = ch_in;
+      cool' = false;
+      step Ctrl;
+    }
+  }
+  state Cooling {
+    4#step Check;
+  }
+  state IDS {
+    if (temp>101.0)&(!cool) {
+      ch_wrn' = HOT;
+      ch_speed' = LOW;
+      ch_out' = FULL;
+      step IDS;
+    } else {
+      ch_wrn' = OK;
+      ch_speed' = HALF;
+      ch_out' = HALF;
+      step IDS;
+    }
+  }
+  state ENG = Ctrl || IDS;
+}
+
+
 /*
 function temperatureUpdateInOneStep(boolean cool, speed_value speed) {
   if (cool) {
@@ -37,7 +104,7 @@ function temperatureUpdateInOneStep(boolean cool, speed_value speed) {
   }
 }
 
-function isStressed(real P[]) {
+function isStressed(array P) {
   int counter = 0;
   for(int i=0; P.length; i++) {
     if (P[i]>100) {
@@ -47,7 +114,7 @@ function isStressed(real P[]) {
   return (counter>3);
 }
 
-function isStressed(real P[]) {
+function isStressed(array P) {
   return P.count(it > 100)>3;
 }
 
