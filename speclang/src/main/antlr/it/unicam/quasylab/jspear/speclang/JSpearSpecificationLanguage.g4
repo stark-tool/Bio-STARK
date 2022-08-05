@@ -102,7 +102,7 @@ environmentDeclaration:
 
 variableAssignment: ('when' guard=expression)? target=varExpression '=' value=expression ';';
 
-varExpression: name=NEXT_ID ('[' first=expression ('..' last=expression)? ']')?;
+varExpression: name=NEXT_ID ('[' first=expression (':' last=expression)? ']')?;
 
 localVariable: name=ID '=' expression;
 
@@ -143,7 +143,7 @@ expression:       left=expression op=('&'|'&&') right=expression                
           | fun=unaryMathFunction '(' argument=expression ')'                   # unaryMathCallExpression
           | fun=binaryMathFunction '(' left=expression ',' right=expression ')' # binaryMathCallExpression
           | name=ID '(' (callArguments += expression (',' callArguments += expression)*)? ')' #callExpression
-          | name=ID ('[' first=expression ('..' last=expression)? ']')? #referenceExpression
+          | name=ID ('[' first=expression (':' last=expression)? ']')? #referenceExpression
           | '[' (elements += expression (',' elements += expression)*) ']' #arrayExpression
           | 'N' '[' mean=expression ',' variance=expression ']' #normalExpression
           | 'U' '[' values += expression (',' values += expression)* ']' #uniformExpression
