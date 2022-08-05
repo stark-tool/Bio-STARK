@@ -254,5 +254,70 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
         }
     }
 
+    @Override
+    public JSpearType visitMaxArrayElementExpression(JSpearSpecificationLanguageParser.MaxArrayElementExpressionContext ctx) {
+        String targetName = ctx.target.getText();
+        if (!context.isReferenceable(targetName)) {
+            errors.record(ParseUtil.illegalUseOfName(ctx.target));
+            return JSpearType.ERROR_TYPE;
+        }
+        JSpearType type = context.getTypeOf(targetName);
+        if (!type.isAnArray()) {
+            errors.record(ParseUtil.typeError(JSpearType.ARRAY_TYPE, type, ctx.target));
+            return JSpearType.ERROR_TYPE;
+        }
+        if ((ctx.guard==null)||checkType(JSpearType.BOOLEAN_TYPE, ctx.guard)) {
+            return JSpearType.REAL_TYPE;
+        } else {
+            return JSpearType.ERROR_TYPE;
+        }
+    }
 
+    @Override
+    public JSpearType visitLambdaParameterExpression(JSpearSpecificationLanguageParser.LambdaParameterExpressionContext ctx) {
+        return JSpearType.REAL_TYPE; //TODO: Handle nested context...
+    }
+
+    @Override
+    public JSpearType visitMeanArrayElementExpression(JSpearSpecificationLanguageParser.MeanArrayElementExpressionContext ctx) {
+        return super.visitMeanArrayElementExpression(ctx);
+    }
+
+    @Override
+    public JSpearType visitCountArrayElementExpression(JSpearSpecificationLanguageParser.CountArrayElementExpressionContext ctx) {
+        String targetName = ctx.target.getText();
+        if (!context.isReferenceable(targetName)) {
+            errors.record(ParseUtil.illegalUseOfName(ctx.target));
+            return JSpearType.ERROR_TYPE;
+        }
+        JSpearType type = context.getTypeOf(targetName);
+        if (!type.isAnArray()) {
+            errors.record(ParseUtil.typeError(JSpearType.ARRAY_TYPE, type, ctx.target));
+            return JSpearType.ERROR_TYPE;
+        }
+        if ((ctx.guard==null)||checkType(JSpearType.BOOLEAN_TYPE, ctx.guard)) {
+            return JSpearType.INTEGER_TYPE;
+        } else {
+            return JSpearType.ERROR_TYPE;
+        }
+    }
+
+    @Override
+    public JSpearType visitMinArrayElementExpression(JSpearSpecificationLanguageParser.MinArrayElementExpressionContext ctx) {
+        String targetName = ctx.target.getText();
+        if (!context.isReferenceable(targetName)) {
+            errors.record(ParseUtil.illegalUseOfName(ctx.target));
+            return JSpearType.ERROR_TYPE;
+        }
+        JSpearType type = context.getTypeOf(targetName);
+        if (!type.isAnArray()) {
+            errors.record(ParseUtil.typeError(JSpearType.ARRAY_TYPE, type, ctx.target));
+            return JSpearType.ERROR_TYPE;
+        }
+        if ((ctx.guard==null)||checkType(JSpearType.BOOLEAN_TYPE, ctx.guard)) {
+            return JSpearType.REAL_TYPE;
+        } else {
+            return JSpearType.ERROR_TYPE;
+        }
+    }
 }
