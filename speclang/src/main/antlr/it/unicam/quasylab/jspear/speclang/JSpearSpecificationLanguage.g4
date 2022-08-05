@@ -5,138 +5,143 @@ grammar JSpearSpecificationLanguage;
 }
 
 
-model : element* ;
+jspearSpecificationModel : element* ;
 
-element: constant_declaration
-| parameter_declartion
-| variables_declaration
-| type_declaration
-| environment_declaration
-| controller_declaration
-| penalty_declaration
-| function_declaration
-| system_declaration;
+element: constantDeclaration
+| parameterDeclaration
+| variablesDeclaration
+| typeDeclaration
+| environmentDeclaration
+| controllerDeclaration
+| penaltyDeclaration
+| functionDeclaration
+| systemDeclaration;
 
-function_declaration: 'function' name=ID '(' (arguments+=function_argument (',' arguments+=function_argument)*)? ')'
- function_block;
+functionDeclaration: 'function' name=ID '(' (arguments+=functionArgument (',' arguments+=functionArgument)*)? ')'
+ functionBlock;
 
-function_statement: 
-      return_statement
-    | if_then_else_statement
-    | function_block
-    | switch_statement
+functionStatement:
+      returnStatement
+    | ifThenElseStatement
+    | functionBlock
+    | switchStatement
 ;
 
-switch_statement: 'switch' name=ID '{'
-    switch_cases += case_statement
+switchStatement: 'switch' name=ID '{'
+    switchCases += caseStatement
 '}';
 
-case_statement: 'case' name=ID ':' function_statement;
+caseStatement: 'case' name=ID ':' functionStatement;
 
 
-if_then_else_statement: 'if' '(' guard=expr ')' thenStatement=function_statement ('else' elseStatement=function_statement)?;
+ifThenElseStatement: 'if' '(' guard=expression ')' thenStatement=functionStatement ('else' elseStatement=functionStatement)?;
 
-return_statement: 'return' expr ';';
+returnStatement: 'return' expression ';';
 
-function_block: '{' (statements += function_statement)* '}';
+functionBlock: '{'  functionStatement '}';
 
-function_argument: type name=ID;
+functionArgument: type name=ID;
 
-system_declaration: 'system' name=ID '=' controllerName=ID '{' 
-    initialAssignment+=initial_assignment*
+systemDeclaration: 'system' name=ID '=' controllerName=ID '{'
+    initialAssignments+=initialAssignment*
 '}';
 
-initial_assignment: name=ID '=' value=expr ';';
+initialAssignment: name=ID '=' value=expression ';';
 
 
-penalty_declaration: 'penalty' name=ID '=' value=expr;
+penaltyDeclaration: 'penalty' name=ID '=' value=expression;
 
-controller_declaration: 'controller' '{'
-    state_declaration*
+controllerDeclaration: 'controller' '{'
+    stateDeclaration*
 '}'
 ;
 
-state_declaration: 'state' name=ID state_body;
+stateDeclaration: 'state' name=ID stateBody;
 
-state_body:
-    components += ID ('||' components+=ID)* # parallelController
-    | body=statement_block                  #sequentialController;
+stateBody:
+    '=' components += ID ('||' components+=ID)* ';' # parallelController
+    | body=blockBehaviour                  #sequentialController;
 
-controller_behaviour:
-    variable_assignment
-    | if_then_else
-    | probabilistic_choice
-    | statement_block
-    | step_statement
-    | exec_statement
+controllerBehaviour:
+    variableAssignmentBehaviour
+    | ifThenElseBehaviour
+    | probabilisticChoiceBehaviour
+    | blockBehaviour
+    | stepBehaviour
+    | execBehaviour
 ;
 
-exec_statement: 'exec' target=ID;
+variableAssignmentBehaviour:
+('when' guard=expression)? target=varExpression '=' value=expression ';'
+;
 
-step_statement: (steps=expr '#')? 'step' target=ID;
+execBehaviour: 'exec' target=ID;
 
-statement_block: '{'
-    (statements += controller_behaviour)*
+stepBehaviour: (steps=expression '#')? 'step' target=ID;
+
+blockBehaviour: '{'
+    (statements += controllerBehaviour)*
 '}';
 
-probabilistic_choice: 'choose' '{'
-    probabilistic_item*
+probabilisticChoiceBehaviour: 'choose' '{'
+    probabilisticItem*
 '}';
 
-probabilistic_item: ('when' guard=expr)? 'with' probability=expr statement_block ;
+probabilisticItem: ('when' guard=expression)? 'with' probability=expression blockBehaviour ;
 
-if_then_else: 'if' guard=expr controller_behaviour ('else' controller_behaviour)?;
+ifThenElseBehaviour: 'if' guard=expression thenBranch=controllerBehaviour ('else' elseBranch=controllerBehaviour)?;
 
-environment_declaration:
+environmentDeclaration:
     'environment' '{'
-        ('let' localVariables+=local_variable
-        ('and' localVariables+=local_variable)*
+        ('let' localVariables+=localVariable
+        ('and' localVariables+=localVariable)*
         'in')?
-        variable_assignment*
+        (assignments += variableAssignment)*
     '}'
 ;
 
-variable_assignment: ('when' guard=expr)? name = var_expression '=' expr ';';
+variableAssignment: ('when' guard=expression)? target=varExpression '=' value=expression ';';
 
-var_expression: NEXT_ID ('[' first=expr ('..' last=expr)? ']');
+varExpression: name=NEXT_ID ('[' first=expression ('..' last=expression)? ']');
 
-local_variable: name=ID '=' expr;
+localVariable: name=ID '=' expression;
 
-type_declaration: 'type' name=ID '=' elements+=ID ('|' elements += ID )* ';';
+typeDeclaration: 'type' name=ID '=' elements+=ID ('|' elements += ID )* ';';
 
-variables_declaration: 'variables' '{'
-                         variable_declaration*
+variablesDeclaration: 'variables' '{'
+                         variableDeclaration*
                        '}';
 
-variable_declaration: type name=ID ';';
+variableDeclaration: type name=ID ';';
 
-type: 'int' '[' from=expr ',' to=expr ']' #integerType
-| 'real' '[' from=expr ',' to=expr ']' #realType
+type: 'int' '[' from=expression ',' to=expression ']' #integerType
+| 'real' '[' from=expression ',' to=expression ']' #realType
 | 'bool' #booleanType
 | name=ID #customType;
 
-parameter_declartion: 'param' name=ID '=' expr;
+parameterDeclaration: 'param' name=ID '=' expression;
 
-constant_declaration: 'const' name=ID '=' expr;
+constantDeclaration: 'const' name=ID '=' expression;
 
-expr:       left=expr op=('&'|'&&') right=expr                      # andExpression
-          | left=expr op=('|'|'||') right=expr                      # orExpression
-          | left=expr '^' right=expr                                # exponentExpression
-          | left=expr op=('*'|'/'|'//') right=expr               # mulDivExpression
-          | left=expr op=('+'|'-'|'%') right=expr                   # addSubExpression
-          |  left=expr op=('<'|'<='|'=='|'>='|'>') right=expr          # relationExpression
-          | '!' arg=expr                                     # negationExpression
-          | guard=expr '?' thenBranch=expr ':' elseBranch=expr             # ifThenElseExpression
-          | op=('-'|'+') arg=expr                            # unaryExpression
-          | '(' expr ')'                                     # bracketExpression
+expression:       left=expression op=('&'|'&&') right=expression                      # andExpression
+          | left=expression op=('|'|'||') right=expression                      # orExpression
+          | left=expression '^' right=expression                                # exponentExpression
+          | left=expression op=('*'|'/'|'//') right=expression               # mulDivExpression
+          | left=expression op=('+'|'-'|'%') right=expression                   # addSubExpression
+          |  left=expression op=('<'|'<='|'=='|'>='|'>') right=expression          # relationExpression
+          | '!' arg=expression                                     # negationExpression
+          | guard=expression '?' thenBranch=expression ':' elseBranch=expression             # ifThenElseExpression
+          | op=('-'|'+') arg=expression                            # unaryExpression
+          | '(' expression ')'                                     # bracketExpression
           | INTEGER                                      # intValue
           | REAL                                         # realValue
           | 'false'                                      # falseValue
           | 'true'                                       # trueValue
-          | fun=unaryMathFunction '(' argument=expr ')'                   # unaryMathCallExpression
-          | fun=binaryMathFunction '(' left=expr ',' right=expr ')' # binaryMathCallExpression
-          | name=ID '(' (callArguments += expr (',' callArguments += expr)*)? ')' #callExpression
-          | name=ID ('[' first=expr ('..' last=expr)? ']')? #referenceExpression
+          | fun=unaryMathFunction '(' argument=expression ')'                   # unaryMathCallExpression
+          | fun=binaryMathFunction '(' left=expression ',' right=expression ')' # binaryMathCallExpression
+          | name=ID '(' (callArguments += expression (',' callArguments += expression)*)? ')' #callExpression
+          | name=ID ('[' first=expression ('..' last=expression)? ']')? #referenceExpression
+          | '[' (elements += expression (',' elements += expression)*) ']' #arrayExpression
           ;
 
 
