@@ -22,12 +22,13 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-import com.google.gson.internal.LinkedHashTreeMap;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 public class SymbolTable implements TypeContext {
 
@@ -49,7 +50,9 @@ public class SymbolTable implements TypeContext {
     private final Map<String, JSpearType> typesOfRefereneableElements = new HashMap<>();
     private final Map<String, JSpearType[]> functionArguments = new HashMap<>();
     private final Map<String, JSpearType> functionReturnTypes = new HashMap<>();
+    private final Map<String, JSpearType> custumTypes = new HashMap<>();
 
+    private final Set<String> elementsOfDeclaredTypes = new HashSet<>();
 
     public ParserRuleContext get(String name) {
         return symbols.get(name);
@@ -77,7 +80,11 @@ public class SymbolTable implements TypeContext {
 
     @Override
     public boolean isReferenceable(String name) {
-        return isAVariable(name)||isAParameter(name)||isAConstant(name);
+        return isAVariable(name)||isAParameter(name)||isAConstant(name)||isTypeElement(name);
+    }
+
+    private boolean isTypeElement(String name) {
+        return this.elementsOfDeclaredTypes.contains(name);
     }
 
     public boolean isAConstant(String name) {
@@ -164,6 +171,29 @@ public class SymbolTable implements TypeContext {
             throw new IllegalArgumentException();
         }
         this.symbols.put(name, ctx);
-        this.systems.put(name, ctx);
+    }
+
+    public void recordCustomType(JSpearSpecificationLanguageParser.TypeDeclarationContext ctx) {
+        String customTypeName = ctx.name.getText();
+        String[] customTypeElements = ctx.elements.stream().map(e -> e.name.getText()).toArray(String[]::new);
+        if (isDefined(customTypeName)|| Stream.of(customTypeElements).anyMatch(this::isDefined)) {
+            throw new IllegalArgumentException();
+        }
+        this.symbols.put(customTypeName, ctx);
+        ctx.elements.forEach(e -> this.symbols.put(e.name.getText(), e));
+        JSpearType customType = new JSpearCustomType(customTypeName, customTypeElements);
+        this.custumTypes.put(customTypeName, customType);
+        Stream.of(customTypeElements).forEach(e -> {
+            this.typesOfRefereneableElements.put(e, customType);
+            this.elementsOfDeclaredTypes.add(e);
+        });
+    }
+
+    public boolean isACustomType(String typeName) {
+        return this.custumTypes.containsKey(typeName);
+    }
+
+    public JSpearType getCustomType(String typeName) {
+        return this.custumTypes.get(typeName);
     }
 }

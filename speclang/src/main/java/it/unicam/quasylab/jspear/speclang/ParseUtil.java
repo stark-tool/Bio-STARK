@@ -42,6 +42,7 @@ public class ParseUtil {
     private static final String UNKNOWN_VARIABLE_MESSAGE = "Variable %s used at line %d char %d is unknown.";
     private static final String ILLEGAL_RANGE_INTERVAL_MESSAGE = "Illegal usage of range declaration for variable %s at line %d char %d.";
     private static final String RANGE_INTERVAL_IS_MISSING_MESSAGE = "Range declaration is missing for variable %s at line %d char %d.";
+    private static final String UNKNOWN_TYPE_MESSAGE = "Type %s used at line %d char %d is unknown.";;
 
     public static ParseError missingVariablesDeclaration() {
         return new ParseError(MISSING_VARIABLE_DECLARATION,0,0);
@@ -157,5 +158,13 @@ public class ParseUtil {
 
     private static String getRangeIntervalIsMissingMessage(Token token) {
         return String.format(RANGE_INTERVAL_IS_MISSING_MESSAGE, token.getText(), token.getLine(), token.getCharPositionInLine());
+    }
+
+    public static ParseError unknownType(Token name) {
+        return new ParseError(getUnknownTypeMessage(name), name.getLine(), name.getCharPositionInLine());
+    }
+
+    private static String getUnknownTypeMessage(Token name) {
+        return String.format(UNKNOWN_TYPE_MESSAGE, name.getText(), name.getLine(), name.getCharPositionInLine());
     }
 }

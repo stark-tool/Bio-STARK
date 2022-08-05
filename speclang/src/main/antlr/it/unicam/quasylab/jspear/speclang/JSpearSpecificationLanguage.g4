@@ -106,7 +106,9 @@ varExpression: name=NEXT_ID ('[' first=expression ('..' last=expression)? ']')?;
 
 localVariable: name=ID '=' expression;
 
-typeDeclaration: 'type' name=ID '=' elements+=ID ('|' elements += ID )* ';';
+typeDeclaration: 'type' name=ID '=' elements+=typeElementDeclaration ('|' elements += typeElementDeclaration )* ';';
+
+typeElementDeclaration: name=ID;
 
 variablesDeclaration: 'variables' '{'
                          variableDeclaration*

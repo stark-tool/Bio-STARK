@@ -91,6 +91,14 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
         if (type instanceof JSpearSpecificationLanguageParser.ArrayTypeContext) {
             return JSpearType.ARRAY_TYPE;
         }
+        if (type instanceof JSpearSpecificationLanguageParser.CustomTypeContext) {
+            String typeName = ((JSpearSpecificationLanguageParser.CustomTypeContext) type).name.getText();
+            if (!symbols.isACustomType(typeName)) {
+                this.errors.record(ParseUtil.unknownType(((JSpearSpecificationLanguageParser.CustomTypeContext) type).name));
+                return JSpearType.ERROR_TYPE;
+            }
+            return this.symbols.getCustomType(typeName);
+        }
         return JSpearType.ERROR_TYPE;
     }
 
@@ -348,6 +356,28 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
                 return true;
             } else {
                 return false;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public Boolean visitTypeDeclaration(JSpearSpecificationLanguageParser.TypeDeclarationContext ctx) {
+        String customTypeName = ctx.name.getText();
+        if (checkIfNotDuplicated(customTypeName, ctx)
+            &&ctx.elements.stream().allMatch(e -> checkCustomTypeElement(ctx, e))) {
+            symbols.recordCustomType(ctx);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean checkCustomTypeElement(JSpearSpecificationLanguageParser.TypeDeclarationContext ctx, JSpearSpecificationLanguageParser.TypeElementDeclarationContext e) {
+        if (checkIfNotDuplicated(e.name.getText(), e)) {
+            if (ctx.name.getText().equals(e.name.getText())) {
+                this.errors.record(ParseUtil.duplicatedSymbol(ctx.name.getText(), ctx, e));
+            } else {
+                return true;
             }
         }
         return false;

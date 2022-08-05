@@ -19,6 +19,11 @@ variables {
   speed_value ch_in;
 }
 
+environment {
+    ch_speed' = FULL;
+    ch_wrn' = HOT;
+}
+
 /*
 function temperatureUpdateInOneStep(boolean cool, speed_value speed) {
   if (cool) {
