@@ -75,9 +75,9 @@ variableAssignmentBehaviour:
 ('when' guard=expression)? target=varExpression '=' value=expression ';'
 ;
 
-execBehaviour: 'exec' target=ID;
+execBehaviour: 'exec' target=ID ';';
 
-stepBehaviour: (steps=expression '#')? 'step' target=ID;
+stepBehaviour: (steps=expression '#')? 'step' target=ID ';';
 
 blockBehaviour: '{'
     (statements += controllerBehaviour)*
