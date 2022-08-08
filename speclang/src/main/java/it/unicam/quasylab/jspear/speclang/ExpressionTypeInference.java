@@ -283,6 +283,8 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
         return super.visitMeanArrayElementExpression(ctx);
     }
 
+    
+
     @Override
     public JSpearType visitCountArrayElementExpression(JSpearSpecificationLanguageParser.CountArrayElementExpressionContext ctx) {
         String targetName = ctx.target.getText();
@@ -301,6 +303,7 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
             return JSpearType.ERROR_TYPE;
         }
     }
+
 
     @Override
     public JSpearType visitMinArrayElementExpression(JSpearSpecificationLanguageParser.MinArrayElementExpressionContext ctx) {
