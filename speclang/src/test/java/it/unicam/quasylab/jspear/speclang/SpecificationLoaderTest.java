@@ -23,6 +23,7 @@
 package it.unicam.quasylab.jspear.speclang;
 
 import it.unicam.quasylab.jspear.SystemSpecification;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -43,12 +44,14 @@ class SpecificationLoaderTest {
         assertNotNull(spec);
     }
     @Test
+    @Disabled
     void loadEngineSpecification() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(ENGINE)).openStream());
         assertNotNull(spec);
     }
     @Test
+    @Disabled
     void loadVehicleSpecification() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());

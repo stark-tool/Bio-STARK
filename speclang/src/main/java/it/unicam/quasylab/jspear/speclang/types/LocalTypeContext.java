@@ -20,39 +20,44 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.types;
 
-public final class JSpearArrayType implements JSpearType {
-    @Override
-    public JSpearType merge(JSpearType other) {
-        if (other instanceof JSpearArrayType) {
-            return this;
-        }
-        return JSpearType.ERROR_TYPE;
+import java.util.Map;
+
+public class LocalTypeContext implements TypeContext {
+    private final Map<String, JSpearType> localDeclarations;
+
+    public LocalTypeContext(Map<String, JSpearType> localDeclarations) {
+        this.localDeclarations = localDeclarations;
     }
 
     @Override
-    public boolean isCompatibleWith(JSpearType other) {
-        return (other instanceof JSpearArrayType);
+    public boolean isDefined(String name) {
+        return localDeclarations.containsKey(name);
     }
 
     @Override
-    public boolean isNumerical() {
+    public boolean isReferenceable(String name) {
+        return isDefined(name);
+    }
+
+    @Override
+    public JSpearType getTypeOf(String name) {
+        return this.localDeclarations.get(name);
+    }
+
+    @Override
+    public boolean isAFunction(String functionName) {
         return false;
     }
 
     @Override
-    public boolean isAnArray() {
-        return true;
+    public JSpearType[] getArgumentsType(String functionName) {
+        return null;
     }
 
     @Override
-    public boolean isError() {
-        return false;
-    }
-
-    @Override
-    public boolean canBeMergedWith(JSpearType other) {
-        return (other instanceof JSpearArrayType);
+    public JSpearType getReturnType(String functionName) {
+        return null;
     }
 }

@@ -22,6 +22,9 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
+import it.unicam.quasylab.jspear.speclang.types.JSpearCustomType;
+import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+import it.unicam.quasylab.jspear.speclang.types.TypeContext;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.HashMap;

@@ -20,15 +20,15 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.speclang;
 
-import it.unicam.quasylab.jspear.Variable;
+public interface InterpretationDomain<T> {
+    T negate(T value);
 
-public record VariableUpdate(Variable var, double value) {
+    T pow(JSpearSpecificationLanguageParser.ExpressionContext left, JSpearSpecificationLanguageParser.ExpressionContext right);
 
-    public VariableUpdate {
-        if (var == null) {
-            throw new IllegalArgumentException("No variable provided!");
-        }
-    }
+
+    T evalBinary(String text, T accept, T accept1);
+
+    T trueValue();
 }

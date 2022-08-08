@@ -20,47 +20,36 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.types;
 
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
-import it.unicam.quasylab.jspear.speclang.types.TypeContext;
-
-public class LocalVariableTypeContext implements TypeContext {
-    private final String name;
-    private final JSpearType type;
-
-    public LocalVariableTypeContext(String name, JSpearType type) {
-        this.name = name;
-        this.type = type;
+public final class JSpearAnyType implements JSpearType {
+    @Override
+    public JSpearType merge(JSpearType other) {
+        return other;
     }
 
     @Override
-    public boolean isDefined(String name) {
-        return this.name.equals(name);
+    public boolean isCompatibleWith(JSpearType other) {
+        return true;
     }
 
     @Override
-    public boolean isReferenceable(String name) {
-        return this.name.equals(name);
-    }
-
-    @Override
-    public JSpearType getTypeOf(String name) {
-        return (this.name.equals(name)?this.type:null);
-    }
-
-    @Override
-    public boolean isAFunction(String functionName) {
+    public boolean isNumerical() {
         return false;
     }
 
     @Override
-    public JSpearType[] getArgumentsType(String functionName) {
-        return null;
+    public boolean isAnArray() {
+        return false;
     }
 
     @Override
-    public JSpearType getReturnType(String functionName) {
-        return null;
+    public boolean isError() {
+        return false;
+    }
+
+    @Override
+    public boolean canBeMergedWith(JSpearType other) {
+        return true;
     }
 }

@@ -118,7 +118,7 @@ variableDeclaration: type name=ID ('range' '[' from=expression ',' to=expression
 
 type: 'int' #integerType
 | 'real' #realType
-| 'array' #arrayType
+| 'array' '[' size=expression ']' #arrayType
 | 'bool' #booleanType
 | name=ID #customType;
 

@@ -59,22 +59,22 @@ public class DefaultDataStateFunction implements DataStateFunction {
      * if such variable does not exist.
      */
     public DataStateRandomExpression getVariableUpdateFunction(String name) {
-        return getVariableUpdateFunction(registry.getIndexOf(name));
+        return getVariableUpdateFunction(registry.getVariable(name));
     }
 
     /**
      * Returns the function used to compute the value of the variable with the given name. A null value is returned
      * if the given index is not valid.
      *
-     * @param idx variable name.
+     * @param var variable name.
      * @return the function used to compute the value of the variable with the given name
      * in the resulting data state. A null value is returned if no variable does exist with the given name.
      */
-    private DataStateRandomExpression getVariableUpdateFunction(int idx) {
-        if ((idx<0)||(idx>=updates.length)) {
+    private DataStateRandomExpression getVariableUpdateFunction(Variable var) {
+        if (var == null) {
             return null;
         }
-        return updates[idx];
+        return updates[var.getFirstCellIndex()]; //TODO: CHECK!!!!
     }
 
     @Override

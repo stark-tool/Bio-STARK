@@ -20,12 +20,12 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.types;
 
-public final class JSpearIntegerType implements JSpearType {
+public final class JSpearBooleanType implements JSpearType {
     @Override
     public JSpearType merge(JSpearType other) {
-        if (other instanceof JSpearIntegerType) {
+        if (other instanceof JSpearBooleanType) {
             return this;
         }
         return JSpearType.ERROR_TYPE;
@@ -33,12 +33,12 @@ public final class JSpearIntegerType implements JSpearType {
 
     @Override
     public boolean isCompatibleWith(JSpearType other) {
-        return (other instanceof JSpearIntegerType);
+        return (other instanceof JSpearBooleanType);
     }
 
     @Override
     public boolean isNumerical() {
-        return true;
+        return false;
     }
 
     @Override
@@ -53,6 +53,6 @@ public final class JSpearIntegerType implements JSpearType {
 
     @Override
     public boolean canBeMergedWith(JSpearType other) {
-        return other.isNumerical();
+        return (other instanceof JSpearBooleanType);
     }
 }

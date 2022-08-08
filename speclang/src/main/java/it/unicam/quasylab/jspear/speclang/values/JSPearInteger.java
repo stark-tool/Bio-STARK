@@ -20,18 +20,13 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.values;
 
-public interface TypeContext {
-    boolean isDefined(String name);
+import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 
-    boolean isReferenceable(String name);
-
-    JSpearType getTypeOf(String name);
-
-    boolean isAFunction(String functionName);
-
-    JSpearType[] getArgumentsType(String functionName);
-
-    JSpearType getReturnType(String functionName);
+public final class JSPearInteger implements JSpearValue {
+    @Override
+    public JSpearType getJSpearType() {
+        return JSpearType.INTEGER_TYPE;
+    }
 }

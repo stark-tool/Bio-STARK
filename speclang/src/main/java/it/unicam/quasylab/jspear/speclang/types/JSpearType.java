@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.types;
 
 public sealed interface JSpearType permits JSpearErrorType, JSpearBooleanType, JSpearIntegerType, JSpearRealType, JSpearArrayType, JSpearCustomType, JSpearAnyType {
 

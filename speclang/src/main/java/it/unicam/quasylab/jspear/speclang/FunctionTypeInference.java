@@ -22,6 +22,9 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
+import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+import it.unicam.quasylab.jspear.speclang.types.TypeContext;
+
 public class FunctionTypeInference extends JSpearSpecificationLanguageBaseVisitor<JSpearType>  {
     private final ParseErrorCollector errors;
     private final ExpressionTypeInference expressionTypeInference;

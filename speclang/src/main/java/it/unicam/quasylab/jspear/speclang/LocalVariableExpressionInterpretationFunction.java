@@ -22,34 +22,12 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-public final class JSpearErrorType implements JSpearType {
-    @Override
-    public JSpearType merge(JSpearType other) {
-        return this;
-    }
+import it.unicam.quasylab.jspear.DataState;
+import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+import org.apache.commons.math3.random.RandomGenerator;
 
-    @Override
-    public boolean isCompatibleWith(JSpearType other) {
-        return false;
-    }
+public interface LocalVariableExpressionInterpretationFunction {
 
-    @Override
-    public boolean isNumerical() {
-        return false;
-    }
+    JSpearType eval(RandomGenerator rg, DataState ds);
 
-    @Override
-    public boolean isAnArray() {
-        return false;
-    }
-
-    @Override
-    public boolean isError() {
-        return true;
-    }
-
-    @Override
-    public boolean canBeMergedWith(JSpearType other) {
-        return true;
-    }
 }

@@ -20,30 +20,15 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.values;
 
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 
-/**
- * This class is used to represent a variable in JSpear.
- */
-public class JSpearSpecificationVariable {
+public final class JSpearReal implements JSpearValue {
 
-    private final String name;
-
-    private final JSpearType type;
-
-    public JSpearSpecificationVariable(String name, JSpearType type, int from, int to) {
-        this.name = name;
-        this.type = type;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public JSpearType getType() {
-        return type;
+    @Override
+    public JSpearType getJSpearType() {
+        return JSpearType.REAL_TYPE;
     }
 
 }

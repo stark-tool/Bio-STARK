@@ -63,9 +63,22 @@ public class DataState {
         this.data = data;
     }
 
+    //TODO: FIX ME!
+//    public DataState(VariableRegistry variableRegistry, Map<Variable, IntToDoubleFunction> values) {
+//        this(variableRegistry);
+//        values.forEach((var, initFunction) -> {
+//                IntStream.range(0, var.getSize()).forEach(i -> this.data[i+var.getFirstCellIndex()] = initFunction.applyAsDouble(i));
+//            }
+//        );
+//    }
+
     public DataState(VariableRegistry variableRegistry, Map<Variable, Double> values) {
         this(variableRegistry);
-        values.forEach((key, value) -> this.data[key.index()] = value);
+        values.forEach((var, initFunction) -> {
+                    double v = values.getOrDefault(var, 0.0);
+                    IntStream.range(0, var.getSize()).forEach(i -> this.data[i+var.getFirstCellIndex()] = v);
+                }
+        );
     }
 
 
@@ -80,24 +93,14 @@ public class DataState {
 
 
     /**
-     * Returns the value of the variable with the given index.
-     *
-     * @param index variable index.
-     * @return the value of the variable with the given index.
-     */
-    public double getValue(int index) {
-        return data[index];
-    }
-
-    /**
      * Returns the value of the variable with the given name.
      *
      * @param name variable name.
      * @return the value of the variable with the given index.
      */
     public double getValue(String name) {
-        int index = this.registry.getIndexOf(name);
-        if (index<0) {
+        Variable index = this.registry.getVariable(name);
+        if (index == null) {
             throw new IllegalArgumentException(String.format("Variable %s is unknown!", name));
         }
         return getValue(index);
@@ -111,19 +114,31 @@ public class DataState {
      * @return the value associated with the given variable.
      */
     public double getValue(Variable var) {
+        return getValue(var, 0);
+    }
+
+    public double getValue(Variable var, int index) {
         if (var.registry() != this.registry) {
             throw new IllegalArgumentException("Illegal variable!");
         }
-        return getValue(var.index());
+        return this.data[var.getFirstCellIndex()+index];
+    }
+
+    public double getValue(int i) {
+        return this.data[i];
     }
 
     public DataState set(Variable var, double value) {
-        return set(List.of(new VariableUpdate(var, value)));
+        return set(List.of(new DataStateUpdate(var, value)));
     }
 
-    public DataState set(List<VariableUpdate> updates) {
+    public DataState set(List<DataStateUpdate> updates) {
         double[] values = Arrays.copyOf(this.data, this.data.length);
-        updates.forEach(vu -> values[vu.var().index()] = vu.value());
+        updates.forEach(vu -> values[vu.getUpdatedCell()] = vu.value());
         return new DataState(this.registry, values);
+    }
+
+    public double[] getArrayValues(String name) {
+        return null;//TODO FIXME!
     }
 }

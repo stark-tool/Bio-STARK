@@ -44,7 +44,7 @@ public class Main {
     private static final double MIN_TEMP = 0;
     private static final double MAX_TEMP = 150;
     private static final double STRESS_INCR = 0.1;
-    private static final VariableRegistry variableRegistry = new VariableRegistry(VARIABLES);
+    private static final VariableRegistry variableRegistry = VariableRegistry.create(VARIABLES);
     private static final Variable p1 = variableRegistry.getVariable("P1");
     private static final Variable p2 = variableRegistry.getVariable("P2");
     private static final Variable p3 = variableRegistry.getVariable("P3");
@@ -227,7 +227,7 @@ public class Main {
         return new ParallelController(registry.reference("Ctrl"), registry.reference("IDS"));
     }
 
-    public static List<VariableUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
+    public static List<DataStateUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
         double vP1 = state.getValue(p1);
         double vP2 = state.getValue(p2);
         double vP3 = state.getValue(p3);
@@ -238,19 +238,19 @@ public class Main {
         double vStress = state.getValue(stress);
         double vCool = state.getValue(cool);
         double vSpeed = state.getValue(speed);
-        List<VariableUpdate> updates = new LinkedList<>();
-        updates.add(new VariableUpdate(p1, vTemp));
-        updates.add(new VariableUpdate(p2, vP1));
-        updates.add(new VariableUpdate(p3, vP2));
-        updates.add(new VariableUpdate(p4, vP3));
-        updates.add(new VariableUpdate(p5, vP4));
-        updates.add(new VariableUpdate(p6, vP5));
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(p1, vTemp));
+        updates.add(new DataStateUpdate(p2, vP1));
+        updates.add(new DataStateUpdate(p3, vP2));
+        updates.add(new DataStateUpdate(p4, vP3));
+        updates.add(new DataStateUpdate(p5, vP4));
+        updates.add(new DataStateUpdate(p6, vP5));
         if (isStressing(vP1, vP2, vP3, vP4, vP5, vP6)) {
-            updates.add(new VariableUpdate(stress,Math.max(0,Math.min(1,vStress+STRESS_INCR))));
+            updates.add(new DataStateUpdate(stress,Math.max(0,Math.min(1,vStress+STRESS_INCR))));
         }
         double newTemp = nextTempValue(vTemp, getTemperatureVariation(rg, vCool, vSpeed));
-        updates.add(new VariableUpdate(temp, newTemp));
-        updates.add(new VariableUpdate(ch_temp, newTemp));
+        updates.add(new DataStateUpdate(temp, newTemp));
+        updates.add(new DataStateUpdate(ch_temp, newTemp));
         return updates;
     }
 

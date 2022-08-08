@@ -22,28 +22,19 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+import it.unicam.quasylab.jspear.DataState;
+import it.unicam.quasylab.jspear.DefaultRandomGenerator;
+import org.apache.commons.math3.random.RandomGenerator;
 
-/**
- * This class is used to represent a variable in JSpear.
- */
-public class JSpearSpecificationVariable {
+public interface ArrayElementPredicate {
 
-    private final String name;
+    boolean test(RandomGenerator rg, DataState ds, double v);
 
-    private final JSpearType type;
-
-    public JSpearSpecificationVariable(String name, JSpearType type, int from, int to) {
-        this.name = name;
-        this.type = type;
+    default ArrayElementPredicate and(ArrayElementPredicate other) {
+        return (rg, ds, v) -> this.test(rg,ds,v)&&other.test(rg, ds, v);
     }
 
-    public String getName() {
-        return name;
+    default ArrayElementPredicate or(ArrayElementPredicate other) {
+        return (rg, ds, v) -> this.test(rg,ds,v)||other.test(rg, ds, v);
     }
-
-    public JSpearType getType() {
-        return type;
-    }
-
 }

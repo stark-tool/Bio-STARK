@@ -91,6 +91,10 @@ public class SpecificationLoader {
         return new SystemSpecification(new VariableRegistry(), new HashMap<>(), new HashMap<>());
     }
 
+    private VariableRegistry getVariableRegistry(ParseTree mode, SymbolTable table) {
+        return new VariableRegistry();
+    }
+
     private void doTask(Consumer<ParseTree> task, ParseTree model) {
         if (!errors.withErrors()) {
             task.accept(model);

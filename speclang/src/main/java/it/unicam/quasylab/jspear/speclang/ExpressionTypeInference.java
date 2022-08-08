@@ -22,6 +22,8 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
+import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+import it.unicam.quasylab.jspear.speclang.types.TypeContext;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisitor<JSpearType> {
@@ -283,7 +285,7 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
         return super.visitMeanArrayElementExpression(ctx);
     }
 
-    
+
 
     @Override
     public JSpearType visitCountArrayElementExpression(JSpearSpecificationLanguageParser.CountArrayElementExpressionContext ctx) {

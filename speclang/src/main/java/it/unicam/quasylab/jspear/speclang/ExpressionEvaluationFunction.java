@@ -22,42 +22,19 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
+import it.unicam.quasylab.jspear.DataState;
+import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
+import org.apache.commons.math3.random.RandomGenerator;
+
 import java.util.Map;
 
-public class LocalTypeContext implements TypeContext {
-    private final Map<String, JSpearType> localDeclarations;
+public interface ExpressionEvaluationFunction {
 
-    public LocalTypeContext(Map<String, JSpearType> localDeclarations) {
-        this.localDeclarations = localDeclarations;
-    }
+    JSpearValue eval(Map<String, JSpearType> localVariables, RandomGenerator rg, DataState ds);
 
-    @Override
-    public boolean isDefined(String name) {
-        return localDeclarations.containsKey(name);
-    }
 
-    @Override
-    public boolean isReferenceable(String name) {
-        return isDefined(name);
-    }
 
-    @Override
-    public JSpearType getTypeOf(String name) {
-        return this.localDeclarations.get(name);
-    }
-
-    @Override
-    public boolean isAFunction(String functionName) {
-        return false;
-    }
-
-    @Override
-    public JSpearType[] getArgumentsType(String functionName) {
-        return null;
-    }
-
-    @Override
-    public JSpearType getReturnType(String functionName) {
-        return null;
-    }
 }
+
+

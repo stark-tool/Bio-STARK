@@ -27,8 +27,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.DoubleStream;
 
 public class Main {
 
@@ -48,7 +46,7 @@ public class Main {
     public final static double MAX_SPEED = 40.0;
     public final static double INIT_DISTANCE = 3000.0;
     private static final double SAFETY_DISTANCE = 200.0;
-    private static final VariableRegistry variableRegistry = new VariableRegistry(VARIABLES);
+    private static final VariableRegistry variableRegistry = VariableRegistry.create(VARIABLES);
 
     // private static final Variable a = variableRegistry.getVariable("a");
 
@@ -260,26 +258,26 @@ public class Main {
         return new ParallelController(registry.reference("Ctrl"), registry.reference("IDS"));
     }
 
-    public static List<VariableUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
-        List<VariableUpdate> updates = new LinkedList<>();
+    public static List<DataStateUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
+        List<DataStateUpdate> updates = new LinkedList<>();
         double travel = state.getValue(accel)/2 + state.getValue(p_speed);
         double new_timer = state.getValue(timer) - 1;
         double new_p_speed = Math.min(Math.max(0,state.getValue(p_speed) + state.getValue(accel)),MAX_SPEED);
         double new_p_distance = state.getValue(p_distance) - travel;
       //  updates.add(new VariableUpdate(a,state.getValue(a)+5));
-        updates.add(new VariableUpdate(timer, new_timer));
-        updates.add(new VariableUpdate(p_speed, new_p_speed));
-        updates.add(new VariableUpdate(p_distance, new_p_distance));
+        updates.add(new DataStateUpdate(timer, new_timer));
+        updates.add(new DataStateUpdate(p_speed, new_p_speed));
+        updates.add(new DataStateUpdate(p_distance, new_p_distance));
         if(new_timer == 0) {
             double new_s_speed = new_p_speed;
             double new_bd = (new_s_speed * new_s_speed + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
                     2 * new_s_speed * TIMER_INIT)) / (2 * BRAKE);
             double new_rd = new_bd + SAFETY_DISTANCE;
             double new_sg = new_p_distance - new_rd;
-            updates.add(new VariableUpdate(s_speed, new_s_speed));
-            updates.add(new VariableUpdate(braking_distance, new_bd));
-            updates.add(new VariableUpdate(required_distance, new_rd));
-            updates.add(new VariableUpdate(safety_gap, new_sg));
+            updates.add(new DataStateUpdate(s_speed, new_s_speed));
+            updates.add(new DataStateUpdate(braking_distance, new_bd));
+            updates.add(new DataStateUpdate(required_distance, new_rd));
+            updates.add(new DataStateUpdate(safety_gap, new_sg));
         }
         return updates;
     }
@@ -289,7 +287,7 @@ public class Main {
     }
 
     private static DataState speedSensorPerturbationFunction(RandomGenerator rg, DataState state){
-        List<VariableUpdate> updates = new LinkedList<>();
+        List<DataStateUpdate> updates = new LinkedList<>();
         // updates.add(new VariableUpdate(a,state.getValue(a) +100));
         double new_timer = state.getValue(timer);
         if(new_timer == 0) {
@@ -302,9 +300,9 @@ public class Main {
                     2 * fake_speed * TIMER_INIT)) / (2 * BRAKE);
             double fake_rd = fake_bd + SAFETY_DISTANCE;
             double fake_sg = new_p_distance - fake_rd;
-            updates.add(new VariableUpdate(s_speed, fake_speed));
-            updates.add(new VariableUpdate(required_distance, fake_rd));
-            updates.add(new VariableUpdate(safety_gap, fake_sg));
+            updates.add(new DataStateUpdate(s_speed, fake_speed));
+            updates.add(new DataStateUpdate(required_distance, fake_rd));
+            updates.add(new DataStateUpdate(safety_gap, fake_sg));
         }
         return state.set(updates);
     }

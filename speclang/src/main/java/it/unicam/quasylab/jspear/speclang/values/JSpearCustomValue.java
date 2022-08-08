@@ -20,39 +20,16 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.values;
 
-public final class JSpearBooleanType implements JSpearType {
-    @Override
-    public JSpearType merge(JSpearType other) {
-        if (other instanceof JSpearBooleanType) {
-            return this;
-        }
-        return JSpearType.ERROR_TYPE;
-    }
+import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+
+public final class JSpearCustomValue implements JSpearValue {
+
+    //TODO: COmplete!
 
     @Override
-    public boolean isCompatibleWith(JSpearType other) {
-        return (other instanceof JSpearBooleanType);
-    }
-
-    @Override
-    public boolean isNumerical() {
-        return false;
-    }
-
-    @Override
-    public boolean isAnArray() {
-        return false;
-    }
-
-    @Override
-    public boolean isError() {
-        return false;
-    }
-
-    @Override
-    public boolean canBeMergedWith(JSpearType other) {
-        return (other instanceof JSpearBooleanType);
+    public JSpearType getJSpearType() {
+        return null;
     }
 }

@@ -23,8 +23,12 @@
 package it.unicam.quasylab.jspear;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.DoublePredicate;
+import java.util.function.DoubleUnaryOperator;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 /**
  * Instances of used to define the set of variables occurring in a model.
@@ -32,29 +36,52 @@ import java.util.function.Predicate;
 public final class VariableRegistry {
 
     private final Map<String,Variable> variableRegistry;
-    private final Variable[] variables;
+
+    private int cellCounter = 0;
 
     /**
      * Creates a registry containing the given variables. An {@link IllegalArgumentException} is thrown if
      * a duplicated name occurs among the parameters.
      */
-    public VariableRegistry(String ...  names) {
+    public VariableRegistry() {
         this.variableRegistry = new HashMap<>();
-        this.variables = new Variable[names.length];
-        fillRegistry(names);
     }
 
-    private void fillRegistry(String[] names) {
-        for(int i=0; i< names.length; i++) {
-            if (variableRegistry.containsKey(names[i])) {
-                throw new IllegalArgumentException(String.format("Duplicated name %s.", names[i]));
-            } else {
-                Variable v = new Variable(this, i, names[i]);
-                this.variableRegistry.put(names[i], v);
-                this.variables[i] = v;
-            }
+    public static VariableRegistry create(String ... names) {
+        VariableRegistry vr = new VariableRegistry();
+        for (String name : names) {
+            vr.addVariable(name);
+        }
+        return vr;
+    }
+
+    public Variable addVariable(String name) {
+        return this.addVariable(name, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+    }
+    public Variable addVariable(String name, double minValue, double maxValue) {
+        return addVariable(name, 1, minValue, maxValue);
+    }
+
+    private Variable addVariable(String name, int size, double minValue, double maxValue) {
+        if (this.variableRegistry.containsKey(name)) {
+            throw new IllegalArgumentException(String.format("Duplicated name %s.", name));
+        } else {
+            Variable v = new Variable(this, name, cellCounter, size, minValue, maxValue);
+            this.cellCounter += size;
+            this.variableRegistry.put(name, v);
+            return v;
         }
     }
+
+
+    public Variable addArray(String name, int length) {
+        return this.addArray(name, length, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+    }
+
+    public Variable addArray(String name, int length, double minValue, double maxValue) {
+        return addVariable(name, length, minValue, maxValue);
+    }
+
 
     /**
      * Returns the variable in this registry with the given name. A <code>null</code> value is
@@ -68,14 +95,12 @@ public final class VariableRegistry {
     }
 
     /**
-     * Returns the variable in this registry with the given index. A {@link ArrayIndexOutOfBoundsException} is
-     * thrown if an illegal index is used.
+     * Returns the number of cells needed to store the variables in this registry.
      *
-     * @param index variable index.
-     * @return the variable in this registry with the given index.
+     * @return the number of variables in this registry.
      */
-    public synchronized Variable getVariable(int index) {
-        return variables[index];
+    public int size() {
+        return cellCounter;
     }
 
     /**
@@ -83,8 +108,8 @@ public final class VariableRegistry {
      *
      * @return the number of variables in this registry.
      */
-    public int size() {
-        return variables.length;
+    public int numberOfVariables() {
+        return this.variableRegistry.size();
     }
 
     /**
@@ -99,7 +124,16 @@ public final class VariableRegistry {
         if (v == null) {
             return -1;
         } else {
-            return v.index();
+            return v.getFirstCellIndex();
+        }
+    }
+
+    public int getIndexOf(String name, int i) {
+        Variable v = getVariable(name);
+        if ((v == null)||(i<0)||(i>v.getSize())) {
+            return -1;
+        } else {
+            return v.getFirstCellIndex()+i;
         }
     }
 
@@ -159,5 +193,74 @@ public final class VariableRegistry {
         }
         return (rg, ds) -> ds.getValue(variable);
     }
+
+
+    public DataStateUpdate getUpdate(String name, double value) {
+        return getUpdate(getVariable(name), value);
+    }
+
+    public DataStateUpdate getUpdate(Variable var, double value) {
+        return new DataStateUpdate(var, Math.max(var.minValue(), Math.min(value, var.maxValue())));
+    }
+
+//    public DataStateUpdate getArrayUpdate(String name, double[] values) {
+//        return getArrayUpdate(getVariable(name), values);
+//    }
+
+    private List<DataStateUpdate> getArrayUpdate(Variable var, double[] values) {
+        if (var.getSize() != values.length) {
+            throw new IllegalStateException("Assignment of arrays with different size!");
+        }
+        return IntStream.range(0, var.getSize()).mapToObj(i -> getUpdate(var, i, values[i])).toList();
+    }
+
+    private List<DataStateUpdate> getArrayUpdate(Variable var, int from, int to, double[] values) {
+        if (var.getSize() != values.length) {
+            throw new IllegalStateException("Assignment of arrays with different size!");
+        }
+        return IntStream.range(0, var.getSize()).mapToObj(i -> getUpdate(var, i, values[i])).toList();
+    }
+
+    public DataStateUpdate getUpdate(String name, int i, double value) {
+        return getUpdate(getVariable(name), i, value);
+    }
+
+    private DataStateUpdate getUpdate(Variable var, int i, double value) {
+        if (i<var.getSize()) {
+            return getUpdate(var, i, value);
+        } else {
+            throw new IllegalStateException("Illegal index!");//TODO: Handle this out of bound access at runtime!
+        }
+    }
+
+    public double getMaxValueInArray(Variable var, DataState ds) {
+        return IntStream.range(0, var.getSize()).map(i -> i+var.getFirstCellIndex()).mapToDouble(ds::getValue).max().orElse(Double.NaN);
+    }
+
+    public double getMaxValueInArray(Variable var, DataState ds, DoublePredicate predicate) {
+        return IntStream.range(0, var.getSize()).map(i -> i+var.getFirstCellIndex()).mapToDouble(ds::getValue).filter(predicate).max().orElse(Double.NaN);
+    }
+
+    public double getMinValueInArray(Variable var, DataState ds) {
+        return IntStream.range(0, var.getSize()).map(i -> i+var.getFirstCellIndex()).mapToDouble(ds::getValue).min().orElse(Double.NaN);
+    }
+
+    public double getMinValueInArray(Variable var, DataState ds, DoublePredicate predicate) {
+        return IntStream.range(0, var.getSize()).map(i -> i+var.getFirstCellIndex()).mapToDouble(ds::getValue).filter(predicate).min().orElse(Double.NaN);
+    }
+
+
+    public double countValuesInArray(Variable var, DataState ds, DoublePredicate predicate) {
+        return IntStream.range(0, var.getSize()).map(i -> i+var.getFirstCellIndex()).mapToDouble(ds::getValue).filter(predicate).count();
+    }
+
+    public double getMeanValueInArray(Variable var, DataState ds) {
+        return IntStream.range(0, var.getSize()).map(i -> i+var.getFirstCellIndex()).mapToDouble(ds::getValue).average().orElse(Double.NaN);
+    }
+
+    public double getMeanValueInArray(Variable var, DataState ds, DoublePredicate predicate) {
+        return IntStream.range(0, var.getSize()).map(i -> i+var.getFirstCellIndex()).mapToDouble(ds::getValue).filter(predicate).average().orElse(Double.NaN);
+    }
+
 
 }

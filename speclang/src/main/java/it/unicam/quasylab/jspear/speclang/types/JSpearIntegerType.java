@@ -20,38 +20,25 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.types;
 
-import java.util.Objects;
-
-public final class JSpearCustomType implements JSpearType {
-
-    private final String customTypeName;
-
-    private final String[] typeElements;
-
-    public JSpearCustomType(String customTypeName, String[] typeElements) {
-        this.customTypeName = customTypeName;
-        this.typeElements = typeElements;
-    }
-
-
+public final class JSpearIntegerType implements JSpearType {
     @Override
     public JSpearType merge(JSpearType other) {
-        if (this.equals(other)) {
+        if (other instanceof JSpearIntegerType) {
             return this;
         }
-        return JSpearCustomType.ERROR_TYPE;
+        return JSpearType.ERROR_TYPE;
     }
 
     @Override
     public boolean isCompatibleWith(JSpearType other) {
-        return this.equals(other);
+        return (other instanceof JSpearIntegerType);
     }
 
     @Override
     public boolean isNumerical() {
-        return false;
+        return true;
     }
 
     @Override
@@ -66,19 +53,6 @@ public final class JSpearCustomType implements JSpearType {
 
     @Override
     public boolean canBeMergedWith(JSpearType other) {
-        return this.equals(other);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        JSpearCustomType that = (JSpearCustomType) o;
-        return customTypeName.equals(that.customTypeName);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(customTypeName);
+        return other.isNumerical();
     }
 }

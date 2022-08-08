@@ -20,39 +20,20 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.types;
 
-public final class JSpearRealType implements JSpearType {
-    @Override
-    public JSpearType merge(JSpearType other) {
-        if ((other instanceof JSpearIntegerType)||(other instanceof JSpearRealType)) {
-            return this;
-        }
-        return JSpearType.ERROR_TYPE;
-    }
+import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 
-    @Override
-    public boolean isCompatibleWith(JSpearType other) {
-        return other.isNumerical();
-    }
+public interface TypeContext {
+    boolean isDefined(String name);
 
-    @Override
-    public boolean isNumerical() {
-        return true;
-    }
+    boolean isReferenceable(String name);
 
-    @Override
-    public boolean isAnArray() {
-        return false;
-    }
+    JSpearType getTypeOf(String name);
 
-    @Override
-    public boolean isError() {
-        return false;
-    }
+    boolean isAFunction(String functionName);
 
-    @Override
-    public boolean canBeMergedWith(JSpearType other) {
-        return other.isNumerical();
-    }
+    JSpearType[] getArgumentsType(String functionName);
+
+    JSpearType getReturnType(String functionName);
 }
