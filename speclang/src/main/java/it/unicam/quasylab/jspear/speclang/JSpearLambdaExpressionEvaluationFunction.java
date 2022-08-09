@@ -23,18 +23,23 @@
 package it.unicam.quasylab.jspear.speclang;
 
 import it.unicam.quasylab.jspear.DataState;
-import it.unicam.quasylab.jspear.DefaultRandomGenerator;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
 import org.apache.commons.math3.random.RandomGenerator;
 
-public interface ArrayElementPredicate {
+import java.util.Map;
+import java.util.function.Predicate;
 
-    boolean test(RandomGenerator rg, DataState ds, double v);
+@FunctionalInterface
+public interface JSpearLambdaExpressionEvaluationFunction {
 
-    default ArrayElementPredicate and(ArrayElementPredicate other) {
-        return (rg, ds, v) -> this.test(rg,ds,v)&&other.test(rg, ds, v);
+    static JSpearLambdaExpressionEvaluationFunction of(JSpearValue value) {
+        return (rg, lv, ds, v) -> value;
     }
 
-    default ArrayElementPredicate or(ArrayElementPredicate other) {
-        return (rg, ds, v) -> this.test(rg,ds,v)||other.test(rg, ds, v);
+    JSpearValue eval(RandomGenerator rg, Map<String,JSpearValue> localValues, DataState ds, JSpearValue v);
+
+    default Predicate<JSpearValue> partialEvaluation(RandomGenerator rg, Map<String,JSpearValue> localValues, DataState ds) {
+        return v -> this.eval(rg, localValues, ds, v).booleanOf();
     }
+
 }

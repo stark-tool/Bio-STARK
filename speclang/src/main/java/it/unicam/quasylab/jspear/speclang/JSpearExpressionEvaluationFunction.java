@@ -20,44 +20,26 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.types;
+package it.unicam.quasylab.jspear.speclang;
 
-public final class JSpearIntegerType implements JSpearType {
-    @Override
-    public JSpearType merge(JSpearType other) {
-        if (other instanceof JSpearIntegerType) {
-            return this;
-        }
-        return JSpearType.ERROR_TYPE;
+import it.unicam.quasylab.jspear.DataState;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
+import org.apache.commons.math3.random.RandomGenerator;
+
+import java.util.Map;
+
+@FunctionalInterface
+public interface JSpearExpressionEvaluationFunction {
+
+    static JSpearExpressionEvaluationFunction of(JSpearValue v) {
+        return (rg, lv, ds) -> v;
     }
 
-    @Override
-    public boolean isCompatibleWith(JSpearType other) {
-        return (other instanceof JSpearIntegerType);
+    JSpearValue eval(RandomGenerator rg, Map<String,JSpearValue> localValues, DataState ds);
+
+
+    default JSpearValue eval(RandomGenerator rg, DataState ds) {
+        return eval(rg, Map.of(), ds);
     }
 
-    @Override
-    public boolean isNumerical() {
-        return true;
-    }
-
-    @Override
-    public boolean isAnArray() {
-        return false;
-    }
-
-    @Override
-    public boolean isError() {
-        return false;
-    }
-
-    @Override
-    public boolean canBeMergedWith(JSpearType other) {
-        return other.isNumerical();
-    }
-
-    @Override
-    public boolean isInteger() {
-        return true;
-    }
 }

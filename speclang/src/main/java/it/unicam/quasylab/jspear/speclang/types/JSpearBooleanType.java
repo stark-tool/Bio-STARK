@@ -55,4 +55,9 @@ public final class JSpearBooleanType implements JSpearType {
     public boolean canBeMergedWith(JSpearType other) {
         return (other instanceof JSpearBooleanType);
     }
+
+    @Override
+    public boolean isBoolean() {
+        return true;
+    }
 }

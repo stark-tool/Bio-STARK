@@ -24,11 +24,79 @@ package it.unicam.quasylab.jspear.speclang.values;
 
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 
+import java.util.Arrays;
+import java.util.OptionalDouble;
+import java.util.function.Predicate;
+
 public final class JSpearArray implements JSpearValue {
+
+    private final JSpearValue[] elements;
+
+    public JSpearArray(JSpearValue[] elements) {
+        this.elements = elements;
+    }
 
     @Override
     public JSpearType getJSpearType() {
         return JSpearType.ARRAY_TYPE;
     }
 
+    @Override
+    public JSpearValue select(JSpearValue v) {
+        if (v.isInteger()) {
+            return elements[v.integerOf()];
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue select(JSpearValue from, JSpearValue to) {
+        if (from.isInteger()&&to.isInteger()) {
+            return new JSpearArray(Arrays.stream(this.elements, from.integerOf(), to.integerOf()).toArray(JSpearValue[]::new));
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue maxElement(Predicate<JSpearValue> predicate) {
+        OptionalDouble oValue = Arrays.stream(this.elements).filter(predicate).mapToDouble(JSpearValue::doubleOf).max();
+        if (oValue.isPresent()) {
+            return new JSpearReal(oValue.getAsDouble());
+        } else {
+            return new JSpearReal(Double.NEGATIVE_INFINITY);
+        }
+    }
+
+
+    @Override
+    public JSpearValue minElement(Predicate<JSpearValue> predicate) {
+        OptionalDouble oValue = Arrays.stream(this.elements).filter(predicate).mapToDouble(JSpearValue::doubleOf).min();
+        if (oValue.isPresent()) {
+            return new JSpearReal(oValue.getAsDouble());
+        } else {
+            return new JSpearReal(Double.POSITIVE_INFINITY);
+        }
+    }
+
+
+    @Override
+    public JSpearValue meanElement(Predicate<JSpearValue> predicate) {
+        OptionalDouble oValue = Arrays.stream(this.elements).filter(predicate).mapToDouble(JSpearValue::doubleOf).average();
+        if (oValue.isPresent()) {
+            return new JSpearReal(oValue.getAsDouble());
+        } else {
+            return new JSpearReal(0.0);
+        }
+    }
+
+
+    @Override
+    public JSpearValue count(Predicate<JSpearValue> predicate) {
+        return new JSPearInteger((int) Arrays.stream(this.elements).filter(predicate).count());
+    }
+
+    @Override
+    public JSpearValue count() {
+        return new JSPearInteger(this.elements.length);
+    }
 }

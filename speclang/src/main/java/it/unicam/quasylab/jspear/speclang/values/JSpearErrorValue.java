@@ -20,14 +20,14 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.values;
 
-import it.unicam.quasylab.jspear.DataState;
-import it.unicam.quasylab.jspear.DefaultRandomGenerator;
+import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 
-@FunctionalInterface
-public interface ArrayElementExpression {
+public final class JSpearErrorValue implements JSpearValue {
 
-    double apply(DefaultRandomGenerator rg, DataState ds, double v);
-
+    @Override
+    public JSpearType getJSpearType() {
+        return JSpearType.ERROR_TYPE;
+    }
 }

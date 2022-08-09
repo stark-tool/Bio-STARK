@@ -55,4 +55,9 @@ public final class JSpearRealType implements JSpearType {
     public boolean canBeMergedWith(JSpearType other) {
         return other.isNumerical();
     }
+
+    @Override
+    public boolean isReal() {
+        return true;
+    }
 }

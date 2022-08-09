@@ -81,4 +81,9 @@ public final class JSpearCustomType implements JSpearType {
     public int hashCode() {
         return Objects.hash(customTypeName);
     }
+
+    @Override
+    public boolean isCustom() {
+        return true;
+    }
 }

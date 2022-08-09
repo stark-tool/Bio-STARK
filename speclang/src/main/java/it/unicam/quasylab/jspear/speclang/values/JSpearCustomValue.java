@@ -22,11 +22,19 @@
 
 package it.unicam.quasylab.jspear.speclang.values;
 
+import it.unicam.quasylab.jspear.speclang.types.JSpearCustomType;
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 
 public final class JSpearCustomValue implements JSpearValue {
 
-    //TODO: COmplete!
+    private final JSpearCustomType type;
+
+    private final int elementIndex;
+
+    public JSpearCustomValue(JSpearCustomType type, int elementIndex) {
+        this.type = type;
+        this.elementIndex = elementIndex;
+    }
 
     @Override
     public JSpearType getJSpearType() {

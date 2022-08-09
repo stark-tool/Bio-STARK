@@ -25,8 +25,125 @@ package it.unicam.quasylab.jspear.speclang.values;
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 
 public final class JSPearInteger implements JSpearValue {
+    private final int value;
+
+    public JSPearInteger(int value) {
+        this.value = value;
+    }
+
     @Override
     public JSpearType getJSpearType() {
         return JSpearType.INTEGER_TYPE;
+    }
+
+    @Override
+    public JSpearValue sum(JSpearValue v) {
+        if (v.isInteger()) {
+            return new JSPearInteger(this.value+v.integerOf());
+        }
+        if (v.isReal()) {
+            return new JSpearReal(this.value+v.doubleOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue product(JSpearValue v) {
+        if (v.isInteger()) {
+            return new JSPearInteger(this.value*v.integerOf());
+        }
+        if (v.isReal()) {
+            return new JSpearReal(this.value*v.doubleOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue subtraction(JSpearValue v) {
+        if (v.isInteger()) {
+            return new JSPearInteger(this.value-v.integerOf());
+        }
+        if (v.isReal()) {
+            return new JSpearReal(this.value-v.doubleOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue division(JSpearValue v) {
+        //TODO: Handle division by zero if needed!
+        if (v.isInteger()) {
+            return new JSPearInteger(this.value/v.integerOf());
+        }
+        if (v.isReal()) {
+            return new JSpearReal(this.value/v.doubleOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue modulo(JSpearValue v) {
+        if (v.isInteger()) {
+            return new JSPearInteger(this.value%v.integerOf());
+        }
+        if (v.isReal()) {
+            return new JSpearReal(this.value%v.doubleOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue isLessThan(JSpearValue v) {
+        if (v.isInteger()||v.isReal()) {
+            return JSpearBoolean.getBooleanValue(this.value < v.doubleOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue isLessOrEqualThan(JSpearValue v) {
+        if (v.isInteger()||v.isReal()) {
+            return JSpearBoolean.getBooleanValue(this.value <= v.doubleOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue isEqualTo(JSpearValue v) {
+        if (v.isInteger()||v.isReal()) {
+            return JSpearBoolean.getBooleanValue(this.value == v.doubleOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue isGreaterOrEqualThan(JSpearValue v) {
+        if (v.isInteger()||v.isReal()) {
+            return JSpearBoolean.getBooleanValue(this.value >= v.doubleOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue isGreaterThan(JSpearValue v) {
+        if (v.isInteger()||v.isReal()) {
+            return JSpearBoolean.getBooleanValue(this.value > v.doubleOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public double doubleOf() {
+        return this.value;
+    }
+
+    @Override
+    public int integerOf() {
+        return this.value;
+    }
+
+    @Override
+    public boolean isInteger() {
+        return true;
     }
 }

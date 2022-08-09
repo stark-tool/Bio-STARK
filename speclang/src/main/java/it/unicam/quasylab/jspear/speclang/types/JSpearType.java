@@ -62,4 +62,20 @@ public sealed interface JSpearType permits JSpearErrorType, JSpearBooleanType, J
 
 
     boolean canBeMergedWith(JSpearType other);
+
+    default boolean isInteger() {
+        return false;
+    }
+
+    default boolean isBoolean() {
+        return false;
+    }
+
+    default boolean isReal() {
+        return false;
+    }
+
+    default boolean isCustom() {
+        return false;
+    }
 }

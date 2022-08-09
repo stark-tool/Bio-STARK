@@ -25,6 +25,51 @@ package it.unicam.quasylab.jspear.speclang.values;
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 
 public final class JSpearBoolean implements JSpearValue {
+
+    public static final JSpearValue TRUE = new JSpearBoolean(true);
+    public static final JSpearValue FALSE = new JSpearBoolean(false);
+    private final boolean value;
+
+    private JSpearBoolean(boolean value) {
+        this.value = value;
+    }
+
+    @Override
+    public JSpearValue negate() {
+        return getBooleanValue(!this.value);
+    }
+
+    public static JSpearValue getBooleanValue(boolean value) {
+        return (value?TRUE:FALSE);
+    }
+
+    @Override
+    public JSpearValue and(JSpearValue v) {
+        if (v.isBoolean()) {
+            return getBooleanValue(this.value&&v.booleanOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public JSpearValue or(JSpearValue v) {
+        if (v.isBoolean()) {
+            return getBooleanValue(this.value||v.booleanOf());
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    @Override
+    public boolean booleanOf() {
+        return this.value;
+    }
+
+    @Override
+    public boolean isBoolean() {
+        return true;
+    }
+
+
     @Override
     public JSpearType getJSpearType() {
         return JSpearType.BOOLEAN_TYPE;
