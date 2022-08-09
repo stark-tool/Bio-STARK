@@ -99,4 +99,9 @@ public final class JSpearArray implements JSpearValue {
     public JSpearValue count() {
         return new JSPearInteger(this.elements.length);
     }
+
+    @Override
+    public double[] toDoubleArray() {
+        return Arrays.stream(elements).mapToDouble(JSpearValue::doubleOf).toArray();
+    }
 }

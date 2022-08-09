@@ -27,12 +27,16 @@ import it.unicam.quasylab.jspear.VariableRegistry;
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 import it.unicam.quasylab.jspear.speclang.values.*;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class JSpearExpressionEvaluator extends JSpearSpecificationLanguageBaseVisitor<JSpearExpressionEvaluationFunction> {
@@ -79,15 +83,19 @@ public class JSpearExpressionEvaluator extends JSpearSpecificationLanguageBaseVi
     private final Function<String, JSpearValue> constants;
 
     private final Function<String, JSpearValue> parameters;
+
+    private final Function<String, JSpearFunction> functions;
+
     private final SymbolTable table;
     private final VariableRegistry registry;
     private final Set<String> localVariables;
 
 
-    public JSpearExpressionEvaluator(SymbolTable table, Function<String, JSpearValue> constants, Function<String, JSpearValue> parameters, VariableRegistry registry, Set<String> localVariables) {
+    public JSpearExpressionEvaluator(SymbolTable table, Function<String, JSpearValue> constants, Function<String, JSpearValue> parameters, Function<String, JSpearFunction> functions, VariableRegistry registry, Set<String> localVariables) {
         this.table = table;
         this.constants = constants;
         this.parameters = parameters;
+        this.functions = functions;
         this.registry = registry;
         this.localVariables = localVariables;
     }
@@ -130,19 +138,19 @@ public class JSpearExpressionEvaluator extends JSpearSpecificationLanguageBaseVi
                                                                        Function<JSpearValue, JSpearValue> selectionFunction
     ) {
         if (guard != null) {
-            JSpearLambdaExpressionEvaluator lambdaEvaluator = new JSpearLambdaExpressionEvaluator(table, constants, parameters, registry, localVariables);
+            JSpearLambdaExpressionEvaluator lambdaEvaluator = new JSpearLambdaExpressionEvaluator(table, constants, parameters, functions, registry, localVariables);
             JSpearLambdaExpressionEvaluationFunction selection = guard.accept(lambdaEvaluator);
             if (localVariables.contains(arrayName)) {
-                return (rg, lv, ds) -> guardSelectionFunction.apply(lv.get(arrayName), selection.partialEvaluation(rg, lv, ds));
+                return (rg, lv, ds) -> guardSelectionFunction.apply(lv.get(arrayName), selection.generatePredicate(rg, lv, ds));
             }
             if (table.isAConstant(arrayName)) {
                 JSpearValue cValue = constants.apply(arrayName);
-                return (rg, lv, ds) -> guardSelectionFunction.apply(cValue, selection.partialEvaluation(rg, lv, ds));
+                return (rg, lv, ds) -> guardSelectionFunction.apply(cValue, selection.generatePredicate(rg, lv, ds));
             }
             if (table.isAVariable(arrayName)) {
                 Variable variable = registry.getVariable(arrayName);
                 JSpearType type = table.getTypeOf(arrayName);
-                return (rg, lv, ds) -> guardSelectionFunction.apply(JSpearValue.of(type, variable, ds), selection.partialEvaluation(rg, lv, ds));
+                return (rg, lv, ds) -> guardSelectionFunction.apply(JSpearValue.of(type, variable, ds), selection.generatePredicate(rg, lv, ds));
             }
         } else {
             if (localVariables.contains(arrayName)) {
@@ -245,7 +253,7 @@ public class JSpearExpressionEvaluator extends JSpearSpecificationLanguageBaseVi
             return JSpearExpressionEvaluationFunction.of(value);
         }
         if (table.isAParameter(name)) {
-            JSpearValue value = constants.apply(name);
+            JSpearValue value = parameters.apply(name);
             return JSpearExpressionEvaluationFunction.of(value);
         }
         if (localVariables.contains(name)) {
@@ -316,8 +324,27 @@ public class JSpearExpressionEvaluator extends JSpearSpecificationLanguageBaseVi
 
     @Override
     public JSpearExpressionEvaluationFunction visitCallExpression(JSpearSpecificationLanguageParser.CallExpressionContext ctx) {
-        //TODO: FIXME!
-        return JSpearExpressionEvaluationFunction.of(JSpearValue.ERROR_VALUE);
+        String functionName = ctx.name.getText();
+        if (table.isAFunction(functionName)) {
+            String[] argNames = table.getFunctionDeclaration(functionName).arguments.stream().map(a -> a.name.getText()).toArray(String[]::new);
+            JSpearExpressionEvaluationFunction[] arguments = ctx.callArguments.stream().map(e -> e.accept(this)).toArray(JSpearExpressionEvaluationFunction[]::new);
+            Map<String, JSpearExpressionEvaluationFunction> evaluationMap = generateArgumentsMap(argNames, arguments);
+            JSpearFunction function = functions.apply(functionName);
+            return (rg, lv, ds) -> {
+                Map<String, JSpearValue> actualArguments = evaluationMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().eval(rg, lv, ds)));
+                return function.apply(rg, actualArguments);
+            };
+        } else {
+            return JSpearExpressionEvaluationFunction.of(JSpearValue.ERROR_VALUE);
+        }
+    }
+
+    private Map<String, JSpearExpressionEvaluationFunction> generateArgumentsMap(String[] argNames, JSpearExpressionEvaluationFunction[] arguments) {
+        HashMap<String, JSpearExpressionEvaluationFunction> toReturn = new HashMap<>();
+        for(int i=0; i<argNames.length; i++) {
+            toReturn.put(argNames[i], arguments[i]);
+        }
+        return toReturn;
     }
 
     @Override

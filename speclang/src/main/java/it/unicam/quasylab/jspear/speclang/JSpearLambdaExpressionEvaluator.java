@@ -27,12 +27,14 @@ import it.unicam.quasylab.jspear.VariableRegistry;
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 import it.unicam.quasylab.jspear.speclang.values.*;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.Function;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 public class JSpearLambdaExpressionEvaluator extends JSpearSpecificationLanguageBaseVisitor<JSpearLambdaExpressionEvaluationFunction> {
 
@@ -76,15 +78,19 @@ public class JSpearLambdaExpressionEvaluator extends JSpearSpecificationLanguage
     private final Function<String, JSpearValue> constants;
 
     private final Function<String, JSpearValue> parameters;
+
+    private final Function<String, JSpearFunction> functions;
+
     private final SymbolTable table;
     private final VariableRegistry registry;
     private final Set<String> localVariables;
 
 
-    public JSpearLambdaExpressionEvaluator(SymbolTable table, Function<String, JSpearValue> constants, Function<String, JSpearValue> parameters, VariableRegistry registry, Set<String> localVariables) {
+    public JSpearLambdaExpressionEvaluator(SymbolTable table, Function<String, JSpearValue> constants, Function<String, JSpearValue> parameters, Function<String, JSpearFunction> functions, VariableRegistry registry, Set<String> localVariables) {
         this.table = table;
         this.constants = constants;
         this.parameters = parameters;
+        this.functions = functions;
         this.registry = registry;
         this.localVariables = localVariables;
     }
@@ -204,7 +210,7 @@ public class JSpearLambdaExpressionEvaluator extends JSpearSpecificationLanguage
             return JSpearLambdaExpressionEvaluationFunction.of(value);
         }
         if (table.isAParameter(name)) {
-            JSpearValue value = constants.apply(name);
+            JSpearValue value = parameters.apply(name);
             return JSpearLambdaExpressionEvaluationFunction.of(value);
         }
         if (localVariables.contains(name)) {
@@ -275,9 +281,29 @@ public class JSpearLambdaExpressionEvaluator extends JSpearSpecificationLanguage
 
     @Override
     public JSpearLambdaExpressionEvaluationFunction visitCallExpression(JSpearSpecificationLanguageParser.CallExpressionContext ctx) {
-        //TODO: FIXME!
-        return JSpearLambdaExpressionEvaluationFunction.of(JSpearValue.ERROR_VALUE);
+        String functionName = ctx.name.getText();
+        if (table.isAFunction(functionName)) {
+            String[] argNames = table.getFunctionDeclaration(functionName).arguments.stream().map(a -> a.name.getText()).toArray(String[]::new);
+            JSpearLambdaExpressionEvaluationFunction[] arguments = ctx.callArguments.stream().map(e -> e.accept(this)).toArray(JSpearLambdaExpressionEvaluationFunction[]::new);
+            Map<String, JSpearLambdaExpressionEvaluationFunction> evaluationMap = generateArgumentsMap(argNames, arguments);
+            JSpearFunction function = functions.apply(functionName);
+            return (rg, lv, ds, v) -> {
+                Map<String, JSpearValue> actualArguments = evaluationMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().eval(rg, lv, ds, v)));
+                return function.apply(rg, actualArguments);
+            };
+        } else {
+            return JSpearLambdaExpressionEvaluationFunction.of(JSpearValue.ERROR_VALUE);
+        }
     }
+
+    private Map<String, JSpearLambdaExpressionEvaluationFunction> generateArgumentsMap(String[] argNames, JSpearLambdaExpressionEvaluationFunction[] arguments) {
+        HashMap<String, JSpearLambdaExpressionEvaluationFunction> toReturn = new HashMap<>();
+        for(int i=0; i<argNames.length; i++) {
+            toReturn.put(argNames[i], arguments[i]);
+        }
+        return toReturn;
+    }
+
 
     @Override
     public JSpearLambdaExpressionEvaluationFunction visitCountArrayElementExpression(JSpearSpecificationLanguageParser.CountArrayElementExpressionContext ctx) {

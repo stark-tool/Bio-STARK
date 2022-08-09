@@ -20,26 +20,16 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.values;
+package it.unicam.quasylab.jspear.speclang;
 
-import it.unicam.quasylab.jspear.speclang.types.JSpearCustomType;
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
+import org.apache.commons.math3.random.RandomGenerator;
 
-public final class JSpearCustomValue implements JSpearValue {
+import java.util.Map;
 
-    private final JSpearCustomType type;
+@FunctionalInterface
+public interface JSpearFunction {
 
-    private final int elementIndex;
-
-    public JSpearCustomValue(JSpearCustomType type, int elementIndex) {
-        this.type = type;
-        this.elementIndex = elementIndex;
-    }
-
-    @Override
-    public JSpearType getJSpearType() {
-        return null;
-    }
-
+    JSpearValue apply(RandomGenerator rg, Map<String, JSpearValue> args);
 
 }

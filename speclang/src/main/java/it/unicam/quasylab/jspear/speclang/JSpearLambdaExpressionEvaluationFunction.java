@@ -38,7 +38,7 @@ public interface JSpearLambdaExpressionEvaluationFunction {
 
     JSpearValue eval(RandomGenerator rg, Map<String,JSpearValue> localValues, DataState ds, JSpearValue v);
 
-    default Predicate<JSpearValue> partialEvaluation(RandomGenerator rg, Map<String,JSpearValue> localValues, DataState ds) {
+    default Predicate<JSpearValue> generatePredicate(RandomGenerator rg, Map<String,JSpearValue> localValues, DataState ds) {
         return v -> this.eval(rg, localValues, ds, v).booleanOf();
     }
 

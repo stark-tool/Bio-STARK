@@ -42,4 +42,7 @@ public interface JSpearExpressionEvaluationFunction {
         return eval(rg, Map.of(), ds);
     }
 
+    default JSpearValue eval(RandomGenerator rg, Map<String, JSpearValue> lv) {
+        return eval(rg, lv, null);
+    }
 }

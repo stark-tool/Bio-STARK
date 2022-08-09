@@ -189,5 +189,7 @@ public sealed interface JSpearValue permits JSpearBoolean, JSPearInteger, JSpear
         return count(v -> true);
     }
 
-
+    default double[] toDoubleArray() {
+        return new double[0];
+    }
 }

@@ -25,6 +25,7 @@ package it.unicam.quasylab.jspear;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.IntToDoubleFunction;
 import java.util.stream.IntStream;
 
@@ -134,9 +135,10 @@ public class DataState {
 
     public DataState set(List<DataStateUpdate> updates) {
         double[] values = Arrays.copyOf(this.data, this.data.length);
-        updates.forEach(vu -> values[vu.getUpdatedCell()] = vu.value());
+        updates.forEach(vu -> vu.apply(values));
         return new DataState(this.registry, values);
     }
+
 
     public double[] getArrayValues(String name) {
         return null;//TODO FIXME!
