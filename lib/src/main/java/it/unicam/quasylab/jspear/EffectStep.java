@@ -49,4 +49,8 @@ public record EffectStep<T>(DataStateFunction effect, T next) {
     public EffectStep<T> parallel(BinaryOperator<DataStateFunction> dataStateOperator, BinaryOperator<T> stepOperator, EffectStep<T> other) {
         return new EffectStep<>(dataStateOperator.apply(this.effect, other.effect), stepOperator.apply(this.next, other.next));
     }
+
+    public EffectStep<T> applyBefore(DataStateFunction f) {
+        return new EffectStep<>(f.compose(effect), next);
+    }
 }

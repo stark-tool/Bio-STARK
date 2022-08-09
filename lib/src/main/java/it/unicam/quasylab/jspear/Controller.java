@@ -24,6 +24,8 @@ package it.unicam.quasylab.jspear;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 /**
@@ -39,6 +41,13 @@ public interface Controller {
 
     static Controller doAction(DataStateFunction act, Controller next) {
         return new ActionController(act, next);
+    }
+
+
+    static Controller doAssignment(BiPredicate<RandomGenerator, DataState> guard,
+                                   BiFunction<RandomGenerator, DataState, DataStateUpdate> assignment,
+                                   Controller nextController) {
+        return new AssignmentController(guard, assignment, nextController);
     }
 
     static Controller doTick(Controller next) {

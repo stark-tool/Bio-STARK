@@ -24,6 +24,8 @@ package it.unicam.quasylab.jspear;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import java.util.function.BiPredicate;
+
 /**
  * Instances of this class are used to represent a random function from data states to data states.
  */
@@ -45,4 +47,5 @@ public interface DataStateFunction {
     default DataStateFunction compose(DataStateFunction other) {
         return (rg, ds) -> other.apply(rg, this.apply(rg, ds));
     }
+
 }
