@@ -26,6 +26,8 @@ import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
+import java.util.Locale;
+
 public class ParseUtil {
     private static final String MISSING_VARIABLE_DECLARATION = "No variable is declared in the model.";
     private static final String DUPLICATED_VARIABLE_DECLARATION = "Duplicated variables declaration.";
@@ -43,7 +45,8 @@ public class ParseUtil {
     private static final String UNKNOWN_VARIABLE_MESSAGE = "Variable %s used at line %d char %d is unknown.";
     private static final String ILLEGAL_RANGE_INTERVAL_MESSAGE = "Illegal usage of range declaration for variable %s at line %d char %d.";
     private static final String RANGE_INTERVAL_IS_MISSING_MESSAGE = "Range declaration is missing for variable %s at line %d char %d.";
-    private static final String UNKNOWN_TYPE_MESSAGE = "Type %s used at line %d char %d is unknown.";;
+    private static final String UNKNOWN_TYPE_MESSAGE = "Type %s used at line %d char %d is unknown.";
+    private static final String ILLEGAL_USE_OF_RANDOM_EXPRESSION = "Illegal use of random expression at line %d char %d.";
 
     public static ParseError missingVariablesDeclaration() {
         return new ParseError(MISSING_VARIABLE_DECLARATION,0,0);
@@ -167,5 +170,13 @@ public class ParseUtil {
 
     private static String getUnknownTypeMessage(Token name) {
         return String.format(UNKNOWN_TYPE_MESSAGE, name.getText(), name.getLine(), name.getCharPositionInLine());
+    }
+
+    public static ParseError illegalUseOfRandomExpression(Token token) {
+        return new ParseError(getIllegalUseOfRandomExpressionMessage(token), token.getLine(), token.getCharPositionInLine());
+    }
+
+    private static String getIllegalUseOfRandomExpressionMessage(Token token) {
+        return String.format(ILLEGAL_USE_OF_RANDOM_EXPRESSION, token.getLine(), token.getCharPositionInLine());
     }
 }

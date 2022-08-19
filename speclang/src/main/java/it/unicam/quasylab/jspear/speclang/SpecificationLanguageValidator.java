@@ -138,7 +138,7 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
     public Boolean visitPenaltyDeclaration(JSpearSpecificationLanguageParser.PenaltyDeclarationContext ctx) {
         if (checkIfNotDuplicated(ctx.name.getText(), ctx)) {
             this.symbols.recordPenaltyFunction(ctx.name.getText(), ctx);
-            return new ExpressionTypeInference(symbols,errors).checkType(JSpearType.REAL_TYPE, ctx.value);
+            return !new ExpressionTypeInference(symbols,errors).checkType(JSpearType.REAL_TYPE, ctx.value);
         }
         return false;
     }
@@ -198,7 +198,7 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
             errors.record(ParseUtil.unknownState(ctx.target));
             flag = false;
         }
-        flag &= (ctx.steps == null)||(new ExpressionTypeInference(this.symbols, errors).checkType(JSpearType.INTEGER_TYPE, ctx.steps));
+        flag &= (ctx.steps == null)||(!new ExpressionTypeInference(this.symbols, errors).checkType(JSpearType.INTEGER_TYPE, ctx.steps));
         return flag;
     }
 
@@ -253,7 +253,7 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
     public Boolean visitEnvironmentDeclaration(JSpearSpecificationLanguageParser.EnvironmentDeclarationContext ctx) {
         TypeContext localContext = getLocalContext(ctx.localVariables);
         boolean flag = true;
-        ExpressionTypeInference inference = new ExpressionTypeInference(new NestedTypeContext(localContext, symbols), errors);
+        ExpressionTypeInference inference = new ExpressionTypeInference(new NestedTypeContext(localContext, symbols), errors, true);
         for(JSpearSpecificationLanguageParser.VariableAssignmentContext varAssignment: ctx.assignments) {
             flag &= checkEnvironmentVariableUpdate(inference, varAssignment);
         }

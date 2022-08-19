@@ -38,7 +38,7 @@ class SpecificationLoaderTest {
     public static final String VEHICLE = "./Vehicle.jspec";
 
     @Test
-    void loadRandomWalkSpecification() throws IOException {
+    void ùloadRandomWalkSpecification() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(RANDOM_WALK)).openStream());
         assertNotNull(spec);

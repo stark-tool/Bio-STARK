@@ -33,6 +33,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisitor<JSpearType> {
     private final TypeContext context;
     private final ParseErrorCollector errors;
+    private final boolean randomExpressionAllowed;
 
     /**
      * Creates a new visitor used to infer the type of expressions. This constructor takes as parameters
@@ -40,18 +41,28 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
      * @param context
      * @param errors
      */
-    public ExpressionTypeInference(TypeContext context, ParseErrorCollector errors) {
+    public ExpressionTypeInference(TypeContext context, ParseErrorCollector errors, boolean randomExpressionAllowed) {
         this.context = context;
         this.errors = errors;
+        this.randomExpressionAllowed = randomExpressionAllowed;
     }
 
-    public boolean checkType(JSpearType expectedType, ParserRuleContext ctx) {
+    public ExpressionTypeInference(TypeContext context, ParseErrorCollector errors) {
+        this(context, errors, false);
+    }
+
+
+    public JSpearType inferAndCheck(JSpearType expectedType, ParserRuleContext ctx) {
         JSpearType actualType = ctx.accept(this);
         if (!expectedType.isCompatibleWith(actualType)) {
             errors.record(ParseUtil.typeError(expectedType, actualType, ctx.start));
-            return false;
+            return JSpearType.ERROR_TYPE;
         }
-        return true;
+        return actualType;
+    }
+
+    public boolean checkType(JSpearType expectedType, ParserRuleContext ctx) {
+        return !inferAndCheck(expectedType, ctx).isError();
     }
 
     @Override
@@ -232,19 +243,26 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
         return checkNumerical(ctx.arg);
     }
 
-    //TODO: Check the correct usage of random expressions!
 
     @Override
     public JSpearType visitNormalExpression(JSpearSpecificationLanguageParser.NormalExpressionContext ctx) {
-        if (checkType(JSpearType.REAL_TYPE, ctx.mean)&checkType(JSpearType.REAL_TYPE, ctx.variance)) {
-            return JSpearType.REAL_TYPE;
-        } else {
+        if (!randomExpressionAllowed) {
+            this.errors.record(ParseUtil.illegalUseOfRandomExpression(ctx.start));
             return JSpearType.ERROR_TYPE;
+        } else {
+            if (checkType(JSpearType.REAL_TYPE, ctx.mean)&checkType(JSpearType.REAL_TYPE, ctx.variance)) {
+                return new JSpearRandomType( JSpearType.REAL_TYPE );
+            }
         }
+        return JSpearType.ERROR_TYPE;
     }
 
     @Override
     public JSpearType visitUniformExpression(JSpearSpecificationLanguageParser.UniformExpressionContext ctx) {
+        if (!randomExpressionAllowed) {
+            this.errors.record(ParseUtil.illegalUseOfRandomExpression(ctx.start));
+            return JSpearType.ERROR_TYPE;
+        }
         JSpearType type = JSpearType.ANY_TYPE;
         for (JSpearSpecificationLanguageParser.ExpressionContext v: ctx.values) {
             JSpearType current = v.accept(this);
@@ -255,14 +273,18 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
                 return JSpearType.ERROR_TYPE;
             }
         }
-        return type;
+        return new JSpearRandomType( type );
     }
 
     @Override
     public JSpearType visitRandomExpression(JSpearSpecificationLanguageParser.RandomExpressionContext ctx) {
+        if (!randomExpressionAllowed) {
+            this.errors.record(ParseUtil.illegalUseOfRandomExpression(ctx.start));
+            return JSpearType.ERROR_TYPE;
+        }
         if (ctx.from != null) {
             if (checkType(JSpearType.REAL_TYPE, ctx.from)&checkType(JSpearType.REAL_TYPE, ctx.to)) {
-                return JSpearType.REAL_TYPE;
+                return new JSpearRandomType( JSpearType.REAL_TYPE );
             } else {
                 return JSpearType.ERROR_TYPE;
             }
