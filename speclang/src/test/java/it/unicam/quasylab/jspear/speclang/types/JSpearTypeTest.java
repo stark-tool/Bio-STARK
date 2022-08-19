@@ -31,7 +31,7 @@ class JSpearTypeTest {
     private final JSpearType customType = new JSpearCustomType("testType", new String[] { "element1", "element2" , "element3"} );
     private final JSpearType theSameCustomType = new JSpearCustomType("testType", new String[] { "element1", "element2" , "element3"} );
 
-    private final JSpearType[][] INCOMPATIBLE_TYPES = {
+    private final JSpearType[][] UNMEARGEABLE_TYPES = {
             {  customType, JSpearType.BOOLEAN_TYPE },
             {  customType, JSpearType.INTEGER_TYPE },
             {  customType, JSpearType.REAL_TYPE },
@@ -105,6 +105,20 @@ class JSpearTypeTest {
             {  new JSpearRandomType(JSpearType.ARRAY_TYPE) , new JSpearRandomType(JSpearType.ARRAY_TYPE) , new JSpearRandomType(JSpearType.ARRAY_TYPE) },
     };
 
+    private final JSpearType[][] COMPATIBLE_TYPES = {
+            {JSpearType.BOOLEAN_TYPE, JSpearType.BOOLEAN_TYPE},
+            {JSpearType.BOOLEAN_TYPE, new JSpearRandomType(JSpearType.BOOLEAN_TYPE) },
+            {JSpearType.ARRAY_TYPE, JSpearType.ARRAY_TYPE},
+            {JSpearType.ARRAY_TYPE, new JSpearRandomType(JSpearType.ARRAY_TYPE) },
+            {JSpearType.INTEGER_TYPE, JSpearType.INTEGER_TYPE},
+            {JSpearType.INTEGER_TYPE, new JSpearRandomType(JSpearType.INTEGER_TYPE) },
+            {JSpearType.REAL_TYPE, JSpearType.INTEGER_TYPE},
+            {JSpearType.REAL_TYPE, JSpearType.REAL_TYPE},
+            {JSpearType.REAL_TYPE, new JSpearRandomType(JSpearType.INTEGER_TYPE) },
+            {JSpearType.REAL_TYPE, new JSpearRandomType(JSpearType.REAL_TYPE) },
+            {customType, theSameCustomType},
+            {customType, new JSpearRandomType(theSameCustomType)}
+    };
 
     @Test
     public void testTypesThatShouldBeMerged() {
@@ -115,7 +129,7 @@ class JSpearTypeTest {
 
     @Test
     public void testTypesThatCannotBeMerged() {
-        for (JSpearType[] incompatible_types : INCOMPATIBLE_TYPES) {
+        for (JSpearType[] incompatible_types : UNMEARGEABLE_TYPES) {
             assertFalse(incompatible_types[0].canBeMergedWith(incompatible_types[1]), incompatible_types[0] + " should not be merged with " + incompatible_types[1]);
         }
     }
@@ -129,8 +143,15 @@ class JSpearTypeTest {
 
     @Test
     public void testErrorMergingTypesResults() {
-        for (JSpearType[] incompatibleType : INCOMPATIBLE_TYPES) {
+        for (JSpearType[] incompatibleType : UNMEARGEABLE_TYPES) {
             assertEquals(JSpearType.ERROR_TYPE, incompatibleType[0].merge(incompatibleType[1]), incompatibleType[0] + ".merge("+ incompatibleType[1]+")");
+        }
+    }
+
+    @Test
+    public void testSubtyping() {
+        for (JSpearType[] subtypes : COMPATIBLE_TYPES) {
+            assertTrue(subtypes[0].isCompatibleWith(subtypes[1]), subtypes[0] + ".isCompatibleWith("+ subtypes[1]+")");
         }
     }
 

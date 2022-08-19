@@ -47,7 +47,7 @@ public final class JSpearIntegerType implements JSpearType {
 
     @Override
     public boolean isCompatibleWith(JSpearType other) {
-        return (other instanceof JSpearIntegerType);
+        return (other.deterministicType() == INTEGER_TYPE);
     }
 
     @Override

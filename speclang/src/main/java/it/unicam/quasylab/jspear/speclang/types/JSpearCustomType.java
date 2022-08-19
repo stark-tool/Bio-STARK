@@ -74,7 +74,7 @@ public final class JSpearCustomType implements JSpearType {
 
     @Override
     public boolean isCompatibleWith(JSpearType other) {
-        return this.equals(other);
+        return this.equals(other.deterministicType());
     }
 
     @Override

@@ -51,7 +51,7 @@ public final class JSpearBooleanType implements JSpearType {
 
     @Override
     public boolean isCompatibleWith(JSpearType other) {
-        return (other == JSpearType.BOOLEAN_TYPE);
+        return (other.deterministicType() == JSpearType.BOOLEAN_TYPE);
     }
 
     @Override
