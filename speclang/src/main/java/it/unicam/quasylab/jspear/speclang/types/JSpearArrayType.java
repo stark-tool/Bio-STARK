@@ -22,18 +22,36 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+/**
+ * This type describes the set of arrays.
+ */
 public final class JSpearArrayType implements JSpearType {
+
+    private static JSpearArrayType instance;
+
+    public static JSpearArrayType getInstance() {
+        if (instance == null) {
+            instance = new JSpearArrayType();
+        }
+        return instance;
+    }
+
+    private JSpearArrayType() {}
+
     @Override
     public JSpearType merge(JSpearType other) {
-        if (other instanceof JSpearArrayType) {
+        if (other == JSpearType.ARRAY_TYPE) {
             return this;
+        }
+        if (other.deterministicType() == JSpearType.ARRAY_TYPE) {
+            return other;
         }
         return JSpearType.ERROR_TYPE;
     }
 
     @Override
     public boolean isCompatibleWith(JSpearType other) {
-        return (other instanceof JSpearArrayType);
+        return (other == JSpearType.ARRAY_TYPE)||(other.isRandom()&&(this.isCompatibleWith(((JSpearRandomType) other).getContentType())));
     }
 
     @Override
@@ -53,6 +71,13 @@ public final class JSpearArrayType implements JSpearType {
 
     @Override
     public boolean canBeMergedWith(JSpearType other) {
-        return (other instanceof JSpearArrayType);
+        return this.isCompatibleWith(other);
     }
+
+    @Override
+    public String toString() {
+        return JSpearType.ARRAY_TYPE_STRING;
+    }
+
+
 }

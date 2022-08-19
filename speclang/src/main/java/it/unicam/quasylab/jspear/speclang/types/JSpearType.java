@@ -22,23 +22,73 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
-public sealed interface JSpearType permits JSpearErrorType, JSpearBooleanType, JSpearIntegerType, JSpearRealType, JSpearArrayType, JSpearCustomType, JSpearAnyType {
+/**
+ * This interface is used to model data types occurring in a JSpear specification.
+ */
+public sealed interface JSpearType permits
+        JSpearErrorType,
+        JSpearBooleanType,
+        JSpearIntegerType,
+        JSpearRealType,
+        JSpearArrayType,
+        JSpearCustomType,
+        JSpearAnyType,
+        JSpearRandomType {
 
 
-    JSpearType ERROR_TYPE = new JSpearErrorType();
-    JSpearType BOOLEAN_TYPE = new JSpearBooleanType();
-    JSpearType INTEGER_TYPE = new JSpearIntegerType();
+    /**
+     * Type assigned to expressions with errors.
+     */
+    JSpearType ERROR_TYPE = JSpearErrorType.getInstance();
 
-    JSpearType REAL_TYPE = new JSpearRealType();
+    /**
+     * Type assigned to boolean expressions.
+     */
+    JSpearType BOOLEAN_TYPE = JSpearBooleanType.getInstance();
 
-    JSpearType ARRAY_TYPE = new JSpearArrayType();
+    /**
+     * Type assigned to integer expressions.
+     */
+    JSpearType INTEGER_TYPE = JSpearIntegerType.getInstance();
 
-    JSpearType ANY_TYPE = new JSpearAnyType();
+    /**
+     * Type assigned to real expressions.
+     */
+    JSpearType REAL_TYPE = JSpearRealType.getInstance();
 
+    /**
+     * Type assigned to arrays expressions.
+     */
+    JSpearType ARRAY_TYPE = JSpearArrayType.getInstance();
 
+    /**
+     * Type assigned to array expressions.
+     */
+    JSpearType ANY_TYPE = JSpearAnyType.getInstance();
+    String ANY_TYPE_STRING = "any";
+    String INTEGER_TYPE_STRING = "int";
+    String REAL_TYPE_STRING = "real";
+    String BOOLEAN_TYPE_STRING = "bool";
+    String ARRAY_TYPE_STRING = "array";
+    String ERROR_TYPE_STRING = "error";
+    String RANDOM_TYPE_STRING = "random";
 
+    /**
+     * Returns the type obtained by merging <code>this</code> type with the <code>other</code>. An error type
+     * is returned if the two types are not compatible.
+     *
+     * @param other another type.
+     * @return the type obtained by merging <code>this</code> type with the <code>other</code>.
+     */
     JSpearType merge(JSpearType other);
 
+    /**
+     * Returns the type obtained by merging <code>one</code> type with the <code>other</code>. An error type
+     *  is returned if the two types are not compatible.
+     * @param one a type.
+     * @param other another type.
+     * @return the type obtained by merging <code>one</code> type with the <code>other</code>.
+     */
     static JSpearType merge(JSpearType one, JSpearType other) {
         return one.merge(other);
     }
@@ -53,29 +103,79 @@ public sealed interface JSpearType permits JSpearErrorType, JSpearBooleanType, J
      */
     boolean isCompatibleWith(JSpearType other);
 
+    /**
+     * Returns true if <code>this</code> type represents numerical values.
+     *
+     * @return true if <code>this</code> type represents numerical values.
+     */
     boolean isNumerical();
 
+    /**
+     * Returns true if <code>this</code> type represents an array.
+     *
+     * @return true if <code>this</code> type represents an array.
+     */
     boolean isAnArray();
 
 
-    boolean isError();
+    /**
+     * Returns true if <code>this</code> type represents an error.
+     *
+     * @return true if <code>this</code> type represents an error.
+     */    boolean isError();
 
 
+    /**
+     * Returns true if <code>this</code> type can be merged with the <code>other</code> type.
+     *
+     * @return true if <code>this</code> type can be merged with the <code>other</code> type.
+     */
     boolean canBeMergedWith(JSpearType other);
 
+    /**
+     * Returns true if <code>this</code> type represents integer values.
+     *
+     * @return true if <code>this</code> type represents integer values.
+     */
     default boolean isInteger() {
         return false;
     }
 
+    /**
+     * Returns true if <code>this</code> type represents boolean values.
+     *
+     * @return true if <code>this</code> type represents boolean values.
+     */
     default boolean isBoolean() {
         return false;
     }
 
+    /**
+     * Returns true if <code>this</code> type represents real values.
+     *
+     * @return true if <code>this</code> type represents real values.
+     */
     default boolean isReal() {
         return false;
     }
 
+    /**
+     * Returns true if <code>this</code> type represents a user defined type.
+     *
+     * @return true if <code>this</code> type represents a user defined type.
+     */
     default boolean isCustom() {
         return false;
+    }
+
+    /**
+     * Returns true if this type represents random values.
+     *
+     * @return true if this type represents random values.
+     */
+    default boolean isRandom() { return false; }
+
+    default JSpearType deterministicType() {
+        return this;
     }
 }

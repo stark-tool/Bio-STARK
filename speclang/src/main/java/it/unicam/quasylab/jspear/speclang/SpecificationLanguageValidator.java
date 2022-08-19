@@ -22,10 +22,7 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
-import it.unicam.quasylab.jspear.speclang.types.LocalTypeContext;
-import it.unicam.quasylab.jspear.speclang.types.NestedTypeContext;
-import it.unicam.quasylab.jspear.speclang.types.TypeContext;
+import it.unicam.quasylab.jspear.speclang.types.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 

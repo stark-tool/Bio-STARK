@@ -22,24 +22,52 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+/**
+ * This class describes a user defined types. Each custom type has a unique name and consists of a set of <i>elements</i>.
+ * Each element is associated with an integer value.
+ */
 public final class JSpearCustomType implements JSpearType {
 
     private final String customTypeName;
 
     private final String[] typeElements;
 
+    private final Map<String,Integer> elementsCode;
+
+    /**
+     * Creates a new custom type with the given name and with the given elements.
+     *
+     * @param customTypeName name of the custom type.
+     * @param typeElements names of the elements in the type.
+     */
     public JSpearCustomType(String customTypeName, String[] typeElements) {
         this.customTypeName = customTypeName;
         this.typeElements = typeElements;
+        this.elementsCode = IntStream.range(0, typeElements.length).boxed().collect(Collectors.toMap(i -> typeElements[i], i -> i));
     }
 
+    /**
+     * Returns the code assigned with the given name.
+     *
+     * @param elementName the name of an element in the type.
+     * @return the code assigned with the given name or -1 if the name is unknown.
+     */
+    public int getCode(String elementName) {
+        return this.elementsCode.getOrDefault(elementName, -1);
+    }
 
     @Override
     public JSpearType merge(JSpearType other) {
-        if (this.equals(other)) {
+        if ((other == ANY_TYPE)||this.equals(other)) {
             return this;
+        }
+        if (other.deterministicType().equals(this)) {
+            return other;
         }
         return JSpearCustomType.ERROR_TYPE;
     }
@@ -66,7 +94,7 @@ public final class JSpearCustomType implements JSpearType {
 
     @Override
     public boolean canBeMergedWith(JSpearType other) {
-        return this.equals(other);
+        return (other == ANY_TYPE)||this.equals(other.deterministicType());
     }
 
     @Override
@@ -85,5 +113,10 @@ public final class JSpearCustomType implements JSpearType {
     @Override
     public boolean isCustom() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return customTypeName;
     }
 }

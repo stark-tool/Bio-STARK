@@ -22,12 +22,26 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+/**
+ * A class representing an integer type.
+ */
 public final class JSpearIntegerType implements JSpearType {
+
+    private static JSpearIntegerType instance;
+
+    public static JSpearIntegerType getInstance() {
+        if (instance == null) {
+            instance = new JSpearIntegerType();
+        }
+        return instance;
+    }
+
+    public JSpearIntegerType() {}
+
     @Override
     public JSpearType merge(JSpearType other) {
-        if (other instanceof JSpearIntegerType) {
-            return this;
-        }
+        if ((this == other)||(other==ANY_TYPE)) return this;
+        if ((other.deterministicType()==REAL_TYPE)||(other.deterministicType()==INTEGER_TYPE)) return other;
         return JSpearType.ERROR_TYPE;
     }
 
@@ -53,11 +67,18 @@ public final class JSpearIntegerType implements JSpearType {
 
     @Override
     public boolean canBeMergedWith(JSpearType other) {
-        return other.isNumerical();
+        JSpearType deterministicOther = other.deterministicType();
+        return (this==deterministicOther)||(other == JSpearType.ANY_TYPE)||(deterministicOther==REAL_TYPE);
     }
 
     @Override
     public boolean isInteger() {
         return true;
     }
+
+    @Override
+    public String toString() {
+        return JSpearType.INTEGER_TYPE_STRING;
+    }
+
 }

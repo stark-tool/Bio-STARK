@@ -22,14 +22,24 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
+import it.unicam.quasylab.jspear.speclang.types.JSpearRandomType;
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 import it.unicam.quasylab.jspear.speclang.types.TypeContext;
 import org.antlr.v4.runtime.ParserRuleContext;
 
+/**
+ * This visitor is used to infer types of expressions.
+ */
 public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisitor<JSpearType> {
     private final TypeContext context;
     private final ParseErrorCollector errors;
 
+    /**
+     * Creates a new visitor used to infer the type of expressions. This constructor takes as parameters
+     * a
+     * @param context
+     * @param errors
+     */
     public ExpressionTypeInference(TypeContext context, ParseErrorCollector errors) {
         this.context = context;
         this.errors = errors;
@@ -58,9 +68,9 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
     }
 
     private JSpearType combineToRealType(ParserRuleContext left, ParserRuleContext right) {
-        checkNumerical(left);
-        checkNumerical(right);
-        return JSpearType.REAL_TYPE;
+        JSpearType leftType = checkNumerical(left);
+        JSpearType rightType = checkNumerical(right);
+        return (leftType.isRandom()||rightType.isRandom()?new JSpearRandomType(JSpearType.REAL_TYPE): JSpearType.REAL_TYPE);
     }
 
     private JSpearType checkNumerical(ParserRuleContext ctx) {
@@ -79,10 +89,15 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
 
     @Override
     public JSpearType visitArrayExpression(JSpearSpecificationLanguageParser.ArrayExpressionContext ctx) {
+        boolean isRandom = false;
         for (JSpearSpecificationLanguageParser.ExpressionContext element: ctx.elements) {
-            checkType(JSpearType.REAL_TYPE, element);
+            isRandom |= checkNumerical(element).isRandom();
         }
-        return JSpearType.ARRAY_TYPE;
+        if (isRandom) {
+            return new JSpearRandomType(JSpearType.ARRAY_TYPE);
+        } else {
+            return JSpearType.ARRAY_TYPE;
+        }
     }
 
     @Override
@@ -130,7 +145,7 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
         if (!leftType.canBeMergedWith(rightType)) {
             this.errors.record(ParseUtil.typeError(leftType,rightType, ctx.right.start));
         }
-        return JSpearType.BOOLEAN_TYPE;
+        return (leftType.isRandom()||rightType.isRandom()?new JSpearRandomType(JSpearType.BOOLEAN_TYPE):JSpearType.BOOLEAN_TYPE);
     }
 
     @Override
@@ -140,7 +155,7 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
 
     @Override
     public JSpearType visitOrExpression(JSpearSpecificationLanguageParser.OrExpressionContext ctx) {
-        checkType(JSpearType.BOOLEAN_TYPE, ctx.left);
+        boolean isRandom = checkType(JSpearType.BOOLEAN_TYPE, ctx.left);
         checkType(JSpearType.BOOLEAN_TYPE, ctx.right);
         return JSpearType.BOOLEAN_TYPE;
     }

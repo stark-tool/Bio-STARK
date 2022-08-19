@@ -24,6 +24,7 @@ package it.unicam.quasylab.jspear.speclang.types;
 
 import java.util.Map;
 
+
 public class LocalTypeContext implements TypeContext {
     private final Map<String, JSpearType> localDeclarations;
 
@@ -60,4 +61,5 @@ public class LocalTypeContext implements TypeContext {
     public JSpearType getReturnType(String functionName) {
         return null;
     }
+
 }

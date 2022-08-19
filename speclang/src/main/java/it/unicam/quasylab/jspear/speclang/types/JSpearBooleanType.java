@@ -22,18 +22,36 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+/**
+ * This type describes the set of boolean values.
+ */
 public final class JSpearBooleanType implements JSpearType {
+
+    private static JSpearBooleanType instance;
+
+    public static JSpearBooleanType getInstance() {
+        if (instance == null) {
+            instance = new JSpearBooleanType();
+        }
+        return instance;
+    }
+
+    private JSpearBooleanType() {}
+
     @Override
     public JSpearType merge(JSpearType other) {
-        if (other instanceof JSpearBooleanType) {
+        if (other == JSpearType.BOOLEAN_TYPE) {
             return this;
+        }
+        if (other.deterministicType() == JSpearType.BOOLEAN_TYPE) {
+            return other;
         }
         return JSpearType.ERROR_TYPE;
     }
 
     @Override
     public boolean isCompatibleWith(JSpearType other) {
-        return (other instanceof JSpearBooleanType);
+        return (other == JSpearType.BOOLEAN_TYPE);
     }
 
     @Override
@@ -53,11 +71,17 @@ public final class JSpearBooleanType implements JSpearType {
 
     @Override
     public boolean canBeMergedWith(JSpearType other) {
-        return (other instanceof JSpearBooleanType);
+        return (other.deterministicType() == JSpearType.BOOLEAN_TYPE);
     }
 
     @Override
     public boolean isBoolean() {
         return true;
     }
+
+    @Override
+    public String toString() {
+        return JSpearType.BOOLEAN_TYPE_STRING;
+    }
+
 }

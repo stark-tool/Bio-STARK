@@ -22,7 +22,30 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+/**
+ * This type describes error values. This class is a singleton.
+ */
 public final class JSpearErrorType implements JSpearType {
+
+    private static JSpearErrorType instance;
+
+    /**
+     * Returns the instance of error type.
+     *
+     * @return the instance of error type.
+     */
+    public static JSpearErrorType getInstance() {
+        if (instance == null) {
+            instance = new JSpearErrorType();
+        }
+        return instance;
+    }
+
+    /**
+     * Creates a new instance of error type.
+     */
+    private JSpearErrorType() {}
+
     @Override
     public JSpearType merge(JSpearType other) {
         return this;
@@ -52,4 +75,10 @@ public final class JSpearErrorType implements JSpearType {
     public boolean canBeMergedWith(JSpearType other) {
         return true;
     }
+
+    @Override
+    public String toString() {
+        return JSpearType.ERROR_TYPE_STRING;
+    }
+
 }

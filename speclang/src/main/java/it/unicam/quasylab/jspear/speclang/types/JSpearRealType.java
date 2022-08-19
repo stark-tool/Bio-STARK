@@ -22,12 +22,25 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+/**
+ * A class representing a real type.
+ */
 public final class JSpearRealType implements JSpearType {
+
+    private static JSpearRealType instance;
+
+    public static JSpearRealType getInstance() {
+        if (instance == null) {
+            instance = new JSpearRealType();
+        }
+        return instance;
+    }
+
     @Override
     public JSpearType merge(JSpearType other) {
-        if ((other instanceof JSpearIntegerType)||(other instanceof JSpearRealType)) {
-            return this;
-        }
+        if ((this == other)||(other==ANY_TYPE)||(other==INTEGER_TYPE)) return this;
+        if (other.deterministicType()==REAL_TYPE) return other;
+        if (other.deterministicType()==INTEGER_TYPE) return new JSpearRandomType(this);
         return JSpearType.ERROR_TYPE;
     }
 
@@ -53,11 +66,18 @@ public final class JSpearRealType implements JSpearType {
 
     @Override
     public boolean canBeMergedWith(JSpearType other) {
-        return other.isNumerical();
+        JSpearType deterministicOther = other.deterministicType();
+        return (this==deterministicOther)||(other == JSpearType.ANY_TYPE)||(deterministicOther==INTEGER_TYPE);
     }
 
     @Override
     public boolean isReal() {
         return true;
     }
+
+    @Override
+    public String toString() {
+        return JSpearType.REAL_TYPE_STRING;
+    }
+
 }

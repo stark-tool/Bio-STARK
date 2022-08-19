@@ -22,7 +22,27 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+/**
+ * This type describes the set of all possible JSpear values.
+ */
 public final class JSpearAnyType implements JSpearType {
+
+    private static JSpearAnyType instance;
+
+    /**
+     * Returns the instance of any type.
+     *
+     * @return the instance of any type.
+     */
+    public static JSpearAnyType getInstance() {
+        if (instance == null) {
+            instance = new JSpearAnyType();
+        }
+        return instance;
+    }
+
+    private JSpearAnyType() {}
+
     @Override
     public JSpearType merge(JSpearType other) {
         return other;
@@ -51,5 +71,10 @@ public final class JSpearAnyType implements JSpearType {
     @Override
     public boolean canBeMergedWith(JSpearType other) {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return JSpearType.ANY_TYPE_STRING;
     }
 }

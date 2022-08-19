@@ -20,21 +20,39 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.types;
 
-import it.unicam.quasylab.jspear.DataState;
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
-import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
-import org.apache.commons.math3.random.RandomGenerator;
+import it.unicam.quasylab.jspear.speclang.types.TypeContext;
 
-import java.util.Map;
+public class EmptyTypeContext implements TypeContext {
+    @Override
+    public boolean isDefined(String name) {
+        return false;
+    }
 
-public interface ExpressionEvaluationFunction {
+    @Override
+    public boolean isReferenceable(String name) {
+        return false;
+    }
 
-    JSpearValue eval(Map<String, JSpearType> localVariables, RandomGenerator rg, DataState ds);
+    @Override
+    public JSpearType getTypeOf(String name) {
+        return null;
+    }
 
+    @Override
+    public boolean isAFunction(String functionName) {
+        return false;
+    }
 
+    @Override
+    public JSpearType[] getArgumentsType(String functionName) {
+        return null;
+    }
 
+    @Override
+    public JSpearType getReturnType(String functionName) {
+        return null;
+    }
 }
-
-
