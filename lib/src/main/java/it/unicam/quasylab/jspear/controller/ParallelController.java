@@ -20,35 +20,33 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.controller;
 
 import it.unicam.quasylab.jspear.ds.DataState;
 import org.apache.commons.math3.random.RandomGenerator;
 
-public class PerturbedSystem implements SystemState {
+/**
+ * Represents a controller consisting of two controllers running in parallel. At each step both the
+ * effects and the transitions are applyed.
+ */
+public class ParallelController implements Controller {
 
-    private final SystemState perturbedSystem;
-    private final Perturbation perturbation;
-    private DataState perturbedDataState;
+    private final Controller leftController;
+    private final Controller rightController;
 
-    public PerturbedSystem(SystemState perturbedSystem, Perturbation perturbation) {
-        this.perturbedSystem = perturbedSystem;
-        this.perturbation = perturbation;
+    /**
+     * Creates a new controller consisting by the parallel composition of the two given controllers.
+     *
+     * @param leftController a controller.
+     * @param rightController a controller.
+     */
+    public ParallelController(Controller leftController, Controller rightController) {
+        this.leftController = leftController;
+        this.rightController = rightController;
     }
 
     @Override
-    public DataState getDataState() {
-        return perturbedSystem.getDataState();
-    }
-
-    @Override
-    public SystemState sampleNext(RandomGenerator rg) {
-        SystemState next = perturbedSystem.sampleNext(rg);
-        return perturbation.step().apply(rg, next);
-    }
-
-    @Override
-    public SystemState setDataState(DataState dataState) {
-        return new PerturbedSystem(perturbedSystem.setDataState(dataState), perturbation);
+    public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
+        return this.leftController.next(rg, state).parallel(ParallelController::new, this.rightController.next(rg, state));
     }
 }

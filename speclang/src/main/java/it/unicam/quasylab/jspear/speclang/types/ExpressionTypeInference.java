@@ -20,8 +20,12 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.types;
 
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
+import it.unicam.quasylab.jspear.speclang.ParseErrorCollector;
+import it.unicam.quasylab.jspear.speclang.ParseUtil;
 import it.unicam.quasylab.jspear.speclang.types.JSpearRandomType;
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 import it.unicam.quasylab.jspear.speclang.types.TypeContext;
@@ -173,14 +177,18 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
 
     @Override
     public JSpearType visitIfThenElseExpression(JSpearSpecificationLanguageParser.IfThenElseExpressionContext ctx) {
-        checkType(JSpearType.BOOLEAN_TYPE, ctx.guard);
+        JSpearType guardType = inferAndCheck(JSpearType.BOOLEAN_TYPE, ctx.guard);
         JSpearType thenType = ctx.thenBranch.accept(this);
         JSpearType elseType = ctx.elseBranch.accept(this);
         if (!thenType.canBeMergedWith(elseType)) {
             errors.record(ParseUtil.typeError(thenType, elseType, ctx.elseBranch.start));
             return JSpearType.ERROR_TYPE;
         }
-        return JSpearType.merge(thenType, elseType);
+        if (guardType.isRandom()) {
+            return new JSpearRandomType(JSpearType.merge(thenType, elseType));
+        } else {
+            return JSpearType.merge(thenType, elseType);
+        }
     }
 
     @Override
@@ -289,7 +297,7 @@ public class ExpressionTypeInference extends JSpearSpecificationLanguageBaseVisi
                 return JSpearType.ERROR_TYPE;
             }
         } else {
-            return JSpearType.REAL_TYPE;
+            return new JSpearRandomType( JSpearType.REAL_TYPE );
         }
     }
 

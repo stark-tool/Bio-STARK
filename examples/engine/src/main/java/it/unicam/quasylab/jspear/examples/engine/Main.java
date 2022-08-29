@@ -23,6 +23,10 @@
 package it.unicam.quasylab.jspear.examples.engine;
 
 import it.unicam.quasylab.jspear.*;
+import it.unicam.quasylab.jspear.controller.Controller;
+import it.unicam.quasylab.jspear.controller.ControllerRegistry;
+import it.unicam.quasylab.jspear.controller.ParallelController;
+import it.unicam.quasylab.jspear.ds.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.IOException;
@@ -44,22 +48,25 @@ public class Main {
     private static final double MIN_TEMP = 0;
     private static final double MAX_TEMP = 150;
     private static final double STRESS_INCR = 0.1;
-    private static final VariableRegistry variableRegistry = VariableRegistry.create(VARIABLES);
-    private static final Variable p1 = variableRegistry.getVariable("P1");
-    private static final Variable p2 = variableRegistry.getVariable("P2");
-    private static final Variable p3 = variableRegistry.getVariable("P3");
-    private static final Variable p4 = variableRegistry.getVariable("P4");
-    private static final Variable p5 = variableRegistry.getVariable("P5");
-    private static final Variable p6 = variableRegistry.getVariable("P6");
-    private static final Variable stress = variableRegistry.getVariable("stress");
-    private static final Variable temp = variableRegistry.getVariable("temp");
-    private static final Variable ch_temp = variableRegistry.getVariable("ch_temp");
-    private static final Variable cool = variableRegistry.getVariable("cool");
-    private static final Variable speed = variableRegistry.getVariable("speed");
-    private static final Variable ch_wrn = variableRegistry.getVariable("ch_wrn");
+    //private static final VariableAllocation variableRegistry = VariableAllocation.create(VARIABLES);
+    private static final int p1 = 0;//variableRegistry.getVariable("P1");
+    private static final int p2 = 1;//variableRegistry.getVariable("P2");
+    private static final int p3 = 2;//variableRegistry.getVariable("P3");
+    private static final int p4 = 3;//variableRegistry.getVariable("P4");
+    private static final int p5 = 4;//variableRegistry.getVariable("P5");
+    private static final int p6 = 5;//variableRegistry.getVariable("P6");
+    private static final int stress = 6;//variableRegistry.getVariable("stress");
+    private static final int temp = 7;//variableRegistry.getVariable("temp");
+    private static final int ch_temp = 8;//variableRegistry.getVariable("ch_temp");
+    private static final int cool = 9;//variableRegistry.getVariable("cool");
+    private static final int ch_speed = 10;//variableRegistry.getVariable("speed");
+    private static final int ch_wrn = 11;//variableRegistry.getVariable("ch_wrn");
 
-    private static final Variable ch_in = variableRegistry.getVariable("ch_in");
+    private static final int ch_in = 12;//variableRegistry.getVariable("ch_in");
 
+    private static final int ch_out = 13;//
+
+    private static final int NUMBER_OF_VARIABLES = 14;//
     private static final double INITIAL_TEMP_VALUE = 95.0;
     private static final double TEMP_OFFSET = -1.5;
     private static final int N = 100;
@@ -78,7 +85,7 @@ public class Main {
         try {
             Controller controller = getController();
             DataState state = getInitialState(INITIAL_TEMP_VALUE);
-            ControlledSystem system = new ControlledSystem(controller, (rg, ds) -> ds.set(getEnvironmentUpdates(rg, ds)), state);
+            ControlledSystem system = new ControlledSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
             EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), new DefaultRandomGenerator(), rg -> system, 100);
             EvolutionSequence sequence2_tau = sequence.apply(getPerturbation(),TAU, 100);
             EvolutionSequence sequence2_tau2 = sequence.apply(getPerturbation(),TAU2, 100);
@@ -98,9 +105,9 @@ public class Main {
             System.out.println("Evaluation of phi5 at step "+test_step+": "+PHI5.eval(100, test_step, sequence));
             System.out.println("Evaluation of phi at step 0: "+PHI.eval(100, 0, sequence));
 
-            DistanceExpression expr = new AtomicDistanceExpression(ds -> (ds.getValue(temp)/Math.abs(MAX_TEMP-MIN_TEMP)));
-            DistanceExpression expr2 = new AtomicDistanceExpression(ds -> (ds.getValue(ch_wrn)==HOT?1.0:0.0));
-            DistanceExpression expr3 = new AtomicDistanceExpression(ds -> ds.getValue(stress));
+            DistanceExpression expr = new AtomicDistanceExpression(ds -> (ds.get(temp)/Math.abs(MAX_TEMP-MIN_TEMP)));
+            DistanceExpression expr2 = new AtomicDistanceExpression(ds -> (ds.get(ch_wrn)==HOT?1.0:0.0));
+            DistanceExpression expr3 = new AtomicDistanceExpression(ds -> ds.get(stress));
 
             Util.writeToCSV("./testTemperature.csv", Util.evalDistanceExpression(sequence, sequence2_tau, 90, 300, expr));
 
@@ -111,12 +118,12 @@ public class Main {
             Util.writeToCSV("./testStress.csv", Util.evalDistanceExpression(sequence, sequence2_tau, 90, 220, expr3));
 
             DistanceExpression MaxExpr2 = new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpression(ds -> (ds.getValue(ch_wrn)==HOT?1.0:0.0)),
+                    new AtomicDistanceExpression(ds -> (ds.get(ch_wrn)==HOT?1.0:0.0)),
                     TAU,
                     K
             );
             DistanceExpression MaxExpr3 = new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpression(ds -> ds.getValue(stress)),
+                    new AtomicDistanceExpression(ds -> ds.get(stress)),
                     TAU,
                     K
             );
@@ -141,7 +148,7 @@ public class Main {
     private static RobustnessFormula getFormula1() {
         return new AtomicRobustnessFormula(getPerturbation(),
                 new MinIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
+                        new AtomicDistanceExpression(ds -> Math.abs(ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
                         TAU,
                         TAU+N-1
                 ),
@@ -153,7 +160,7 @@ public class Main {
     private static RobustnessFormula getFormula2() {
         return new AtomicRobustnessFormula(getPerturbation(),
                 new MaxIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> Math.abs(ds.getValue(temp)-ds.getValue(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
+                        new AtomicDistanceExpression(ds -> Math.abs(ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
                         TAU,
                         TAU+N-1
                 ),
@@ -165,7 +172,7 @@ public class Main {
     private static RobustnessFormula getFormula3() {
         return new AtomicRobustnessFormula(getPerturbation(),
                 new MaxIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> (ds.getValue(ch_wrn)==HOT?1.0:0.0)),
+                        new AtomicDistanceExpression(ds -> (ds.get(ch_wrn)==HOT?1.0:0.0)),
                         TAU,
                         K
                 ),
@@ -177,7 +184,7 @@ public class Main {
     private static RobustnessFormula getFormula4() {
         return new AtomicRobustnessFormula(getPerturbation(),
                 new MaxIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> ds.getValue(stress)),
+                        new AtomicDistanceExpression(ds -> ds.get(stress)),
                         TAU,
                         K
                 ),
@@ -205,39 +212,43 @@ public class Main {
         ControllerRegistry registry = new ControllerRegistry();
         registry.set("Ctrl",
                 Controller.ifThenElse(
-                        variableRegistry.greaterOrEqualThan("ch_temp", 99.8),
-                        Controller.doAction(variableRegistry.set("cool", ON), registry.get("Cooling")),
+                        DataState.greaterOrEqualThan(ch_temp, 99.8),
+                        Controller.doAction(DataStateUpdate.set(cool, ON), registry.get("Cooling")),
                         registry.get("Check")
                 ));
         registry.set("Cooling",Controller.doTick(4, registry.get("Check")));
         registry.set("Check",
                 Controller.ifThenElse(
-                        variableRegistry.equalsTo("ch_speed", SLOW),
-                        Controller.doAction(variableRegistry.set("speed", SLOW).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl")),
-                        Controller.doAction(variableRegistry.set("speed", variableRegistry.get("ch_in")).compose(variableRegistry.set("cool", OFF)),registry.get("Ctrl"))
+                        DataState.equalsTo(ch_speed, SLOW),
+                        Controller.doAction(
+                                (rg, ds) -> List.of (new DataStateUpdate(ch_speed, SLOW), new DataStateUpdate(cool, OFF)),registry.get("Ctrl")),
+                        Controller.doAction(
+                                (rg, ds) -> List.of( new DataStateUpdate(ch_speed, ds.get(ch_in)), new DataStateUpdate(cool, OFF)),registry.get("Ctrl"))
                 )
         );
         registry.set("IDS",
                 Controller.ifThenElse(
-                        variableRegistry.greaterThan("temp", 101.0).and(variableRegistry.equalsTo("cool", OFF)),
-                        Controller.doAction(variableRegistry.set("ch_wrn", HOT).compose(variableRegistry.set("ch_speed", LOW)).compose(variableRegistry.set("ch_out", FULL)),registry.get("IDS")),
-                        Controller.doAction(variableRegistry.set("ch_wrn", OK).compose(variableRegistry.set("ch_speed", HALF)).compose(variableRegistry.set("ch_out", HALF)),registry.get("IDS"))
+                        DataState.greaterThan(temp, 101.0).and(DataState.equalsTo(cool, OFF)),
+                        Controller.doAction(
+                                (rd, ds) -> List.of(new DataStateUpdate(ch_wrn, HOT), new DataStateUpdate(ch_speed, LOW), new DataStateUpdate(ch_out, FULL)),registry.get("IDS")),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate( ch_wrn, OK), new DataStateUpdate(ch_speed, HALF), new DataStateUpdate(ch_out, HALF)),registry.get("IDS"))
                 )
         );
         return new ParallelController(registry.reference("Ctrl"), registry.reference("IDS"));
     }
 
     public static List<DataStateUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
-        double vP1 = state.getValue(p1);
-        double vP2 = state.getValue(p2);
-        double vP3 = state.getValue(p3);
-        double vP4 = state.getValue(p4);
-        double vP5 = state.getValue(p5);
-        double vP6 = state.getValue(p6);
-        double vTemp = state.getValue(temp);
-        double vStress = state.getValue(stress);
-        double vCool = state.getValue(cool);
-        double vSpeed = state.getValue(speed);
+        double vP1 = state.get(p1);
+        double vP2 = state.get(p2);
+        double vP3 = state.get(p3);
+        double vP4 = state.get(p4);
+        double vP5 = state.get(p5);
+        double vP6 = state.get(p6);
+        double vTemp = state.get(temp);
+        double vStress = state.get(stress);
+        double vCool = state.get(cool);
+        double vSpeed = state.get(ch_speed);
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(p1, vTemp));
         updates.add(new DataStateUpdate(p2, vP1));
@@ -259,8 +270,8 @@ public class Main {
     }
 
     private static DataState perturbationFunction(RandomGenerator rg, DataState state) {
-        double vTemp = state.getValue(temp);
-        return state.set(ch_temp, vTemp+ rg.nextDouble()*TEMP_OFFSET);
+        double vTemp = state.get(temp);
+        return state.apply(List.of(new DataStateUpdate(ch_temp, vTemp+ rg.nextDouble()*TEMP_OFFSET)));
     }
 
     private static double nextTempValue(double vTemp, double v) {
@@ -285,10 +296,10 @@ public class Main {
     }
 
     public static DataState getInitialState(double vTemp) {
-        Map<Variable, Double> values = new HashMap<>();
+        Map<Integer, Double> values = new HashMap<>();
         values.put(temp, vTemp);
         values.put(cool, OFF);
-        values.put(speed, HALF);
+        values.put(ch_speed, HALF);
         values.put(ch_in, HALF);
         values.put(p1, vTemp);
         values.put(p2, vTemp);
@@ -296,6 +307,6 @@ public class Main {
         values.put(p4, vTemp);
         values.put(p5, vTemp);
         values.put(p6, vTemp);
-        return new DataState(variableRegistry, values);
+        return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, 0.0));
     }
 }

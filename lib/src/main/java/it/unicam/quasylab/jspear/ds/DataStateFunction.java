@@ -20,11 +20,12 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.ds;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import java.util.function.BiPredicate;
+import java.util.List;
+import java.util.function.BiFunction;
 
 /**
  * Instances of this class are used to represent a random function from data states to data states.
@@ -32,7 +33,7 @@ import java.util.function.BiPredicate;
 @FunctionalInterface
 public interface DataStateFunction {
 
-    DataStateFunction TICK_FUNCTION = (rg, ds) -> ds;
+    BiFunction<RandomGenerator, DataState, List<DataStateUpdate>>  TICK_FUNCTION = (rg, ds) -> List.of();
 
     /**
      * Given an random generateor, used to evaluate random expressions, and a data state samples an outcome of this

@@ -22,18 +22,12 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+import it.unicam.quasylab.jspear.speclang.values.JSpearArrayElementPredicate;
+
 /**
  * This interface is used to model data types occurring in a JSpear specification.
  */
-public sealed interface JSpearType permits
-        JSpearErrorType,
-        JSpearBooleanType,
-        JSpearIntegerType,
-        JSpearRealType,
-        JSpearArrayType,
-        JSpearCustomType,
-        JSpearAnyType,
-        JSpearRandomType {
+public sealed interface JSpearType permits JSpearAnyType, JSpearArrayElementPredicateType, JSpearArrayElementSelectionFunctionType, JSpearArrayType, JSpearBooleanType, JSpearCustomType, JSpearErrorType, JSpearIntegerType, JSpearRandomType, JSpearRealType {
 
 
     /**
@@ -62,6 +56,12 @@ public sealed interface JSpearType permits
     JSpearType ARRAY_TYPE = JSpearArrayType.getInstance();
 
     /**
+     *
+     */
+    JSpearType ARRAY_ELEMENT_PREDICATE = JSpearArrayElementPredicateType.getInstance();
+
+
+    /**
      * Type assigned to array expressions.
      */
     JSpearType ANY_TYPE = JSpearAnyType.getInstance();
@@ -72,6 +72,7 @@ public sealed interface JSpearType permits
     String ARRAY_TYPE_STRING = "array";
     String ERROR_TYPE_STRING = "error";
     String RANDOM_TYPE_STRING = "random";
+    JSpearType ARRAY_ELEMENT_SELECTION_FUNCTION = JSpearArrayElementSelectionFunctionType.getInstance();
 
     /**
      * Returns the type obtained by merging <code>this</code> type with the <code>other</code>. An error type
@@ -122,7 +123,8 @@ public sealed interface JSpearType permits
      * Returns true if <code>this</code> type represents an error.
      *
      * @return true if <code>this</code> type represents an error.
-     */    boolean isError();
+     */
+    boolean isError();
 
 
     /**
@@ -178,4 +180,5 @@ public sealed interface JSpearType permits
     default JSpearType deterministicType() {
         return this;
     }
+
 }

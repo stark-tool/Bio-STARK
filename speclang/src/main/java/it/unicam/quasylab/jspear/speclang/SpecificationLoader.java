@@ -22,7 +22,6 @@
 package it.unicam.quasylab.jspear.speclang;
 
 import it.unicam.quasylab.jspear.SystemSpecification;
-import it.unicam.quasylab.jspear.VariableRegistry;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -88,11 +87,11 @@ public class SpecificationLoader {
         if (errors.withErrors()) {
             return null;
         }
-        return new SystemSpecification(new VariableRegistry(), new HashMap<>(), new HashMap<>());
+        return new SystemSpecification(null, null);//new VariableAllocation(), new HashMap<>(), new HashMap<>());
     }
 
-    private VariableRegistry getVariableRegistry(ParseTree mode, SymbolTable table) {
-        return new VariableRegistry();
+    private VariableAllocation getVariableRegistry(ParseTree mode, SymbolTable table) {
+        return new VariableAllocation();
     }
 
     private void doTask(Consumer<ParseTree> task, ParseTree model) {

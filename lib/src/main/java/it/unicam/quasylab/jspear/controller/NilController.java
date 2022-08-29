@@ -20,33 +20,22 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.controller;
 
+import it.unicam.quasylab.jspear.ds.DataState;
 import org.apache.commons.math3.random.RandomGenerator;
 
+import java.util.List;
+
 /**
- * Represents a controller that executes a given action on the data set and then evolves to
- * another one.
+ * Represents a controller that does not execute any action.
  *
  */
-public class ActionController implements Controller {
-
-    private final DataStateFunction action;
-    private final Controller next;
-
-    /**
-     * Creates the controller that execute the given action and then behaves like <code>next</code>.
-     *
-     * @param action effect on data state.
-     * @param next controller enabled after the action execution.
-     */
-    public ActionController(DataStateFunction action, Controller next) {
-        this.action = action;
-        this.next = next;
-    }
+public class NilController implements Controller {
 
     @Override
     public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
-        return new EffectStep(action, next);
+        return new EffectStep(List.of(), this);
     }
+
 }

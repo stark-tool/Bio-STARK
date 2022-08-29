@@ -20,8 +20,10 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.controller;
 
+import it.unicam.quasylab.jspear.ds.DataState;
+import it.unicam.quasylab.jspear.ds.DataStateUpdate;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.List;
@@ -30,10 +32,10 @@ import java.util.function.BiPredicate;
 
 public class AssignmentController implements Controller {
     private final BiPredicate<RandomGenerator, DataState> guard;
-    private final BiFunction<RandomGenerator, DataState, DataStateUpdate> assignment;
+    private final BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment;
     private final Controller nextController;
 
-    public AssignmentController(BiPredicate<RandomGenerator, DataState> guard, BiFunction<RandomGenerator, DataState, DataStateUpdate> assignment, Controller nextController) {
+    public AssignmentController(BiPredicate<RandomGenerator, DataState> guard, BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment, Controller nextController) {
         this.guard = guard;
         this.assignment = assignment;
         this.nextController = nextController;
@@ -43,8 +45,7 @@ public class AssignmentController implements Controller {
     public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
         EffectStep<Controller> stepEffect = nextController.next(rg, state);
         if (guard.test(rg, state)) {
-            DataStateUpdate result = assignment.apply(rg, state);
-            return stepEffect.applyBefore((rg2, ds) -> ds.set(List.of(result)));
+            return stepEffect.applyBefore(assignment.apply(rg, state));
         } else {
             return stepEffect;
         }

@@ -22,6 +22,8 @@
 
 package it.unicam.quasylab.jspear;
 
+import it.unicam.quasylab.jspear.ds.DataStateFunction;
+
 import java.util.Optional;
 
 //TODO: Add comments.

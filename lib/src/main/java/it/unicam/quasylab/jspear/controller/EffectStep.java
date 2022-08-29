@@ -20,15 +20,19 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.controller;
 
+import it.unicam.quasylab.jspear.ds.DataStateUpdate;
+
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
 
 /**
  * Identifies a step executed by a controller.
  */
-public record EffectStep<T>(DataStateFunction effect, T next) {
+public record EffectStep<T>(List<DataStateUpdate> effect, T next) {
 
     /**
      * Applies a given operator on controllers to this step.
@@ -46,11 +50,15 @@ public record EffectStep<T>(DataStateFunction effect, T next) {
      * @param other another controller ste.
      * @return a step consisting of the parallel application of this step with the one given as parameters.
      */
-    public EffectStep<T> parallel(BinaryOperator<DataStateFunction> dataStateOperator, BinaryOperator<T> stepOperator, EffectStep<T> other) {
-        return new EffectStep<>(dataStateOperator.apply(this.effect, other.effect), stepOperator.apply(this.next, other.next));
+    public EffectStep<T> parallel(BinaryOperator<T> stepOperator, EffectStep<T> other) {
+        List<DataStateUpdate> newEffects = new LinkedList<>();
+        newEffects.addAll(this.effect);
+        newEffects.addAll(other.effect);
+        return new EffectStep<>(newEffects, stepOperator.apply(this.next, other.next));
     }
 
-    public EffectStep<T> applyBefore(DataStateFunction f) {
-        return new EffectStep<>(f.compose(effect), next);
+    public EffectStep<T> applyBefore(List<DataStateUpdate> updates) {
+        updates.addAll(this.effect);
+        return new EffectStep<>(updates, next);
     }
 }

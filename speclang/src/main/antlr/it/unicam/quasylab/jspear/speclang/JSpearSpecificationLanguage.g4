@@ -25,13 +25,19 @@ functionStatement:
     | ifThenElseStatement
     | functionBlock
     | switchStatement
+    | letStatement
 ;
 
-switchStatement: 'switch' name=ID '{'
+letStatement:
+    'let' name=ID '=' value=expression 'in' body=functionStatement
+;
+
+switchStatement: 'switch' value=expression '{'
     (switchCases += caseStatement)+
+    ('default' defaultStatement=functionStatement)?
 '}';
 
-caseStatement: 'case' name=ID ':' functionStatement;
+caseStatement: 'case' name=ID ':' bpdy=functionStatement;
 
 
 ifThenElseStatement: 'if' '(' guard=expression ')' thenStatement=functionStatement ('else' elseStatement=functionStatement)?;

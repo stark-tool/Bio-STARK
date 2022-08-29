@@ -25,11 +25,9 @@ package it.unicam.quasylab.jspear.speclang;
 import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import java.util.Map;
-
 @FunctionalInterface
 public interface JSpearFunction {
 
-    JSpearValue apply(RandomGenerator rg, Map<String, JSpearValue> args);
+    JSpearValue apply(RandomGenerator rg, JSpearValue[] args);
 
 }

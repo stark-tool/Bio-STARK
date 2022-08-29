@@ -23,7 +23,7 @@
 package it.unicam.quasylab.jspear;
 
 
-import org.apache.commons.math3.random.RandomGenerator;
+import it.unicam.quasylab.jspear.ds.DataStateFunction;
 
 import java.util.Optional;
 

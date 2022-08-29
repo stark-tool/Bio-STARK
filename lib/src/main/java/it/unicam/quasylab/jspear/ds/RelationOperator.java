@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.ds;
 
 public enum RelationOperator {
 
@@ -30,7 +30,7 @@ public enum RelationOperator {
     GREATER_THAN,
     GREATER_OR_EQUAL_THAN;
 
-    boolean eval(double v1, double v2) {
+    public boolean eval(double v1, double v2) {
         return switch (this) {
             case LESS_THAN -> v1<v2;
             case LESS_OR_EQUAL_THAN -> v1<=v2;

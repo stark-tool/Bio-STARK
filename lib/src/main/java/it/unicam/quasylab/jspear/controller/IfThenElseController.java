@@ -20,8 +20,9 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.controller;
 
+import it.unicam.quasylab.jspear.ds.DataState;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.function.Predicate;

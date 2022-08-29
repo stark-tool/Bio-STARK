@@ -24,66 +24,49 @@ package it.unicam.quasylab.jspear.speclang.values;
 
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 
-import java.util.Objects;
+import java.util.function.DoublePredicate;
 
-public final class JSpearBoolean implements JSpearValue {
+public final class JSpearArrayElementPredicate implements JSpearValue {
 
-    public static final JSpearValue TRUE = new JSpearBoolean(true);
-    public static final JSpearValue FALSE = new JSpearBoolean(false);
-    private final boolean value;
+    public static final JSpearValue TRUE = new JSpearArrayElementPredicate(d -> true);
+    public static final JSpearValue FALSE = new JSpearArrayElementPredicate(d -> false);
+    private final DoublePredicate predicate;
 
-    private JSpearBoolean(boolean value) {
-        this.value = value;
-    }
-
-    public static JSpearValue of(boolean b) {
-        return (b?TRUE:FALSE);
+    public JSpearArrayElementPredicate(DoublePredicate predicate) {
+        this.predicate = predicate;
     }
 
 
     @Override
     public JSpearType getJSpearType() {
-        return JSpearType.BOOLEAN_TYPE;
+        return JSpearType.ARRAY_ELEMENT_PREDICATE;
     }
 
     public  JSpearValue negate() {
-        return (this.value?FALSE:TRUE);
+        return new JSpearArrayElementPredicate(predicate.negate());
     }
 
     public JSpearValue and(JSpearValue other) {
         if (other instanceof JSpearBoolean booleanValue) {
-            return JSpearBoolean.of(this.value()&&booleanValue.value());
+            return (booleanValue.value()?this:FALSE);
         }
-        if (other instanceof JSpearArrayElementPredicate predicate) {
-            return (this.value?predicate:this);
+        if (other instanceof JSpearArrayElementPredicate predicateValue) {
+            return new JSpearArrayElementPredicate(this.predicate.and(predicateValue.predicate));
         }
         return JSpearValue.ERROR_VALUE;
     }
 
     public JSpearValue or(JSpearValue other) {
         if (other instanceof JSpearBoolean booleanValue) {
-            return JSpearBoolean.of(this.value()||booleanValue.value());
+            return (booleanValue.value()?TRUE:this);
         }
-        if (other instanceof JSpearArrayElementPredicate predicate) {
-            return (this.value? JSpearArrayElementPredicate.TRUE:this);
+        if (other instanceof JSpearArrayElementPredicate predicateValue) {
+            return new JSpearArrayElementPredicate(this.predicate.or(predicateValue.predicate));
         }
         return JSpearValue.ERROR_VALUE;
     }
 
-    public boolean value() {
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        JSpearBoolean that = (JSpearBoolean) o;
-        return value == that.value;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(value);
+    public DoublePredicate getPredicate() {
+        return predicate;
     }
 }

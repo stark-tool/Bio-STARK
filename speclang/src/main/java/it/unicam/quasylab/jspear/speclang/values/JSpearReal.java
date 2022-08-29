@@ -23,14 +23,15 @@
 package it.unicam.quasylab.jspear.speclang.values;
 
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
-import org.apache.commons.math3.random.RandomGenerator;
 
+import java.util.Objects;
 import java.util.function.DoubleBinaryOperator;
-import java.util.function.DoublePredicate;
 import java.util.function.DoubleUnaryOperator;
 
 public final class JSpearReal implements JSpearValue {
 
+    public static final JSpearValue NEGATIVE_INFINITY = new JSpearReal(Double.NEGATIVE_INFINITY);
+    public static final JSpearValue POSITIVE_INFINITY = new JSpearReal(Double.POSITIVE_INFINITY);
     private final double value;
 
     public JSpearReal(double value) {
@@ -41,14 +42,18 @@ public final class JSpearReal implements JSpearValue {
         return value;
     }
 
-    public static JSpearValue sampleNormal(RandomGenerator rg, JSpearValue v1, JSpearValue v2) {
-        return new JSpearReal(rg.nextDouble()*v1.doubleOf()+v2.doubleOf());
-    }
+//    private static JSpearValue test(DoublePredicate p, JSpearValue v) {
+//        double otherValue = v.doubleOf();
+//        if (Double.isNaN(otherValue)) {
+//            return JSpearValue.ERROR_VALUE;
+//        } else {
+//            return JSpearBoolean.getBooleanValue(p.test(otherValue) );
+//        }
+//    }
 
-    public static JSpearValue sample(RandomGenerator rg, JSpearValue from, JSpearValue to) {
-        double fromValue = from.doubleOf();
-        double gapValue = to.doubleOf()-fromValue;
-        return new JSpearReal(fromValue+rg.nextDouble()*gapValue);
+
+    public double value() {
+        return value;
     }
 
     @Override
@@ -56,97 +61,164 @@ public final class JSpearReal implements JSpearValue {
         return JSpearType.REAL_TYPE;
     }
 
-
-    @Override
     public JSpearValue sum(JSpearValue v) {
-        return apply(Double::sum, v);
+        if (v instanceof JSPearInteger intValue) {
+            return new JSpearReal(this.value+ intValue.value());
+        }
+        if (v instanceof JSpearReal realValue) {
+            return new JSpearReal(this.value+ realValue.value());
+        }
+        if (v instanceof JSpearArrayElementSelectionFunction elementFunction) {
+            return elementFunction.apply(d -> this.value+d);
+        }
+        return JSpearValue.ERROR_VALUE;
     }
 
-    @Override
     public JSpearValue product(JSpearValue v) {
-        return apply((x,y)->x*y, v);
+        if (v instanceof JSPearInteger intValue) {
+            return new JSpearReal(this.value* intValue.value());
+        }
+        if (v instanceof JSpearReal realValue) {
+            return new JSpearReal(this.value* realValue.value());
+        }
+        if (v instanceof JSpearArrayElementSelectionFunction elementFunction) {
+            return elementFunction.apply(d -> this.value*d);
+        }
+        return JSpearValue.ERROR_VALUE;
     }
 
-    @Override
     public JSpearValue subtraction(JSpearValue v) {
-        return apply((x,y)->x-y, v);
+        if (v instanceof JSPearInteger intValue) {
+            return new JSpearReal(this.value- intValue.value());
+        }
+        if (v instanceof JSpearReal realValue) {
+            return new JSpearReal(this.value- realValue.value());
+        }
+        if (v instanceof JSpearArrayElementSelectionFunction elementFunction) {
+            return elementFunction.apply(d -> this.value-d);
+        }
+        return JSpearValue.ERROR_VALUE;
     }
 
-    @Override
     public JSpearValue division(JSpearValue v) {
-        return apply((x,y)->x/y, v);
+        if (v instanceof JSPearInteger intValue) {
+            return new JSpearReal(this.value/ intValue.value());
+        }
+        if (v instanceof JSpearReal realValue) {
+            return new JSpearReal(this.value/ realValue.value());
+        }
+        if (v instanceof JSpearArrayElementSelectionFunction elementFunction) {
+            return elementFunction.apply(d -> this.value/d);
+        }
+        return JSpearValue.ERROR_VALUE;
     }
 
-    @Override
     public JSpearValue modulo(JSpearValue v) {
-        return apply((x,y)->x%y, v);
+        if (v instanceof JSPearInteger intValue) {
+            return new JSpearReal(this.value%intValue.value());
+        }
+        if (v instanceof JSpearReal realValue) {
+            return new JSpearReal(this.value%realValue.value());
+        }
+        if (v instanceof JSpearArrayElementSelectionFunction elementFunction) {
+            return elementFunction.apply(d -> this.value%d);
+        }
+        return JSpearValue.ERROR_VALUE;
     }
 
-    @Override
     public JSpearValue apply(DoubleBinaryOperator op, JSpearValue v) {
-        double otherValue = v.doubleOf();
-        if (Double.isNaN(otherValue)) {
-            return new JSpearReal(Double.NaN);
-        } else {
-            return new JSpearReal(op.applyAsDouble(this.value, otherValue));
+        if (v instanceof JSPearInteger intValue) {
+            return new JSpearReal(op.applyAsDouble(this.value, intValue.value()));
         }
+        if (v instanceof JSpearReal realValue) {
+            return new JSpearReal(op.applyAsDouble(this.value, realValue.value()));
+        }
+        if (v instanceof JSpearArrayElementSelectionFunction elementFunction) {
+            return elementFunction.apply(d -> op.applyAsDouble(this.value,d));
+        }
+        return JSpearValue.ERROR_VALUE;
     }
 
-    @Override
     public JSpearValue apply(DoubleUnaryOperator op) {
-        if (Double.isNaN(this.value)) {
-            return this;
-        } else {
-            return new JSpearReal(op.applyAsDouble(this.value));
+        return new JSpearReal(op.applyAsDouble(this.value));
+    }
+
+
+    public JSpearValue isLessThan(JSpearValue other) {
+        if (other instanceof JSPearInteger intValue) {
+            return JSpearBoolean.of(this.value()<intValue.value());
         }
-    }
-
-    @Override
-    public double doubleOf() {
-        return this.value;
-    }
-
-    @Override
-    public JSpearValue isLessThan(JSpearValue v) {
-        return test(y -> this.value<y, v);
-    }
-
-    private static JSpearValue test(DoublePredicate p, JSpearValue v) {
-        double otherValue = v.doubleOf();
-        if (Double.isNaN(otherValue)) {
-            return JSpearValue.ERROR_VALUE;
-        } else {
-            return JSpearBoolean.getBooleanValue(p.test(otherValue) );
+        if (other instanceof JSpearReal realValue) {
+            return JSpearBoolean.of(this.value()<realValue.value());
         }
+        if (other instanceof JSpearArrayElementSelectionFunction elementFunction) {
+            return new JSpearArrayElementPredicate(d -> this.value()<elementFunction.apply(d));
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    public JSpearValue isLessOrEqualThan(JSpearValue other) {
+        if (other instanceof JSPearInteger intValue) {
+            return JSpearBoolean.of(this.value()<=intValue.value());
+        }
+        if (other instanceof JSpearReal realValue) {
+            return JSpearBoolean.of(this.value()<=realValue.value());
+        }
+        if (other instanceof JSpearArrayElementSelectionFunction elementFunction) {
+            return new JSpearArrayElementPredicate(d -> this.value()<=elementFunction.apply(d));
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    public JSpearValue isEqualTo(JSpearValue other) {
+        if (other instanceof JSPearInteger intValue) {
+            return JSpearBoolean.of(this.value()==intValue.value());
+        }
+        if (other instanceof JSpearReal realValue) {
+            return JSpearBoolean.of(this.value()==realValue.value());
+        }
+        if (other instanceof JSpearArrayElementSelectionFunction elementFunction) {
+            return new JSpearArrayElementPredicate(d -> this.value()==elementFunction.apply(d));
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    public JSpearValue isGreaterOrEqualThan(JSpearValue other) {
+        if (other instanceof JSPearInteger intValue) {
+            return JSpearBoolean.of(this.value()>=intValue.value());
+        }
+        if (other instanceof JSpearReal realValue) {
+            return JSpearBoolean.of(this.value()>=realValue.value());
+        }
+        if (other instanceof JSpearArrayElementSelectionFunction elementFunction) {
+            return new JSpearArrayElementPredicate(d -> this.value()>=elementFunction.apply(d));
+        }
+        return JSpearValue.ERROR_VALUE;
+    }
+
+    public JSpearValue isGreaterThan(JSpearValue other) {
+        if (other instanceof JSPearInteger intValue) {
+            return JSpearBoolean.of(this.value()>intValue.value());
+        }
+        if (other instanceof JSpearReal realValue) {
+            return JSpearBoolean.of(this.value()>realValue.value());
+        }
+        if (other instanceof JSpearArrayElementSelectionFunction elementFunction) {
+            return new JSpearArrayElementPredicate(d -> this.value()>elementFunction.apply(d));
+        }
+        return JSpearValue.ERROR_VALUE;
     }
 
     @Override
-    public JSpearValue isLessOrEqualThan(JSpearValue v) {
-        return test(y -> this.value<=y, v);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JSpearReal that = (JSpearReal) o;
+        return Double.compare(that.getValue(), getValue()) == 0;
     }
 
     @Override
-    public JSpearValue isEqualTo(JSpearValue v) {
-        return test(y -> this.value==y, v);
-    }
-
-    @Override
-    public JSpearValue isGreaterOrEqualThan(JSpearValue v) {
-        return test(y -> this.value>=y, v);
-    }
-
-    @Override
-    public JSpearValue isGreaterThan(JSpearValue v) {
-        return test(y -> this.value>y, v);
-    }
-
-    @Override
-    public int integerOf() {
-        return (int) this.value;
-    }
-
-    @Override
-    public boolean isReal() {
-        return true;
+    public int hashCode() {
+        return Objects.hash(getValue());
     }
 }

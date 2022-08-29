@@ -23,6 +23,10 @@
 package it.unicam.quasylab.jspear.examples.vehicle;
 
 import it.unicam.quasylab.jspear.*;
+import it.unicam.quasylab.jspear.controller.Controller;
+import it.unicam.quasylab.jspear.controller.ControllerRegistry;
+import it.unicam.quasylab.jspear.controller.ParallelController;
+import it.unicam.quasylab.jspear.ds.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.IOException;
@@ -46,21 +50,24 @@ public class Main {
     public final static double MAX_SPEED = 40.0;
     public final static double INIT_DISTANCE = 3000.0;
     private static final double SAFETY_DISTANCE = 200.0;
-    private static final VariableRegistry variableRegistry = VariableRegistry.create(VARIABLES);
+    //private static final VariableAllocation variableRegistry = VariableAllocation.create(VARIABLES);
 
     // private static final Variable a = variableRegistry.getVariable("a");
 
-    private static final Variable p_speed = variableRegistry.getVariable("p_speed");
-    private static final Variable s_speed = variableRegistry.getVariable("s_speed");
-    private static final Variable p_distance = variableRegistry.getVariable("p_distance");
-    private static final Variable s_distance = variableRegistry.getVariable("s_distance");
-    private static final Variable accel = variableRegistry.getVariable("accel");
-    private static final Variable timer = variableRegistry.getVariable("timer");
-    private static final Variable warning = variableRegistry.getVariable("warning");
-    private static final Variable offset = variableRegistry.getVariable("offset");
-    private static final Variable braking_distance = variableRegistry.getVariable("braking_distance");
-    private static final Variable required_distance = variableRegistry.getVariable("required_distance");
-    private static final Variable safety_gap = variableRegistry.getVariable("safety_gap");
+    private static final int p_speed = 0;//variableRegistry.getVariable("p_speed");
+    private static final int s_speed = 1;//variableRegistry.getVariable("s_speed");
+    private static final int p_distance = 2;// variableRegistry.getVariable("p_distance");
+    private static final int s_distance = 3;// variableRegistry.getVariable("s_distance");
+    private static final int accel = 4;//variableRegistry.getVariable("accel");
+    private static final int timer = 5;//variableRegistry.getVariable("timer");
+    private static final int warning = 6;//variableRegistry.getVariable("warning");
+    private static final int offset = 7;//variableRegistry.getVariable("offset");
+    private static final int braking_distance = 8;//variableRegistry.getVariable("braking_distance");
+    private static final int required_distance = 9; //variableRegistry.getVariable("required_distance");
+    private static final int safety_gap = 10;//variableRegistry.getVariable("safety_gap");
+
+    private static final int NUMBER_OF_VARIABLES = 11;
+
     private static final int ETA_SpeedLB = 0;
     private static final int ETA_SpeedUB = 50;
     private static final int ETA_CRASH = 0;
@@ -75,20 +82,20 @@ public class Main {
         try {
             Controller controller = getController();
             DataState state = getInitialState( );
-            ControlledSystem system = new ControlledSystem(controller, (rg, ds) -> ds.set(getEnvironmentUpdates(rg, ds)), state);
+            ControlledSystem system = new ControlledSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
             EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Vehicle: "), new DefaultRandomGenerator(), rg -> system, 100);
             EvolutionSequence sequenceAttSensorSpeed = sequence.apply(getSpeedSensorPerturbation(), ATTACK_INIT, 30);
 
 
             for(int i=0; i<1000; i++) {
                 System.out.println(i+
-                        " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).max() +
+                        " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed))).max() +
                         //" " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).min() +
-                        " " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).max() +
+                        " " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.get(p_speed))).max() +
   //                              sequence.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).max())) +
-                                " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.getValue(p_distance))).max() +
+                                " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance))).max() +
                         //" " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.getValue(p_distance))).min() +
-                        " " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.getValue(p_distance))).max()
+                        " " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.get(p_distance))).max()
                 );
             }
 
@@ -116,8 +123,8 @@ public class Main {
             System.out.println("PHI_AttackHasSuccess: " + PHI_AttackHasSuccess.eval(100, ATTACK_INIT, sequence));
 
 
-            DistanceExpression speed_expr = new AtomicDistanceExpression(ds -> ds.getValue(p_speed));
-            DistanceExpression distance_expr = new AtomicDistanceExpression(ds -> - ds.getValue(p_distance));
+            DistanceExpression speed_expr = new AtomicDistanceExpression(ds -> ds.get(p_speed));
+            DistanceExpression distance_expr = new AtomicDistanceExpression(ds -> - ds.get(p_distance));
 
             int n = 300;
               double[][] speed_difference = new double[n][1];
@@ -139,7 +146,7 @@ public class Main {
 
    private static RobustnessFormula getFormulaInstantSpeedFakeLowerBound() {
         return new AtomicRobustnessFormula(getSpeedSensorPerturbation(),
-                new AtomicDistanceExpression(ds -> ds.getValue(p_speed)),
+                new AtomicDistanceExpression(ds -> ds.get(p_speed)),
                 RelationOperator.GREATER_OR_EQUAL_THAN,
                 ETA_SpeedLB
         );
@@ -148,7 +155,7 @@ public class Main {
     private static RobustnessFormula getFormulaSpeedFakeLowerBound() {
         return new AtomicRobustnessFormula(getSpeedSensorPerturbation(),
                 new MinIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> ds.getValue(p_speed)),
+                        new AtomicDistanceExpression(ds -> ds.get(p_speed)),
                         ATTACK_INIT,
                         ATTACK_INIT+ATTACK_LENGTH-1
                 ),
@@ -160,7 +167,7 @@ public class Main {
 
     private static RobustnessFormula getFormulaInstantSpeedFakeUpperBound() {
         return new AtomicRobustnessFormula(getSpeedSensorPerturbation(),
-                        new AtomicDistanceExpression(ds -> ds.getValue(p_speed)),
+                        new AtomicDistanceExpression(ds -> ds.get(p_speed)),
                 RelationOperator.LESS_OR_EQUAL_THAN,
                 ETA_SpeedUB
         );
@@ -168,7 +175,7 @@ public class Main {
     private static RobustnessFormula getFormulaSpeedFakeUpperBound() {
         return new AtomicRobustnessFormula(getSpeedSensorPerturbation(),
                new MaxIntervalDistanceExpression(
-                       new AtomicDistanceExpression(ds -> ds.getValue(p_speed)),
+                       new AtomicDistanceExpression(ds -> ds.get(p_speed)),
                         ATTACK_INIT,
                         ATTACK_INIT+ATTACK_LENGTH-1
                 ),
@@ -180,7 +187,7 @@ public class Main {
 
     private static RobustnessFormula getFormulaInstantCrash() {
         return new AtomicRobustnessFormula(getSpeedSensorPerturbation(),
-                new AtomicDistanceExpression(ds ->  - Math.min(0,ds.getValue(p_distance))),
+                new AtomicDistanceExpression(ds ->  - Math.min(0,ds.get(p_distance))),
                 RelationOperator.GREATER_THAN,
                 ETA_CRASH
         );
@@ -188,7 +195,7 @@ public class Main {
      private static RobustnessFormula getFormulaCrash() {
         return new AtomicRobustnessFormula(getSpeedSensorPerturbation(),
                 new MaxIntervalDistanceExpression(
-                      new AtomicDistanceExpression(ds ->  - Math.min(0,ds.getValue(p_distance))),
+                      new AtomicDistanceExpression(ds ->  - Math.min(0,ds.get(p_distance))),
                       ATTACK_INIT,
                        2*ATTACK_LENGTH
                  ),
@@ -219,22 +226,27 @@ public class Main {
 
         registry.set("Ctrl",
                 Controller.ifThenElse(
-                        variableRegistry.greaterThan("s_speed", 0),
+                        DataState.greaterThan(s_speed, 0),
                         Controller.ifThenElse(
-                                   variableRegistry.greaterThan("safety_gap", 0 ),
-                                   Controller.doAction(variableRegistry.set("accel", ACCELERATION).compose(variableRegistry.set("timer", TIMER_INIT)),registry.get("Accelerate")),
-                                   Controller.doAction(variableRegistry.set("accel", - BRAKE).compose(variableRegistry.set("timer", TIMER_INIT)),registry.get("Decelerate"))),
+                                   DataState.greaterThan(safety_gap, 0 ),
+                                   Controller.doAction(
+                                           (rg, ds) -> List.of(new DataStateUpdate(accel, ACCELERATION), new DataStateUpdate(timer, TIMER_INIT)),
+                                           registry.get("Accelerate")
+                                   ),
+                                   Controller.doAction(
+                                           (rg, ds) -> List.of( new DataStateUpdate(accel, - BRAKE), new DataStateUpdate(timer, TIMER_INIT)),
+                                           registry.get("Decelerate"))),
                         Controller.doTick(registry.get("Stop"))
                 )
         );
 
         registry.set("Stop",
-                Controller.doAction(variableRegistry.set("accel" , NEUTRAL), registry.get("Stop"))
+                Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel , NEUTRAL)), registry.get("Stop"))
         );
 
         registry.set("Accelerate",
                 Controller.ifThenElse(
-                        variableRegistry.greaterThan("timer", 0),
+                        DataState.greaterThan(timer, 0),
                         Controller.doTick(registry.get("Accelerate")),
                         registry.get("Ctrl")
                 )
@@ -242,7 +254,7 @@ public class Main {
 
         registry.set("Decelerate",
                 Controller.ifThenElse(
-                        variableRegistry.greaterThan("timer", 0),
+                        DataState.greaterThan(timer, 0),
                         Controller.doTick(registry.get("Decelerate")),
                         registry.get("Ctrl")
                 )
@@ -250,9 +262,9 @@ public class Main {
 
     registry.set("IDS",
                 Controller.ifThenElse(
-                        variableRegistry.lessOrEqualThan("p_distance", 2*TIMER_INIT*SAFETY_DISTANCE).and(variableRegistry.equalsTo("accel", ACCELERATION)),
-                        Controller.doAction(variableRegistry.set("warning", DANGER),registry.get("IDS")),
-                        Controller.doAction(variableRegistry.set("warning", OK),registry.get("IDS"))
+                        DataState.lessOrEqualThan(p_distance, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel, ACCELERATION)),
+                        Controller.doAction(DataStateUpdate.set(warning, DANGER),registry.get("IDS")),
+                        Controller.doAction(DataStateUpdate.set(warning, OK),registry.get("IDS"))
                 )
         );
         return new ParallelController(registry.reference("Ctrl"), registry.reference("IDS"));
@@ -260,10 +272,10 @@ public class Main {
 
     public static List<DataStateUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
-        double travel = state.getValue(accel)/2 + state.getValue(p_speed);
-        double new_timer = state.getValue(timer) - 1;
-        double new_p_speed = Math.min(Math.max(0,state.getValue(p_speed) + state.getValue(accel)),MAX_SPEED);
-        double new_p_distance = state.getValue(p_distance) - travel;
+        double travel = state.get(accel)/2 + state.get(p_speed);
+        double new_timer = state.get(timer) - 1;
+        double new_p_speed = Math.min(Math.max(0,state.get(p_speed) + state.get(accel)),MAX_SPEED);
+        double new_p_distance = state.get(p_distance) - travel;
       //  updates.add(new VariableUpdate(a,state.getValue(a)+5));
         updates.add(new DataStateUpdate(timer, new_timer));
         updates.add(new DataStateUpdate(p_speed, new_p_speed));
@@ -289,13 +301,13 @@ public class Main {
     private static DataState speedSensorPerturbationFunction(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         // updates.add(new VariableUpdate(a,state.getValue(a) +100));
-        double new_timer = state.getValue(timer);
+        double new_timer = state.get(timer);
         if(new_timer == 0) {
-            double new_p_speed = Math.max(0, state.getValue(p_speed) + state.getValue(accel));
+            double new_p_speed = Math.max(0, state.get(p_speed) + state.get(accel));
             double offset = new_p_speed * rg.nextDouble() * MAX_SPEED_OFFSET;
             double fake_speed = new_p_speed - offset;
-            double travel = state.getValue(accel) / 2 + state.getValue(p_speed);
-            double new_p_distance = state.getValue(p_distance) - travel;
+            double travel = state.get(accel) / 2 + state.get(p_speed);
+            double new_p_distance = state.get(p_distance) - travel;
             double fake_bd = (fake_speed * fake_speed + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
                     2 * fake_speed * TIMER_INIT)) / (2 * BRAKE);
             double fake_rd = fake_bd + SAFETY_DISTANCE;
@@ -304,7 +316,7 @@ public class Main {
             updates.add(new DataStateUpdate(required_distance, fake_rd));
             updates.add(new DataStateUpdate(safety_gap, fake_sg));
         }
-        return state.set(updates);
+        return state.apply(updates);
     }
 
 
@@ -314,7 +326,7 @@ public class Main {
 
 
     public static DataState getInitialState( ) {
-        Map<Variable, Double> values = new HashMap<>();
+        Map<Integer, Double> values = new HashMap<>();
         values.put(timer, (double) 0);
      //   values.put(a,100.0);
         values.put(p_speed, INIT_SPEED);
@@ -331,7 +343,7 @@ public class Main {
         values.put(braking_distance, init_bd);
         values.put(required_distance, init_rd);
         values.put(safety_gap, init_sg);
-        return new DataState(variableRegistry, values);
+        return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN));
     }
 
 }

@@ -22,6 +22,10 @@
 
 package it.unicam.quasylab.jspear;
 
+import it.unicam.quasylab.jspear.controller.Controller;
+import it.unicam.quasylab.jspear.controller.EffectStep;
+import it.unicam.quasylab.jspear.ds.DataState;
+import it.unicam.quasylab.jspear.ds.DataStateFunction;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
@@ -53,7 +57,7 @@ public class ControlledSystem implements SystemState {
     @Override
     public SystemState sampleNext(RandomGenerator rg) {
         EffectStep<Controller> step = controller.next(rg, state);
-        return new ControlledSystem(step.next(), environment, environment.apply(rg, step.effect().apply(rg, state)));
+        return new ControlledSystem(step.next(), environment, environment.apply(rg, state).apply(step.effect()));
     }
 
     @Override

@@ -22,27 +22,19 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-import it.unicam.quasylab.jspear.DataState;
+import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
 import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
 import org.apache.commons.math3.random.RandomGenerator;
-
-import java.util.Map;
 
 @FunctionalInterface
 public interface JSpearExpressionEvaluationFunction {
 
     static JSpearExpressionEvaluationFunction of(JSpearValue v) {
-        return (rg, lv, ds) -> v;
+        return (rg, s) -> v;
     }
 
-    JSpearValue eval(RandomGenerator rg, Map<String,JSpearValue> localValues, DataState ds);
+    JSpearValue eval(RandomGenerator rg, JSpearStore store);
 
 
-    default JSpearValue eval(RandomGenerator rg, DataState ds) {
-        return eval(rg, Map.of(), ds);
-    }
-
-    default JSpearValue eval(RandomGenerator rg, Map<String, JSpearValue> lv) {
-        return eval(rg, lv, null);
-    }
+    default JSpearValue eval() { return eval(null, null); }
 }

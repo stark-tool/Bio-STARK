@@ -22,6 +22,9 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+import it.unicam.quasylab.jspear.speclang.values.JSpearCustomValue;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
+
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -118,5 +121,9 @@ public final class JSpearCustomType implements JSpearType {
     @Override
     public String toString() {
         return customTypeName;
+    }
+
+    public JSpearValue getValueOf(String name) {
+        return new JSpearCustomValue(this, getCode(name));
     }
 }

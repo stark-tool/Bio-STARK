@@ -22,6 +22,8 @@
 
 package it.unicam.quasylab.jspear;
 
+import it.unicam.quasylab.jspear.ds.RelationOperator;
+
 public final class AtomicRobustnessFormula implements RobustnessFormula {
 
     private final Perturbation perturbation;

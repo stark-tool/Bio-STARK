@@ -20,10 +20,14 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.controller;
 
+import it.unicam.quasylab.jspear.ds.DataState;
+import it.unicam.quasylab.jspear.ds.DataStateFunction;
+import it.unicam.quasylab.jspear.ds.DataStateUpdate;
 import org.apache.commons.math3.random.RandomGenerator;
 
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
@@ -39,13 +43,13 @@ public interface Controller {
         return new IfThenElseController(pred, thenController, elseController);
     }
 
-    static Controller doAction(DataStateFunction act, Controller next) {
-        return new ActionController(act, next);
+    static Controller doAction(BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> action, Controller next) {
+        return new ActionController(action, next);
     }
 
 
     static Controller doAssignment(BiPredicate<RandomGenerator, DataState> guard,
-                                   BiFunction<RandomGenerator, DataState, DataStateUpdate> assignment,
+                                   BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment,
                                    Controller nextController) {
         return new AssignmentController(guard, assignment, nextController);
     }

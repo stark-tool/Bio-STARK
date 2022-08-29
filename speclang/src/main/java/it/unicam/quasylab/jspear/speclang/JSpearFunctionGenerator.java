@@ -22,78 +22,74 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-import it.unicam.quasylab.jspear.VariableRegistry;
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+import it.unicam.quasylab.jspear.speclang.values.JSpearArrayElementPredicate;
 import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
+import it.unicam.quasylab.jspear.speclang.variables.JSpearExpressionEvaluationContext;
+import it.unicam.quasylab.jspear.speclang.variables.JSpearLetContextDataStore;
+import it.unicam.quasylab.jspear.speclang.variables.JSpearNameResolver;
+import it.unicam.quasylab.jspear.speclang.variables.Variable;
 
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
+import java.util.stream.Collectors;
 
-public class JSpearFunctionGenerator extends JSpearSpecificationLanguageBaseVisitor<JSpearFunction> {
+public class JSpearFunctionGenerator extends JSpearSpecificationLanguageBaseVisitor<JSpearExpressionEvaluationFunction> {
 
-    private final Function<String, JSpearValue> constants;
+    private final JSpearExpressionEvaluationContext context;
 
-    private final Function<String, JSpearValue> parameters;
+    private final JSpearNameResolver resolver;
 
-    private final Function<String, JSpearFunction> functions;
 
-    private final Map<String, Integer> arguments;
-
-    private final SymbolTable table;
-
-    private final VariableRegistry registry;
-
-    private final Set<String> localVariables;
-
-    public JSpearFunctionGenerator(Function<String, JSpearValue> constants, Function<String, JSpearValue> parameters, Function<String, JSpearFunction> functions, Map<String, Integer> arguments, SymbolTable table, VariableRegistry registry, Set<String> localVariables) {
-        this.constants = constants;
-        this.parameters = parameters;
-        this.functions = functions;
-        this.arguments = arguments;
-        this.table = table;
-        this.registry = registry;
-        this.localVariables = localVariables;
+    public JSpearFunctionGenerator(JSpearExpressionEvaluationContext context, JSpearNameResolver resolver) {
+        this.context = context;
+        this.resolver = resolver;
     }
 
     @Override
-    public JSpearFunction visitSwitchStatement(JSpearSpecificationLanguageParser.SwitchStatementContext ctx) {
-        //TODO: Complete!
-        return (rg, lv) -> JSpearValue.ERROR_VALUE;
-    }
-
-    @Override
-    public JSpearFunction visitCaseStatement(JSpearSpecificationLanguageParser.CaseStatementContext ctx) {
-        //TODO: Complete!
-        return (rg, lv) -> JSpearValue.ERROR_VALUE;
-    }
-
-    @Override
-    public JSpearFunction visitIfThenElseStatement(JSpearSpecificationLanguageParser.IfThenElseStatementContext ctx) {
-        JSpearExpressionEvaluationFunction guardEvaluation = getExpressionEvaluationFunction(ctx.guard);
-        JSpearFunction thenEvaluation = ctx.thenStatement.accept(this);
-        JSpearFunction elseEvaluation = ctx.elseStatement.accept(this);
-        return (rg, args) -> {
-            if (guardEvaluation.eval(rg, args).booleanOf()) {
-                return thenEvaluation.apply(rg, args);
-            } else {
-                return elseEvaluation.apply(rg, args);
-            }
+    public JSpearExpressionEvaluationFunction visitSwitchStatement(JSpearSpecificationLanguageParser.SwitchStatementContext ctx) {
+        JSpearExpressionEvaluationFunction valueEvaluation = getExpressionEvaluationFunction(ctx.value);
+        Map<JSpearValue, JSpearExpressionEvaluationFunction> cases = ctx.switchCases.stream().collect(Collectors.toMap(c -> context.get(c.name.getText()), c -> c.bpdy.accept(this)));
+        JSpearExpressionEvaluationFunction defaultCase = (ctx.defaultStatement!=null?ctx.defaultStatement.accept(this):JSpearExpressionEvaluationFunction.of(JSpearValue.ERROR_VALUE));
+        return (rg, s) -> {
+            JSpearValue value = valueEvaluation.eval(rg, s);
+            JSpearExpressionEvaluationFunction selected = cases.getOrDefault(value, defaultCase);
+            return selected.eval(rg, s);
         };
     }
 
     @Override
-    public JSpearFunction visitReturnStatement(JSpearSpecificationLanguageParser.ReturnStatementContext ctx) {
-        JSpearExpressionEvaluationFunction expressionEvaluator = getExpressionEvaluationFunction(ctx.expression());
-        return expressionEvaluator::eval;
-    }
-
-    private JSpearExpressionEvaluationFunction getExpressionEvaluationFunction(JSpearSpecificationLanguageParser.ExpressionContext expression) {
-        return expression.accept(new JSpearExpressionEvaluator(table, constants, parameters, functions, registry, localVariables));
+    public JSpearExpressionEvaluationFunction visitIfThenElseStatement(JSpearSpecificationLanguageParser.IfThenElseStatementContext ctx) {
+        JSpearExpressionEvaluationFunction guardEvaluation = getExpressionEvaluationFunction(ctx.guard);
+        JSpearExpressionEvaluationFunction thenEvaluation = ctx.thenStatement.accept(this);
+        JSpearExpressionEvaluationFunction elseEvaluation = ctx.elseStatement.accept(this);
+        return (rg, s) -> JSpearValue.ifThenElse(guardEvaluation.eval(rg, s), () -> thenEvaluation.eval(rg, s), () -> elseEvaluation.eval(rg, s));
     }
 
     @Override
-    public JSpearFunction visitFunctionBlock(JSpearSpecificationLanguageParser.FunctionBlockContext ctx) {
+    public JSpearExpressionEvaluationFunction visitReturnStatement(JSpearSpecificationLanguageParser.ReturnStatementContext ctx) {
+        return getExpressionEvaluationFunction(ctx.expression());
+    }
+
+    private JSpearExpressionEvaluationFunction getExpressionEvaluationFunction(JSpearSpecificationLanguageParser.ExpressionContext expression) {
+        return expression.accept(new JSpearExpressionEvaluator(context, resolver));
+    }
+
+    @Override
+    public JSpearExpressionEvaluationFunction visitFunctionBlock(JSpearSpecificationLanguageParser.FunctionBlockContext ctx) {
         return ctx.functionStatement().accept(this);
+    }
+
+    @Override
+    public JSpearExpressionEvaluationFunction visitLetStatement(JSpearSpecificationLanguageParser.LetStatementContext ctx) {
+        Variable variable = resolver.getOrRegister(ctx.name.getText());
+        if (variable != null) {
+            JSpearExpressionEvaluationFunction expressionEvaluation = getExpressionEvaluationFunction(ctx.value);
+            JSpearExpressionEvaluationFunction bodyEvaluation = ctx.body.accept(this);
+            return (rg, s) -> {
+                JSpearValue value = expressionEvaluation.eval(rg, s);
+                return bodyEvaluation.eval(rg, new JSpearLetContextDataStore(variable, value, s));
+            };
+        } else {
+            return JSpearExpressionEvaluationFunction.of(JSpearValue.ERROR_VALUE);
+        }
     }
 }

@@ -65,7 +65,7 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
             TypeContext context = new NestedTypeContext(
                     new LocalTypeContext(getLocalDeclarations(ctx.arguments)),
                     this.symbols);
-            JSpearType returnType = ctx.accept(new FunctionTypeInference(context, this.errors));
+            JSpearType returnType = ctx.accept(new JSpearFunctionTypeInference(context, this.errors));
             if (!returnType.isError()) {
                 this.symbols.recordFunction(ctx.name.getText(), argumentType, returnType, ctx);
                 return true;

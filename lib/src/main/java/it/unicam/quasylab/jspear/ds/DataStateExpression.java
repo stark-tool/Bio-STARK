@@ -20,14 +20,11 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.ds;
 
-
-import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
-import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 
 /**
@@ -58,7 +55,7 @@ public interface DataStateExpression extends ToDoubleFunction<DataState> {
      * one passed as parameter.
      * @param op binary double operator.
      * @param other another expression.
-     * @returna composed expression that applies the given operator to this expression and to the
+     * @return a composed expression that applies the given operator to this expression and to the
      * one passed as parameter.
      */
     default DataStateExpression apply(DoubleBinaryOperator op, DataStateExpression other) {

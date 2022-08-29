@@ -20,25 +20,27 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.ds;
 
-import it.unicam.quasylab.jspear.ds.RelationOperator;
+import java.util.Arrays;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
-public final class ThresholdDistanceExpression implements DistanceExpression {
+public record DataRange(double minValue, double maxValue) {
 
-    private final double threshold;
-    private final RelationOperator relop;
-    private final DistanceExpression expression;
-
-    public ThresholdDistanceExpression(DistanceExpression expression, RelationOperator relop, double threshold) {
-        this.threshold = threshold;
-        this.relop = relop;
-        this.expression = expression;
+    public DataRange() {
+        this(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
     }
 
+    public static DataRange[] getDefaultRangeArray(int size) {
+        return IntStream.range(0, size).mapToObj(i -> new DataRange()).toArray(DataRange[]::new);
+    }
 
-    @Override
-    public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return (relop.eval(expression.compute(step, seq1, seq2),threshold)?1.0:0.0);
+    public static double[] apply(DataRange[] dataRanges, double[] data) {
+        return IntStream.range(0, dataRanges.length).mapToDouble(i -> dataRanges[i].apply(data[i])).toArray();
+    }
+
+    public double apply(double v) {
+        return Math.max(minValue, Math.min(maxValue, v));
     }
 }

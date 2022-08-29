@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.controller;
 
 import java.util.HashMap;
 import java.util.Map;

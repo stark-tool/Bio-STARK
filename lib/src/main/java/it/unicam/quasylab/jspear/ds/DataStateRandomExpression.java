@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.ds;
 
 import org.apache.commons.math3.random.RandomGenerator;
 

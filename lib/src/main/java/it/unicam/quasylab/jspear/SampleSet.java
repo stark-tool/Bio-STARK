@@ -22,6 +22,7 @@
 
 package it.unicam.quasylab.jspear;
 
+import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.LinkedList;

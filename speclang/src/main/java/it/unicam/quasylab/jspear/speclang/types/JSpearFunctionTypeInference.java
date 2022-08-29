@@ -20,16 +20,21 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.types;
 
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
+import it.unicam.quasylab.jspear.speclang.ParseErrorCollector;
+import it.unicam.quasylab.jspear.speclang.ParseUtil;
+import it.unicam.quasylab.jspear.speclang.types.ExpressionTypeInference;
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 import it.unicam.quasylab.jspear.speclang.types.TypeContext;
 
-public class FunctionTypeInference extends JSpearSpecificationLanguageBaseVisitor<JSpearType>  {
+public class JSpearFunctionTypeInference extends JSpearSpecificationLanguageBaseVisitor<JSpearType> {
     private final ParseErrorCollector errors;
     private final ExpressionTypeInference expressionTypeInference;
 
-    public FunctionTypeInference(TypeContext context, ParseErrorCollector errors) {
+    public JSpearFunctionTypeInference(TypeContext context, ParseErrorCollector errors) {
         this.errors = errors;
         this.expressionTypeInference = new ExpressionTypeInference(context, errors);
     }

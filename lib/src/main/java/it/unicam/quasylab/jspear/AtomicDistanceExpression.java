@@ -22,6 +22,8 @@
 
 package it.unicam.quasylab.jspear;
 
+import it.unicam.quasylab.jspear.ds.DataStateExpression;
+
 public final class AtomicDistanceExpression implements DistanceExpression {
 
     private final DataStateExpression rho;

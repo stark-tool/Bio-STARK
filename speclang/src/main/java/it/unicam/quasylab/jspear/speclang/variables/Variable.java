@@ -20,19 +20,24 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.speclang.variables;
 
-import org.apache.commons.math3.random.RandomGenerator;
+import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 
-/**
- * Represents a controller that does not execute any action.
- *
- */
-public class NilController implements Controller {
+import java.util.Objects;
+
+public record Variable(String name, int index) {
 
     @Override
-    public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
-        return new EffectStep((r, d) -> d, this);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Variable variable = (Variable) o;
+        return index == variable.index;
     }
 
+    @Override
+    public int hashCode() {
+        return index;
+    }
 }

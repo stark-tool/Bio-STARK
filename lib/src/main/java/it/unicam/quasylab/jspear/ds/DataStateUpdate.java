@@ -20,25 +20,40 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.ds;
 
-import it.unicam.quasylab.jspear.ds.RelationOperator;
 
-public final class ThresholdDistanceExpression implements DistanceExpression {
+import org.apache.commons.math3.random.RandomGenerator;
 
-    private final double threshold;
-    private final RelationOperator relop;
-    private final DistanceExpression expression;
+import java.util.List;
+import java.util.function.BiFunction;
 
-    public ThresholdDistanceExpression(DistanceExpression expression, RelationOperator relop, double threshold) {
-        this.threshold = threshold;
-        this.relop = relop;
-        this.expression = expression;
+public final class DataStateUpdate {
+
+    private final int index;
+
+    private final double value;
+
+    public DataStateUpdate(int index, double value) {
+        this.index = index;
+        this.value = value;
+    }
+
+    public static BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> set(int idx, double value) {
+        return (rg, ds) -> List.of(new DataStateUpdate(idx, value));
     }
 
 
     @Override
-    public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return (relop.eval(expression.compute(step, seq1, seq2),threshold)?1.0:0.0);
+    public String toString() {
+        return index+"<-"+value;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public double getValue() {
+        return value;
     }
 }

@@ -20,25 +20,30 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.speclang;
 
-import it.unicam.quasylab.jspear.ds.RelationOperator;
+import it.unicam.quasylab.jspear.ds.DataState;
+import it.unicam.quasylab.jspear.speclang.variables.Variable;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
 
-public final class ThresholdDistanceExpression implements DistanceExpression {
+import java.util.function.Function;
 
-    private final double threshold;
-    private final RelationOperator relop;
-    private final DistanceExpression expression;
-
-    public ThresholdDistanceExpression(DistanceExpression expression, RelationOperator relop, double threshold) {
-        this.threshold = threshold;
-        this.relop = relop;
-        this.expression = expression;
+public class VariableAllocation {
+    public boolean isAVariable(String arrayName) {
+        return false;
     }
 
-
-    @Override
-    public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return (relop.eval(expression.compute(step, seq1, seq2),threshold)?1.0:0.0);
+    public Function<DataState, JSpearValue> getQueryFunction(String name) {
+        Variable variable = getVariable(name);
+        return ds -> getValue(variable, ds);
     }
+
+    public Variable getVariable(String name) {
+        return null;
+    }
+
+    public JSpearValue getValue(Variable variable, DataState dataState) {
+        return JSpearValue.ERROR_VALUE;
+    }
+
 }

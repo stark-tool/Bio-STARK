@@ -22,14 +22,13 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-import it.unicam.quasylab.jspear.DataState;
-import it.unicam.quasylab.jspear.DataStateUpdate;
-import it.unicam.quasylab.jspear.Variable;
+import it.unicam.quasylab.jspear.ds.DataState;
+import it.unicam.quasylab.jspear.ds.DataStateUpdate;
 import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
+import it.unicam.quasylab.jspear.speclang.variables.Variable;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.Map;
-import java.util.Optional;
 
 public class JSpearUpdateFunction {
 
@@ -51,19 +50,20 @@ public class JSpearUpdateFunction {
     }
 
     public DataStateUpdate eval(RandomGenerator rg, Map<String, JSpearValue> lv, DataState ds) {
-        if ((guard != null)&&(!guard.eval(rg, lv, ds).booleanOf())) {
-            return null;
-        }
-        if (!isArray) {
-            return new DataStateUpdate(this.variable, this.newValue.eval(rg, lv, ds).doubleOf());
-        }
-        if (first == null) {
-            return new DataStateUpdate(this.variable, this.newValue.eval(rg, lv, ds).toDoubleArray());
-        }
-        if (last == null) {
-            return new DataStateUpdate(this.variable, this.first.eval(rg, lv, ds).integerOf(), this.newValue.eval(rg, lv, ds).doubleOf());
-        }
-        return new DataStateUpdate(this.variable, this.first.eval(rg, lv, ds).integerOf(), this.last.eval(rg, lv, ds).integerOf(), this.newValue.eval(rg, lv, ds).toDoubleArray());
+//        if ((guard != null)&&(!guard.eval(rg, lv, ds).booleanOf())) {
+//            return null;
+//        }
+//        if (!isArray) {
+//            return new DataStateUpdate(this.variable, this.newValue.eval(rg, lv, ds).doubleOf());
+//        }
+//        if (first == null) {
+//            return new DataStateUpdate(this.variable, this.newValue.eval(rg, lv, ds).toDoubleArray());
+//        }
+//        if (last == null) {
+//            return new DataStateUpdate(this.variable, this.first.eval(rg, lv, ds).integerOf(), this.newValue.eval(rg, lv, ds).doubleOf());
+//        }
+//        return new DataStateUpdate(this.variable, this.first.eval(rg, lv, ds).integerOf(), this.last.eval(rg, lv, ds).integerOf(), this.newValue.eval(rg, lv, ds).toDoubleArray());
+        return null;
     }
 
 }

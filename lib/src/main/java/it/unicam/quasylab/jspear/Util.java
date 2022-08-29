@@ -22,6 +22,8 @@
 
 package it.unicam.quasylab.jspear;
 
+import it.unicam.quasylab.jspear.ds.DataStateExpression;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

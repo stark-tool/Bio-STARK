@@ -20,35 +20,39 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.speclang.variables;
 
 import it.unicam.quasylab.jspear.ds.DataState;
-import org.apache.commons.math3.random.RandomGenerator;
+import it.unicam.quasylab.jspear.speclang.VariableAllocation;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
 
-public class PerturbedSystem implements SystemState {
+/**
+ * This class implements a store based on a data state.
+ */
+public class JSpearDataStateStore implements JSpearStore {
 
-    private final SystemState perturbedSystem;
-    private final Perturbation perturbation;
-    private DataState perturbedDataState;
+    private final DataState dataState;
+    private final VariableAllocation allocation;
 
-    public PerturbedSystem(SystemState perturbedSystem, Perturbation perturbation) {
-        this.perturbedSystem = perturbedSystem;
-        this.perturbation = perturbation;
+    /**
+     * Creates a store where data are collected from a data state.
+     *
+     * @param allocation structure of stored variables.
+     * @param dataState data state from which values are collected.
+     */
+    public JSpearDataStateStore(VariableAllocation allocation, DataState dataState) {
+        this.allocation = allocation;
+        this.dataState = dataState;
     }
 
     @Override
-    public DataState getDataState() {
-        return perturbedSystem.getDataState();
+    public JSpearValue get(Variable variable) {
+        return this.allocation.getValue(variable, dataState);
     }
 
     @Override
-    public SystemState sampleNext(RandomGenerator rg) {
-        SystemState next = perturbedSystem.sampleNext(rg);
-        return perturbation.step().apply(rg, next);
+    public int size() {
+        return 0;
     }
 
-    @Override
-    public SystemState setDataState(DataState dataState) {
-        return new PerturbedSystem(perturbedSystem.setDataState(dataState), perturbation);
-    }
 }

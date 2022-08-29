@@ -25,6 +25,8 @@ package it.unicam.quasylab.jspear.speclang.values;
 import it.unicam.quasylab.jspear.speclang.types.JSpearCustomType;
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 
+import java.util.Objects;
+
 public final class JSpearCustomValue implements JSpearValue {
 
     private final JSpearCustomType type;
@@ -38,8 +40,19 @@ public final class JSpearCustomValue implements JSpearValue {
 
     @Override
     public JSpearType getJSpearType() {
-        return null;
+        return type;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JSpearCustomValue that = (JSpearCustomValue) o;
+        return elementIndex == that.elementIndex && Objects.equals(type, that.type);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, elementIndex);
+    }
 }

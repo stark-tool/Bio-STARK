@@ -22,7 +22,7 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-import it.unicam.quasylab.jspear.DataState;
+import it.unicam.quasylab.jspear.ds.DataState;
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 import org.apache.commons.math3.random.RandomGenerator;
 

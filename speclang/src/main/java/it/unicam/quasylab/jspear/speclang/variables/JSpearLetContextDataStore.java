@@ -20,26 +20,31 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.variables;
 
-import it.unicam.quasylab.jspear.DataState;
 import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
-import org.apache.commons.math3.random.RandomGenerator;
 
-import java.util.Map;
-import java.util.function.Predicate;
+public class JSpearLetContextDataStore implements JSpearStore {
 
-@FunctionalInterface
-public interface JSpearLambdaExpressionEvaluationFunction {
+    private final Variable letVariable;
 
-    static JSpearLambdaExpressionEvaluationFunction of(JSpearValue value) {
-        return (rg, lv, ds, v) -> value;
+    private final JSpearValue value;
+    private final JSpearStore nestedStore;
+
+    public JSpearLetContextDataStore(Variable letVariable, JSpearValue value, JSpearStore nestedStore) {
+        this.letVariable = letVariable;
+        this.value = value;
+        this.nestedStore = nestedStore;
     }
 
-    JSpearValue eval(RandomGenerator rg, Map<String,JSpearValue> localValues, DataState ds, JSpearValue v);
 
-    default Predicate<JSpearValue> generatePredicate(RandomGenerator rg, Map<String,JSpearValue> localValues, DataState ds) {
-        return v -> this.eval(rg, localValues, ds, v).booleanOf();
+    @Override
+    public JSpearValue get(Variable variable) {
+        return (this.letVariable.equals(variable)?value:nestedStore.get(variable));
     }
 
+    @Override
+    public int size() {
+        return 1+nestedStore.size();
+    }
 }

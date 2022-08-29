@@ -20,15 +20,25 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.variables;
 
-public interface InterpretationDomain<T> {
-    T negate(T value);
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
 
-    T pow(JSpearSpecificationLanguageParser.ExpressionContext left, JSpearSpecificationLanguageParser.ExpressionContext right);
+public class JSpearArrayDataStore implements JSpearStore {
 
+    private final JSpearValue[] values;
 
-    T evalBinary(String text, T accept, T accept1);
+    public JSpearArrayDataStore(JSpearValue[] values) {
+        this.values = values;
+    }
 
-    T trueValue();
+    @Override
+    public JSpearValue get(Variable variable) {
+        return values[variable.index()];
+    }
+
+    @Override
+    public int size() {
+        return this.values.length;
+    }
 }

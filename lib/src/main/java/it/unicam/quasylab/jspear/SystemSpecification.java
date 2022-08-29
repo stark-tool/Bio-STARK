@@ -22,6 +22,9 @@
 
 package it.unicam.quasylab.jspear;
 
+import it.unicam.quasylab.jspear.ds.DataState;
+import it.unicam.quasylab.jspear.ds.DataStateExpression;
+
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
@@ -31,22 +34,17 @@ import java.util.function.ToDoubleFunction;
  */
 public class SystemSpecification {
 
-    private final VariableRegistry variableRegistry;
 
     private final Map<String, Supplier<ControlledSystem>> systemRegistry;
 
     private final Map<String, Supplier<DataStateExpression>> penaltyFunctions;
 
-    public SystemSpecification(VariableRegistry variableRegistry, Map<String, Supplier<ControlledSystem>> systemRegistry, Map<String, Supplier<DataStateExpression>> penaltyFunctions) {
-        this.variableRegistry = variableRegistry;
+    public SystemSpecification(Map<String, Supplier<ControlledSystem>> systemRegistry, Map<String, Supplier<DataStateExpression>> penaltyFunctions) {
         this.systemRegistry = systemRegistry;
         this.penaltyFunctions = penaltyFunctions;
     }
 
 
-    public VariableRegistry getVariableRegistry() {
-        return variableRegistry;
-    }
 
     public ControlledSystem getControlledSystem(String name) {
         Supplier<ControlledSystem> supplier = systemRegistry.get(name);

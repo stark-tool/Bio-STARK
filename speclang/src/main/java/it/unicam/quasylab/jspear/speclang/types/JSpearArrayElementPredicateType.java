@@ -23,35 +23,38 @@
 package it.unicam.quasylab.jspear.speclang.types;
 
 /**
- * This type describes the set of arrays.
+ * This type is used to represent predicates over array elements that are used in the array operators.
  */
-public final class JSpearArrayType implements JSpearType {
+public final class JSpearArrayElementPredicateType implements JSpearType {
 
-    private static JSpearArrayType instance;
+    private static JSpearArrayElementPredicateType instance;
 
-    public static JSpearArrayType getInstance() {
+    public static JSpearType getInstance() {
         if (instance == null) {
-            instance = new JSpearArrayType();
+            instance = new JSpearArrayElementPredicateType();
         }
         return instance;
     }
 
-    private JSpearArrayType() {}
+
+    private JSpearArrayElementPredicateType() {}
 
     @Override
     public JSpearType merge(JSpearType other) {
-        if (other == JSpearType.ARRAY_TYPE) {
-            return this;
+        boolean randomType = false;
+        if (other instanceof JSpearRandomType) {
+            randomType = true;
+            other = other.deterministicType();
         }
-        if (other.deterministicType() == JSpearType.ARRAY_TYPE) {
-            return other;
+        if ((other instanceof JSpearBooleanType)||(other instanceof JSpearArrayElementPredicateType)) {
+            return (randomType?new JSpearRandomType(this):this);
         }
-        return JSpearType.ERROR_TYPE;
+        return ERROR_TYPE;
     }
 
     @Override
     public boolean isCompatibleWith(JSpearType other) {
-        return (other.deterministicType() == JSpearType.ARRAY_TYPE);
+        return (other instanceof JSpearBooleanType)||(other instanceof JSpearArrayElementPredicateType);
     }
 
     @Override
@@ -61,7 +64,7 @@ public final class JSpearArrayType implements JSpearType {
 
     @Override
     public boolean isAnArray() {
-        return true;
+        return false;
     }
 
     @Override
@@ -71,13 +74,6 @@ public final class JSpearArrayType implements JSpearType {
 
     @Override
     public boolean canBeMergedWith(JSpearType other) {
-        return this.isCompatibleWith(other);
+        return isCompatibleWith(other);
     }
-
-    @Override
-    public String toString() {
-        return JSpearType.ARRAY_TYPE_STRING;
-    }
-
-
 }

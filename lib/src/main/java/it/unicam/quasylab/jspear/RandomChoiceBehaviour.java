@@ -22,6 +22,9 @@
 
 package it.unicam.quasylab.jspear;
 
+import it.unicam.quasylab.jspear.controller.Controller;
+import it.unicam.quasylab.jspear.controller.EffectStep;
+import it.unicam.quasylab.jspear.ds.DataState;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**

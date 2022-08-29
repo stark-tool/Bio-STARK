@@ -20,30 +20,27 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.variables;
 
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
 
 /**
- * This class is used to represent a variable in JSpear.
+ * This interface represents the store used to evaluate expressions. Each store associates variables with values.
  */
-public class JSpearSpecificationVariable {
+public interface JSpearStore {
 
-    private final String name;
+    /**
+     * Returns the value associated with the given variable.
+     *
+     * @param variable variable to read.
+     * @return the value associated with the given element index.
+     */
+    JSpearValue get(Variable variable);
 
-    private final JSpearType type;
-
-    public JSpearSpecificationVariable(String name, JSpearType type, int from, int to) {
-        this.name = name;
-        this.type = type;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public JSpearType getType() {
-        return type;
-    }
-
+    /**
+     * Returns the number of variables in this store.
+     *
+     * @return the number of variables in this store.
+     */
+    int size();
 }

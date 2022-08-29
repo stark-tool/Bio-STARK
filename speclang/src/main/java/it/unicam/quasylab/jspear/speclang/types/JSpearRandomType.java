@@ -37,7 +37,11 @@ public final class JSpearRandomType implements JSpearType {
      * @param contentType the type of randomly generated values.
      */
     public JSpearRandomType(JSpearType contentType) {
-        this.contentType = contentType;
+        if (contentType.isRandom()) {
+            this.contentType = contentType.deterministicType();
+        } else {
+            this.contentType = contentType;
+        }
     }
 
     @Override
