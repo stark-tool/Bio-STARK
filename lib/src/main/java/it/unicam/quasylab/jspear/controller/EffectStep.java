@@ -58,7 +58,11 @@ public record EffectStep<T>(List<DataStateUpdate> effect, T next) {
     }
 
     public EffectStep<T> applyBefore(List<DataStateUpdate> updates) {
-        updates.addAll(this.effect);
-        return new EffectStep<>(updates, next);
+        if (updates.isEmpty()) {
+            return this;
+        } else {
+            updates.addAll(this.effect);
+            return new EffectStep<>(updates, next);
+        }
     }
 }

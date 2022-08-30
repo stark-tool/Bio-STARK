@@ -22,6 +22,9 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+import it.unicam.quasylab.jspear.speclang.values.JSpearBoolean;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
+
 /**
  * This type describes the set of boolean values.
  */
@@ -84,4 +87,7 @@ public final class JSpearBooleanType implements JSpearType {
         return JSpearType.BOOLEAN_TYPE_STRING;
     }
 
+    public JSpearValue fromDouble(double v) {
+        return (v>0.0?JSpearBoolean.TRUE:JSpearBoolean.FALSE);
+    }
 }

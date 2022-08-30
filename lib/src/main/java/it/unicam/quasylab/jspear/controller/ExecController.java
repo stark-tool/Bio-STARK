@@ -23,36 +23,21 @@
 package it.unicam.quasylab.jspear.controller;
 
 import it.unicam.quasylab.jspear.ds.DataState;
-import it.unicam.quasylab.jspear.ds.DataStateFunction;
-import it.unicam.quasylab.jspear.ds.DataStateUpdate;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import java.util.List;
-import java.util.function.BiFunction;
+import java.util.LinkedList;
 
-/**
- * Represents a controller that executes a given action on the data set and then evolves to
- * another one.
- *
- */
-public class ActionController implements Controller {
+public class ExecController implements Controller {
 
-    private final BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> action;
-    private final Controller next;
+    private final Controller nextController;
 
-    /**
-     * Creates the controller that execute the given action and then behaves like <code>next</code>.
-     *
-     * @param action effect on data state.
-     * @param next controller enabled after the action execution.
-     */
-    public ActionController(BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> action, Controller next) {
-        this.action = action;
-        this.next = next;
+    public ExecController(Controller nextController) {
+        this.nextController = nextController;
     }
 
     @Override
     public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
-        return next.next(rg, state).applyBefore(action.apply(rg, state));
+        return nextController.next(rg, state);
     }
+
 }

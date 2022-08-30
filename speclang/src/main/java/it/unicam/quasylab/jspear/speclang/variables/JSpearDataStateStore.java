@@ -52,7 +52,7 @@ public class JSpearDataStateStore implements JSpearStore {
 
     @Override
     public int size() {
-        return 0;
+        return allocation.size();
     }
 
 }

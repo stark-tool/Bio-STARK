@@ -25,6 +25,7 @@ package it.unicam.quasylab.jspear.controller;
 import it.unicam.quasylab.jspear.ds.DataState;
 import org.apache.commons.math3.random.RandomGenerator;
 
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 /**
@@ -32,7 +33,7 @@ import java.util.function.Predicate;
  */
 public class IfThenElseController implements Controller{
 
-    private final Predicate<DataState> guard;
+    private final BiPredicate<RandomGenerator, DataState> guard;
     private final Controller thenController;
     private final Controller elseController;
 
@@ -44,7 +45,7 @@ public class IfThenElseController implements Controller{
      * @param thenController the behaviour when the guard is satisfied.
      * @param elseController the behaviour when the guard is not satisfied.
      */
-    public IfThenElseController(Predicate<DataState> guard, Controller thenController, Controller elseController) {
+    public IfThenElseController(BiPredicate<RandomGenerator, DataState> guard, Controller thenController, Controller elseController) {
         this.guard = guard;
         this.thenController = thenController;
         this.elseController = elseController;
@@ -52,7 +53,7 @@ public class IfThenElseController implements Controller{
 
     @Override
     public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
-        return (guard.test(state)?thenController.next(rg, state):elseController.next(rg, state));
+        return (guard.test(rg, state)?thenController.next(rg, state):elseController.next(rg, state));
     }
 
 

@@ -163,4 +163,12 @@ public final class JSpearArray implements JSpearValue {
     public int hashCode() {
         return Objects.hash(Arrays.hashCode(IntStream.range(0, size).mapToDouble(this.elements).toArray()), size);
     }
+
+    public int lenght() {
+        return this.size;
+    }
+
+    public double get(int i) {
+        return this.elements.applyAsDouble(i);
+    }
 }

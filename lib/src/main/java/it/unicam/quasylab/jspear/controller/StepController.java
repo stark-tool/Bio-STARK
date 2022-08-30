@@ -23,36 +23,38 @@
 package it.unicam.quasylab.jspear.controller;
 
 import it.unicam.quasylab.jspear.ds.DataState;
-import it.unicam.quasylab.jspear.ds.DataStateFunction;
-import it.unicam.quasylab.jspear.ds.DataStateUpdate;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import java.util.List;
-import java.util.function.BiFunction;
+import java.util.LinkedList;
+import java.util.function.ToIntBiFunction;
 
-/**
- * Represents a controller that executes a given action on the data set and then evolves to
- * another one.
- *
- */
-public class ActionController implements Controller {
+public class StepController implements Controller {
 
-    private final BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> action;
-    private final Controller next;
+    private final ToIntBiFunction<RandomGenerator, DataState> steps;
+    private final Controller nextController;
 
-    /**
-     * Creates the controller that execute the given action and then behaves like <code>next</code>.
-     *
-     * @param action effect on data state.
-     * @param next controller enabled after the action execution.
-     */
-    public ActionController(BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> action, Controller next) {
-        this.action = action;
-        this.next = next;
+    public StepController(Controller nextController) {
+        this(0, nextController);
     }
+
+    public StepController(int steps, Controller nextController) {
+        this((rg, ds) -> steps, nextController);
+    }
+
+    public StepController(ToIntBiFunction<RandomGenerator,DataState> steps, Controller nextController) {
+        this.steps = steps;
+        this.nextController = nextController;
+    }
+
 
     @Override
     public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
-        return next.next(rg, state).applyBefore(action.apply(rg, state));
+        int numberOfSteps = steps.applyAsInt(rg, state);
+        if (numberOfSteps<=0) {
+            return new EffectStep<>(new LinkedList<>(), nextController);
+        } else {
+            return new EffectStep<>(new LinkedList<>(), new StepController((rg2, ds) -> numberOfSteps-1, nextController));
+        }
     }
+
 }

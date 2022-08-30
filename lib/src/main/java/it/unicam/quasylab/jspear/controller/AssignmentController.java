@@ -31,23 +31,16 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 
 public class AssignmentController implements Controller {
-    private final BiPredicate<RandomGenerator, DataState> guard;
     private final BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment;
     private final Controller nextController;
 
-    public AssignmentController(BiPredicate<RandomGenerator, DataState> guard, BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment, Controller nextController) {
-        this.guard = guard;
+    public AssignmentController(BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment, Controller nextController) {
         this.assignment = assignment;
         this.nextController = nextController;
     }
 
     @Override
     public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
-        EffectStep<Controller> stepEffect = nextController.next(rg, state);
-        if (guard.test(rg, state)) {
-            return stepEffect.applyBefore(assignment.apply(rg, state));
-        } else {
-            return stepEffect;
-        }
+        return nextController.next(rg, state).applyBefore(assignment.apply(rg, state));
     }
 }

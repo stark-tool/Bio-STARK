@@ -75,10 +75,14 @@ controllerBehaviour:
     | blockBehaviour
     | stepBehaviour
     | execBehaviour
+//    | letAssignmentBehaviour
 ;
+
+//letAssignmentBehaviour: 'let' name=ID '=' value=expression 'in' body=controllerBehaviour;
 
 variableAssignmentBehaviour:
 ('when' guard=expression)? target=varExpression '=' value=expression ';'
+(next=controllerBehaviour)
 ;
 
 execBehaviour: 'exec' target=ID ';';
@@ -86,7 +90,7 @@ execBehaviour: 'exec' target=ID ';';
 stepBehaviour: (steps=expression '#')? 'step' target=ID ';';
 
 blockBehaviour: '{'
-    (statements += controllerBehaviour)*
+    controllerBehaviour
 '}';
 
 probabilisticChoiceBehaviour: 'choose' '{'

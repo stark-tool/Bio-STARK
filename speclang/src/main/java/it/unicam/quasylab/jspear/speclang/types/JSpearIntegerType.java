@@ -22,6 +22,9 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+import it.unicam.quasylab.jspear.speclang.values.JSPearInteger;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
+
 /**
  * A class representing an integer type.
  */
@@ -81,4 +84,7 @@ public final class JSpearIntegerType implements JSpearType {
         return JSpearType.INTEGER_TYPE_STRING;
     }
 
+    public JSpearValue fromDouble(double v) {
+        return new JSPearInteger((int) v);
+    }
 }

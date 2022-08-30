@@ -34,6 +34,20 @@ public sealed interface JSpearValue permits JSpearArrayElementPredicate, JSpearA
 
     JSpearValue ERROR_VALUE = new JSpearErrorValue();
 
+    static boolean isTrue(JSpearValue value) {
+        if (value instanceof JSpearBoolean booleanValue) {
+            return booleanValue.value();
+        }
+        return false;
+    }
+
+    static int intValue(JSpearValue value) {
+        if (value instanceof JSPearInteger integerValue) {
+            return integerValue.value();
+        }
+        return 0;
+    }
+
 
 //    static JSpearValue of(JSpearType type, String variable, DataState ds) {
 //        if (type.isAnArray()) {

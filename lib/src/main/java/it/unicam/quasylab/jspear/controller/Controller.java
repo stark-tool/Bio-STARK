@@ -40,6 +40,10 @@ import java.util.function.Predicate;
 public interface Controller {
 
     static Controller ifThenElse(Predicate<DataState> pred, Controller thenController, Controller elseController) {
+        return new IfThenElseController((rg, ds) -> pred.test(ds), thenController, elseController);
+    }
+
+    static Controller ifThenElse(BiPredicate<RandomGenerator, DataState> pred, Controller thenController, Controller elseController) {
         return new IfThenElseController(pred, thenController, elseController);
     }
 
@@ -48,10 +52,9 @@ public interface Controller {
     }
 
 
-    static Controller doAssignment(BiPredicate<RandomGenerator, DataState> guard,
-                                   BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment,
+    static Controller doAssignment(BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment,
                                    Controller nextController) {
-        return new AssignmentController(guard, assignment, nextController);
+        return new AssignmentController(assignment, nextController);
     }
 
     static Controller doTick(Controller next) {

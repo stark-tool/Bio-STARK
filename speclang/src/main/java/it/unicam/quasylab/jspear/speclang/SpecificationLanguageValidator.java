@@ -204,12 +204,9 @@ public class SpecificationLanguageValidator extends JSpearSpecificationLanguageB
 
     @Override
     public Boolean visitBlockBehaviour(JSpearSpecificationLanguageParser.BlockBehaviourContext ctx) {
-        boolean flag = true;
-        for (JSpearSpecificationLanguageParser.ControllerBehaviourContext behaviour: ctx.statements) {
-            flag &= behaviour.accept(this);
-        }
-        return flag;
+        return ctx.controllerBehaviour().accept(this);
     }
+
 
     @Override
     public Boolean visitSequentialController(JSpearSpecificationLanguageParser.SequentialControllerContext ctx) {
