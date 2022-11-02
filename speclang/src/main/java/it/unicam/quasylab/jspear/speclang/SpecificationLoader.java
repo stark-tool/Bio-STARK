@@ -22,6 +22,8 @@
 package it.unicam.quasylab.jspear.speclang;
 
 import it.unicam.quasylab.jspear.SystemSpecification;
+import it.unicam.quasylab.jspear.speclang.parsing.*;
+import it.unicam.quasylab.jspear.speclang.semantics.VariableAllocation;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -31,7 +33,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.function.Consumer;
 
 public class SpecificationLoader {

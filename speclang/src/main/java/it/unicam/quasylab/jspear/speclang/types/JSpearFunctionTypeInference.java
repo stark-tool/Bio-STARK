@@ -24,11 +24,8 @@ package it.unicam.quasylab.jspear.speclang.types;
 
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
-import it.unicam.quasylab.jspear.speclang.ParseErrorCollector;
-import it.unicam.quasylab.jspear.speclang.ParseUtil;
-import it.unicam.quasylab.jspear.speclang.types.ExpressionTypeInference;
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
-import it.unicam.quasylab.jspear.speclang.types.TypeContext;
+import it.unicam.quasylab.jspear.speclang.parsing.ParseErrorCollector;
+import it.unicam.quasylab.jspear.speclang.parsing.ParseUtil;
 
 public class JSpearFunctionTypeInference extends JSpearSpecificationLanguageBaseVisitor<JSpearType> {
     private final ParseErrorCollector errors;

@@ -20,19 +20,34 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.values;
+package it.unicam.quasylab.jspear.speclang.parsing;
 
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 
-public final class JSpearErrorValue implements JSpearValue {
+public class ParseErrorListener extends BaseErrorListener {
 
-    @Override
-    public JSpearType getJSpearType() {
-        return JSpearType.ERROR_TYPE;
+    private final ParseErrorCollector errors;
+
+    public ParseErrorListener() {
+        this(new ParseErrorCollector());
+    }
+
+    public ParseErrorListener(ParseErrorCollector errors) {
+        this.errors = errors;
+    }
+
+    public boolean withErrors() {
+        return errors.withErrors();
     }
 
     @Override
-    public double[] toDoubleArray() {
-        return new double[0];
+    public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
+        errors.record(new ParseError(msg, line, charPositionInLine));
+    }
+
+    public ParseErrorCollector getErrorCollector() {
+        return errors;
     }
 }

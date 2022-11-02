@@ -23,6 +23,7 @@
 package it.unicam.quasylab.jspear.speclang.types;
 
 import it.unicam.quasylab.jspear.speclang.*;
+import it.unicam.quasylab.jspear.speclang.parsing.ParseErrorCollector;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;

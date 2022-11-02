@@ -40,6 +40,11 @@ public final class JSPearInteger implements JSpearValue {
         return JSpearType.INTEGER_TYPE;
     }
 
+    @Override
+    public double[] toDoubleArray() {
+        return new double[] { this.value };
+    }
+
 
     public int value() {
         return value;

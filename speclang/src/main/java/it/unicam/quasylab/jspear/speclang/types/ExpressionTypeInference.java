@@ -24,11 +24,8 @@ package it.unicam.quasylab.jspear.speclang.types;
 
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
-import it.unicam.quasylab.jspear.speclang.ParseErrorCollector;
-import it.unicam.quasylab.jspear.speclang.ParseUtil;
-import it.unicam.quasylab.jspear.speclang.types.JSpearRandomType;
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
-import it.unicam.quasylab.jspear.speclang.types.TypeContext;
+import it.unicam.quasylab.jspear.speclang.parsing.ParseErrorCollector;
+import it.unicam.quasylab.jspear.speclang.parsing.ParseUtil;
 import org.antlr.v4.runtime.ParserRuleContext;
 
 /**

@@ -20,34 +20,32 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.parsing;
 
-import org.antlr.v4.runtime.BaseErrorListener;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.Recognizer;
+import java.util.LinkedList;
+import java.util.List;
 
-public class ParseErrorListener extends BaseErrorListener {
+public class ParseErrorCollector {
 
-    private final ParseErrorCollector errors;
+    private final LinkedList<ParseError> errors;
 
-    public ParseErrorListener() {
-        this(new ParseErrorCollector());
+    public ParseErrorCollector() {
+        this.errors = new LinkedList<>();
     }
 
-    public ParseErrorListener(ParseErrorCollector errors) {
-        this.errors = errors;
+    public int size() {
+        return errors.size();
     }
 
     public boolean withErrors() {
-        return errors.withErrors();
+        return !errors.isEmpty();
     }
 
-    @Override
-    public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-        errors.record(new ParseError(msg, line, charPositionInLine));
+    public synchronized void record(ParseError error) {
+        errors.add(error);
     }
 
-    public ParseErrorCollector getErrorCollector() {
-        return errors;
+    public synchronized List<ParseError> getSyntaxErrorList() {
+        return new LinkedList<>(errors);
     }
 }

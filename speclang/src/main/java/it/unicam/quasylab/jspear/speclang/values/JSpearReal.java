@@ -61,6 +61,11 @@ public final class JSpearReal implements JSpearValue {
         return JSpearType.REAL_TYPE;
     }
 
+    @Override
+    public double[] toDoubleArray() {
+        return new double[] { this.value };
+    }
+
     public JSpearValue sum(JSpearValue v) {
         if (v instanceof JSPearInteger intValue) {
             return new JSpearReal(this.value+ intValue.value());

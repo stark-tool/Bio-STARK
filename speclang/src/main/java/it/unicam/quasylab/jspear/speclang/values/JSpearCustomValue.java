@@ -44,6 +44,11 @@ public final class JSpearCustomValue implements JSpearValue {
     }
 
     @Override
+    public double[] toDoubleArray() {
+        return new double[] { elementIndex };
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

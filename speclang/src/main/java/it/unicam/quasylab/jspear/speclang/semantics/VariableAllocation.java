@@ -20,10 +20,11 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.semantics;
 
 import it.unicam.quasylab.jspear.ds.DataState;
 import it.unicam.quasylab.jspear.ds.DataStateUpdate;
+import it.unicam.quasylab.jspear.speclang.semantics.JSpearExpressionEvaluationFunction;
 import it.unicam.quasylab.jspear.speclang.types.*;
 import it.unicam.quasylab.jspear.speclang.values.*;
 import it.unicam.quasylab.jspear.speclang.variables.JSpearDataStateStore;
@@ -41,9 +42,32 @@ public class VariableAllocation {
 
     private final Map<Variable, VariableAllocationData> variables = new HashMap<>();
 
-    public boolean isAVariable(String arrayName) {
-        return false;
+    private int lastIndex = 0;
+
+    private int size = 0;
+
+    public void recordVariable(Variable variable, JSpearType type, int size) {
+        VariableAllocationData data =new VariableAllocationData(lastIndex, size, type);
+        this.lastIndex += size;
+        this.size += size;
+        variables.put(variable, data);
     }
+
+    public DataState getDataState(Map<Variable, JSpearValue> values) {
+        double[] data = new double[size];
+        values.forEach((var, value) -> set(var, value, data));
+        return new DataState(data);
+    }
+
+    private void set(Variable var, JSpearValue value, double[] data) {
+        VariableAllocationData allocationData = variables.get(var);
+        if (allocationData != null) {
+            double[] toArrayValues = value.toDoubleArray();
+            if (Math.min(allocationData.length, toArrayValues.length) >= 0)
+                System.arraycopy(toArrayValues, 0, data, allocationData.startingIndex, Math.min(allocationData.length, toArrayValues.length));
+        }
+    }
+
 
     public JSpearValue getValue(Variable variable, DataState dataState) {
         VariableAllocationData data = variables.get(variable);

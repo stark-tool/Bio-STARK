@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 /**
  * Identifies a step executed by a controller.
@@ -61,8 +62,7 @@ public record EffectStep<T>(List<DataStateUpdate> effect, T next) {
         if (updates.isEmpty()) {
             return this;
         } else {
-            updates.addAll(this.effect);
-            return new EffectStep<>(updates, next);
+            return new EffectStep<>(Stream.concat(updates.stream(), this.effect.stream()).toList(), next);
         }
     }
 }

@@ -20,32 +20,21 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.semantics;
 
-import java.util.LinkedList;
-import java.util.List;
+import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
+import org.apache.commons.math3.random.RandomGenerator;
 
-public class ParseErrorCollector {
+@FunctionalInterface
+public interface JSpearExpressionEvaluationFunction {
 
-    private final LinkedList<ParseError> errors;
-
-    public ParseErrorCollector() {
-        this.errors = new LinkedList<>();
+    static JSpearExpressionEvaluationFunction of(JSpearValue v) {
+        return (rg, s) -> v;
     }
 
-    public int size() {
-        return errors.size();
-    }
+    JSpearValue eval(RandomGenerator rg, JSpearStore store);
 
-    public boolean withErrors() {
-        return !errors.isEmpty();
-    }
 
-    public synchronized void record(ParseError error) {
-        errors.add(error);
-    }
-
-    public synchronized List<ParseError> getSyntaxErrorList() {
-        return new LinkedList<>(errors);
-    }
+    default JSpearValue eval() { return eval(null, null); }
 }

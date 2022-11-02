@@ -22,8 +22,7 @@
 
 package it.unicam.quasylab.jspear.speclang.variables;
 
-import com.ibm.icu.impl.CalendarCache;
-import it.unicam.quasylab.jspear.speclang.JSpearFunction;
+import it.unicam.quasylab.jspear.speclang.semantics.JSpearFunction;
 import it.unicam.quasylab.jspear.speclang.types.JSpearCustomType;
 import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
 

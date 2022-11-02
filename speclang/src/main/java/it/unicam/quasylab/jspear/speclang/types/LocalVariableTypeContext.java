@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.types;
 
 import it.unicam.quasylab.jspear.speclang.types.JSpearType;
 import it.unicam.quasylab.jspear.speclang.types.TypeContext;

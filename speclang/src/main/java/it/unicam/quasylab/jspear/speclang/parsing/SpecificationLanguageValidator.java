@@ -20,8 +20,10 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.parsing;
 
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
 import it.unicam.quasylab.jspear.speclang.types.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;

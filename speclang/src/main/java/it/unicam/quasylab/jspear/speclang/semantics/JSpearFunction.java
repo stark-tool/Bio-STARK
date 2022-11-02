@@ -20,21 +20,14 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.semantics;
 
-import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
 import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
 import org.apache.commons.math3.random.RandomGenerator;
 
 @FunctionalInterface
-public interface JSpearExpressionEvaluationFunction {
+public interface JSpearFunction {
 
-    static JSpearExpressionEvaluationFunction of(JSpearValue v) {
-        return (rg, s) -> v;
-    }
+    JSpearValue apply(RandomGenerator rg, JSpearValue[] args);
 
-    JSpearValue eval(RandomGenerator rg, JSpearStore store);
-
-
-    default JSpearValue eval() { return eval(null, null); }
 }

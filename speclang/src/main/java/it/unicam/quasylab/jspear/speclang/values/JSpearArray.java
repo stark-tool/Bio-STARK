@@ -139,6 +139,11 @@ public final class JSpearArray implements JSpearValue {
         return JSpearValue.ERROR_VALUE;
     }
 
+    @Override
+    public double[] toDoubleArray() {
+        return IntStream.range(0, size).mapToDouble(elements).toArray();
+    }
+
     public JSpearValue count() {
         return count(d -> true);
     }

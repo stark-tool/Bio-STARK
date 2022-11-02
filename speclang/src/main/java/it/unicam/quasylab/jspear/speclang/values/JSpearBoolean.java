@@ -46,6 +46,11 @@ public final class JSpearBoolean implements JSpearValue {
         return JSpearType.BOOLEAN_TYPE;
     }
 
+    @Override
+    public double[] toDoubleArray() {
+        return new double[] { (this.value?1.0:0.0) };
+    }
+
     public  JSpearValue negate() {
         return (this.value?FALSE:TRUE);
     }

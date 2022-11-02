@@ -20,8 +20,10 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.semantics;
 
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
 import it.unicam.quasylab.jspear.speclang.variables.JSpearExpressionEvaluationContext;
 import it.unicam.quasylab.jspear.speclang.variables.JSpearLetContextDataStore;
 import it.unicam.quasylab.jspear.speclang.variables.JSpearNameResolver;

@@ -366,4 +366,5 @@ public sealed interface JSpearValue permits JSpearArrayElementPredicate, JSpearA
     }
 
 
+    double[] toDoubleArray();
 }

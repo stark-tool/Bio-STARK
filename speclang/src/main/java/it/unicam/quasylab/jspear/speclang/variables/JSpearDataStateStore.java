@@ -23,7 +23,7 @@
 package it.unicam.quasylab.jspear.speclang.variables;
 
 import it.unicam.quasylab.jspear.ds.DataState;
-import it.unicam.quasylab.jspear.speclang.VariableAllocation;
+import it.unicam.quasylab.jspear.speclang.semantics.VariableAllocation;
 import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
 
 /**

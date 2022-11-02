@@ -42,6 +42,11 @@ public final class JSpearArrayElementPredicate implements JSpearValue {
         return JSpearType.ARRAY_ELEMENT_PREDICATE;
     }
 
+    @Override
+    public double[] toDoubleArray() {
+        return new double[0];
+    }
+
     public  JSpearValue negate() {
         return new JSpearArrayElementPredicate(predicate.negate());
     }

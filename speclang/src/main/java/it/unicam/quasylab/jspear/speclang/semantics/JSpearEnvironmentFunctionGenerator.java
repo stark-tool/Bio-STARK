@@ -20,9 +20,11 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang;
+package it.unicam.quasylab.jspear.speclang.semantics;
 
 import it.unicam.quasylab.jspear.ds.DataStateUpdate;
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
 import it.unicam.quasylab.jspear.speclang.values.JSpearBoolean;
 import it.unicam.quasylab.jspear.speclang.variables.*;
 import org.antlr.v4.runtime.tree.RuleNode;

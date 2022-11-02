@@ -22,8 +22,6 @@
 
 package it.unicam.quasylab.jspear.speclang.variables;
 
-import it.unicam.quasylab.jspear.speclang.JSpearFunction;
-
 import java.util.HashMap;
 import java.util.Map;
 

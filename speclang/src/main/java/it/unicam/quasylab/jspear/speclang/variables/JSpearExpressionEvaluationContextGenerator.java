@@ -22,8 +22,8 @@
 
 package it.unicam.quasylab.jspear.speclang.variables;
 
-import it.unicam.quasylab.jspear.speclang.JSpearExpressionEvaluationFunction;
-import it.unicam.quasylab.jspear.speclang.JSpearExpressionEvaluator;
+import it.unicam.quasylab.jspear.speclang.semantics.JSpearExpressionEvaluationFunction;
+import it.unicam.quasylab.jspear.speclang.semantics.JSpearExpressionEvaluator;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
 import it.unicam.quasylab.jspear.speclang.types.JSpearCustomType;

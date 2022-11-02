@@ -60,7 +60,7 @@ public class ControllerRegistry {
      * @return the controller associated with the given name.
      */
     public Controller get(String name) {
-        return (rg, s) -> this.controllers.getOrDefault(name, NIL).next(rg, s);
+        return this.controllers.getOrDefault(name, NIL);
     }
 
     /**

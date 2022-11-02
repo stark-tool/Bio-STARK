@@ -22,7 +22,7 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-import java.util.Map;
+import it.unicam.quasylab.jspear.speclang.semantics.VariableAllocation;
 
 public class VariableCollector extends JSpearSpecificationLanguageBaseVisitor<VariableAllocation> {
 //

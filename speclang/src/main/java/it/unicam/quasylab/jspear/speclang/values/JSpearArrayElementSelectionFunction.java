@@ -44,6 +44,11 @@ public final class JSpearArrayElementSelectionFunction implements JSpearValue {
         return JSpearType.ARRAY_ELEMENT_SELECTION_FUNCTION;
     }
 
+    @Override
+    public double[] toDoubleArray() {
+        return new double[0];
+    }
+
     public JSpearValue apply(DoubleUnaryOperator op) {
         return new JSpearArrayElementSelectionFunction(selectionFunction.andThen(op));
     }
