@@ -56,9 +56,9 @@ public class Main {
     private static final int p5 = 4;//variableRegistry.getVariable("P5");
     private static final int p6 = 5;//variableRegistry.getVariable("P6");
     private static final int stress = 6;//variableRegistry.getVariable("stress");
-    private static final int temp = 7;//variableRegistry.getVariable("temp");
+    public static final int temp = 7;//variableRegistry.getVariable("temp");
     private static final int ch_temp = 8;//variableRegistry.getVariable("ch_temp");
-    private static final int cool = 9;//variableRegistry.getVariable("cool");
+    public static final int cool = 9;//variableRegistry.getVariable("cool");
     private static final int ch_speed = 10;//variableRegistry.getVariable("speed");
     private static final int ch_wrn = 11;//variableRegistry.getVariable("ch_wrn");
 
@@ -86,7 +86,18 @@ public class Main {
             Controller controller = getController();
             DataState state = getInitialState(INITIAL_TEMP_VALUE);
             ControlledSystem system = new ControlledSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), new DefaultRandomGenerator(), rg -> system, 100);
+            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), new DefaultRandomGenerator(), rg -> system, 1);
+
+            for(int i=0; i<350; i++) {
+
+                System.out.println(i + " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(cool))).max() +
+                        " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(temp))).max() +
+                        " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(ch_temp))).max() +
+                        " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(stress))).max()
+                );
+            }
+
+            /*
             EvolutionSequence sequence2_tau = sequence.apply(getPerturbation(),TAU, 100);
             EvolutionSequence sequence2_tau2 = sequence.apply(getPerturbation(),TAU2, 100);
             EvolutionSequence sequence2_tau3 = sequence.apply(getPerturbation(),TAU3, 100);
@@ -127,7 +138,8 @@ public class Main {
                     TAU,
                     K
             );
-
+            */
+            /*
             int m = 50;
             double[][] warn = new double[m][1];
             double[][] st = new double[m][1];
@@ -136,9 +148,9 @@ public class Main {
                 warn[i][0] = MaxExpr2.compute(i,sequence,sequence3);
                 st[i][0] = MaxExpr3.compute(i,sequence,sequence3);
             }
-
             Util.writeToCSV("./testIntervalWarn.csv",warn);
             Util.writeToCSV("./testIntervalSt.csv",st);
+            */
 
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -208,33 +220,38 @@ public class Main {
     }
 
 
-    public static Controller getController() {
+    public static ControllerRegistry getControllerRegistry() {
         ControllerRegistry registry = new ControllerRegistry();
         registry.set("Ctrl",
                 Controller.ifThenElse(
                         DataState.greaterOrEqualThan(ch_temp, 99.8),
-                        Controller.doAction(DataStateUpdate.set(cool, ON), registry.get("Cooling")),
-                        registry.get("Check")
+                        Controller.doAction(DataStateUpdate.set(cool, ON), registry.reference("Cooling")),
+                        registry.reference("Check")
                 ));
-        registry.set("Cooling",Controller.doTick(4, registry.get("Check")));
+        registry.set("Cooling",Controller.doTick(4, registry.reference("Check")));
         registry.set("Check",
                 Controller.ifThenElse(
                         DataState.equalsTo(ch_speed, SLOW),
                         Controller.doAction(
-                                (rg, ds) -> List.of (new DataStateUpdate(ch_speed, SLOW), new DataStateUpdate(cool, OFF)),registry.get("Ctrl")),
+                                (rg, ds) -> List.of (new DataStateUpdate(ch_speed, SLOW), new DataStateUpdate(cool, OFF)),registry.reference("Ctrl")),
                         Controller.doAction(
-                                (rg, ds) -> List.of( new DataStateUpdate(ch_speed, ds.get(ch_in)), new DataStateUpdate(cool, OFF)),registry.get("Ctrl"))
+                                (rg, ds) -> List.of( new DataStateUpdate(ch_speed, ds.get(ch_in)), new DataStateUpdate(cool, OFF)),registry.reference("Ctrl"))
                 )
         );
         registry.set("IDS",
                 Controller.ifThenElse(
                         DataState.greaterThan(temp, 101.0).and(DataState.equalsTo(cool, OFF)),
                         Controller.doAction(
-                                (rd, ds) -> List.of(new DataStateUpdate(ch_wrn, HOT), new DataStateUpdate(ch_speed, LOW), new DataStateUpdate(ch_out, FULL)),registry.get("IDS")),
+                                (rd, ds) -> List.of(new DataStateUpdate(ch_wrn, HOT), new DataStateUpdate(ch_speed, LOW), new DataStateUpdate(ch_out, FULL)),registry.reference("IDS")),
                         Controller.doAction(
-                                (rg, ds) -> List.of(new DataStateUpdate( ch_wrn, OK), new DataStateUpdate(ch_speed, HALF), new DataStateUpdate(ch_out, HALF)),registry.get("IDS"))
+                                (rg, ds) -> List.of(new DataStateUpdate( ch_wrn, OK), new DataStateUpdate(ch_speed, HALF), new DataStateUpdate(ch_out, HALF)),registry.reference("IDS"))
                 )
         );
+        return registry;
+    }
+
+    public static Controller getController() {
+        ControllerRegistry registry = getControllerRegistry();
         return new ParallelController(registry.reference("Ctrl"), registry.reference("IDS"));
     }
 
@@ -301,6 +318,7 @@ public class Main {
         values.put(cool, OFF);
         values.put(ch_speed, HALF);
         values.put(ch_in, HALF);
+        values.put(ch_temp, vTemp);
         values.put(p1, vTemp);
         values.put(p2, vTemp);
         values.put(p3, vTemp);

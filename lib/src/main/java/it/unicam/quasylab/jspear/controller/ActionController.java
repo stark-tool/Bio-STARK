@@ -53,6 +53,6 @@ public class ActionController implements Controller {
 
     @Override
     public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
-        return next.next(rg, state).applyBefore(action.apply(rg, state));
+        return new EffectStep<>(action.apply(rg, state), next);
     }
 }
