@@ -48,7 +48,7 @@ public record EffectStep<T>(List<DataStateUpdate> effect, T next) {
     /**
      * Returns a step consisting of the parallel application of this step with the one given as parameters.
      *
-     * @param other another controller ste.
+     * @param other another controller step.
      * @return a step consisting of the parallel application of this step with the one given as parameters.
      */
     public EffectStep<T> parallel(BinaryOperator<T> stepOperator, EffectStep<T> other) {

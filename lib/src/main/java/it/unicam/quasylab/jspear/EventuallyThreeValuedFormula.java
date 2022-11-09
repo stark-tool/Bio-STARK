@@ -24,28 +24,26 @@ package it.unicam.quasylab.jspear;
 
 import java.util.stream.IntStream;
 
-public final class UntilRobustnessFormula implements RobustnessFormula {
-
-    private final RobustnessFormula leftFormula;
+public final class EventuallyThreeValuedFormula implements ThreeValuedFormula {
+    private final ThreeValuedFormula formula;
     private final int from;
     private final int to;
-    private final RobustnessFormula rightFormula;
 
-    public UntilRobustnessFormula(RobustnessFormula leftFormula, int from, int to, RobustnessFormula rightFormula) {
-        if ((from<0)||(to<0)||(from>=to)) {
-            throw new IllegalArgumentException();
-        }
-        this.leftFormula = leftFormula;
+    public EventuallyThreeValuedFormula(ThreeValuedFormula formula, int from, int to) {
+        this.formula = formula;
         this.from = from;
         this.to = to;
-        this.rightFormula = rightFormula;
     }
 
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return IntStream.range(from+step, to+step).parallel().anyMatch(
-                i -> rightFormula.eval(sampleSize, i, sequence) &&
-                        IntStream.range(from+step, i).allMatch(j -> leftFormula.eval(sampleSize, j, sequence))
-        );
+    public TruthValues eval(int sampleSize, int step, EvolutionSequence sequence) {
+        TruthValues value = TruthValues.FALSE;
+        for(int i = from+step; i<to+step; i++){
+            value = TruthValues.or(value, formula.eval(sampleSize, i, sequence));
+            if(value==TruthValues.TRUE){i=to+step;}
+        }
+        return value;
+        //return IntStream.of(from, to).parallel().anyMatch(i -> formula.eval(sampleSize, step+i, sequence));
     }
+
 }

@@ -24,14 +24,14 @@ package it.unicam.quasylab.jspear;
 
 import java.util.stream.IntStream;
 
-public final class UntilRobustnessFormula implements RobustnessFormula {
+public final class UntilThreeValuedFormula implements ThreeValuedFormula {
 
-    private final RobustnessFormula leftFormula;
+    private final ThreeValuedFormula leftFormula;
     private final int from;
     private final int to;
-    private final RobustnessFormula rightFormula;
+    private final ThreeValuedFormula rightFormula;
 
-    public UntilRobustnessFormula(RobustnessFormula leftFormula, int from, int to, RobustnessFormula rightFormula) {
+    public UntilThreeValuedFormula(ThreeValuedFormula leftFormula, int from, int to, ThreeValuedFormula rightFormula) {
         if ((from<0)||(to<0)||(from>=to)) {
             throw new IllegalArgumentException();
         }
@@ -42,10 +42,19 @@ public final class UntilRobustnessFormula implements RobustnessFormula {
     }
 
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return IntStream.range(from+step, to+step).parallel().anyMatch(
-                i -> rightFormula.eval(sampleSize, i, sequence) &&
-                        IntStream.range(from+step, i).allMatch(j -> leftFormula.eval(sampleSize, j, sequence))
-        );
+    public TruthValues eval(int sampleSize, int step, EvolutionSequence sequence) {
+        TruthValues value = TruthValues.FALSE;
+        for(int i=from+step; i<to+step; i++){
+            TruthValues res = TruthValues.TRUE;
+            for(int j=from+step; j<i; j++){
+                res = TruthValues.and(res, leftFormula.eval(sampleSize, j, sequence));
+            }
+            value = TruthValues.or(value, TruthValues.and(res, rightFormula.eval(sampleSize, i, sequence)));
+        }
+        return value;
+        //return IntStream.range(from+step, to+step).parallel().anyMatch(
+        //        i -> ConjunctionThreeValuedFormula(rightFormula.eval(sampleSize, i, sequence),
+        //                IntStream.range(step, i).allMatch(j -> leftFormula.eval(sampleSize, j, sequence)))
+        //);
     }
 }

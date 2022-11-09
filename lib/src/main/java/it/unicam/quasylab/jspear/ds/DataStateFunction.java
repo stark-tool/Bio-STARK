@@ -36,7 +36,7 @@ public interface DataStateFunction {
     BiFunction<RandomGenerator, DataState, List<DataStateUpdate>>  TICK_FUNCTION = (rg, ds) -> List.of();
 
     /**
-     * Given an random generateor, used to evaluate random expressions, and a data state samples an outcome of this
+     * Given a random generator, used to evaluate random expressions, and a data state samples an outcome of this
      * expression.
      *
      * @param rg random generator used to evaluate random expressions.

@@ -22,14 +22,17 @@
 
 package it.unicam.quasylab.jspear;
 
+import it.unicam.quasylab.jspear.ds.DataState;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -79,7 +82,7 @@ public class SampleSet<T extends SystemState> {
      * on each element of the data set.
      *
      * @param f a penalty function.
-     * @return a sorted array containing all the lements in
+     * @return a sorted array containing all the elements in
      */
     public synchronized double[] evalPenaltyFunction(DataStateExpression f) {
         return states.stream().map(SystemState::getDataState).mapToDouble(f).sorted().toArray();
@@ -104,6 +107,39 @@ public class SampleSet<T extends SystemState> {
         return IntStream.range(0, thisData.length).parallel()
                 .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, otherData[i*k+j]-thisData[i])).sum())
                 .sum()/otherData.length;
+    }
+
+    /**
+     * Returns the confidence interval of the evaluation of the distance between this sample set and <code>other</code> computed according to
+     * the function <code>f</code>. The confidence interval is evaluated by means of the empirical bootstrap method.
+     *
+     * @param f penalty function used to compute the distance.
+     * @param other sample set to compare.
+     * @param m number of applications of bootstrapping
+     * @param z the desired quantile of the standard-normal distribution
+     * @return the limits of the confidence interval of the evaluation of the distance between this sample set and <code>other</code> computed according to
+     * the function <code>f</code>.
+     */
+
+    public synchronized double[] bootstrapDistance(DataStateExpression f, SampleSet<T> other, int m, double z) {
+        Random rand = new Random();
+        if (other.size()%other.size()!=0) {
+            throw new IllegalArgumentException("Incompatible size of data sets!");
+        }
+        double[] W = new double[m];
+        double WSum = 0.0;
+        for (int i = 0; i<m; i++){
+            SampleSet<T> thisSampleSet = new SampleSet<>(this.stream().parallel().map(j -> this.states.get(rand.nextInt(this.size()))).toList());
+            SampleSet<T> otherSampleSet = new SampleSet<>(other.stream().parallel().map(j -> other.states.get(rand.nextInt(other.size()))).toList());
+            W[i] = thisSampleSet.distance(f,otherSampleSet);
+            WSum += W[i];
+        }
+        double BootMean = WSum/m;
+        double StandardError = Math.sqrt(IntStream.range(0,m).mapToDouble(j->Math.pow(W[j]-BootMean,2)).sum()/(m-1));
+        double[] CI = new double[2];
+        CI[0] = Math.max(0,BootMean - z*StandardError);
+        CI[1] = Math.min(BootMean + z*StandardError,1);
+        return CI;
     }
 
     /**

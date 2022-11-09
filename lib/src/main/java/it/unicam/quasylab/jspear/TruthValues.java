@@ -22,28 +22,28 @@
 
 package it.unicam.quasylab.jspear;
 
-import it.unicam.quasylab.jspear.ds.DataStateExpression;
+public enum TruthValues {
+    TRUE,
+    FALSE,
+    UNKNOWN;
 
-public final class AtomicDistanceExpression implements DistanceExpression {
 
-    private final DataStateExpression rho;
-
-    public AtomicDistanceExpression(DataStateExpression rho) {
-        this.rho = rho;
+    public static TruthValues and(TruthValues value1, TruthValues value2) {
+        if(value1==TruthValues.FALSE || value2==TruthValues.FALSE) return TruthValues.FALSE;
+        if(value1==TruthValues.TRUE && value2==TruthValues.TRUE) return TruthValues.TRUE;
+        return TruthValues.UNKNOWN;
     }
 
-    @Override
-    public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return seq1.get(step).distance(rho, seq2.get(step));
+    public static TruthValues or(TruthValues value1, TruthValues value2){
+        if(value1==TruthValues.TRUE || value2==TruthValues.TRUE) return TruthValues.TRUE;
+        if(value1==TruthValues.FALSE && value2==TruthValues.FALSE) return TruthValues.FALSE;
+        return TruthValues.UNKNOWN;
     }
 
-    @Override
-    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
-        double[] res = new double[3];
-        res[0] = seq1.get(step).distance(rho, seq2.get(step));
-        res[1] = seq1.get(step).bootstrapDistance(rho, seq2.get(step),m,z)[0];
-        res[2] = seq1.get(step).bootstrapDistance(rho, seq2.get(step),m,z)[1];
-        return res;
+    public static TruthValues neg(TruthValues value){
+        if(value==TruthValues.UNKNOWN) return TruthValues.UNKNOWN;
+        if (value==TruthValues.FALSE) return TruthValues.TRUE;
+        return TruthValues.FALSE;
     }
 
-}
+    }

@@ -48,4 +48,15 @@ public final class MaxIntervalDistanceExpression implements DistanceExpression {
         return IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.compute(i, seq1, seq2)).max().orElse(Double.NaN);
     }
 
+    @Override
+    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        double[] res = new double[3];
+        res[0] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[0]).max().orElse(Double.NaN);
+        res[1] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[1]).max().orElse(Double.NaN);
+        res[2] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[2]).max().orElse(Double.NaN);
+        return res;
+    }
 }

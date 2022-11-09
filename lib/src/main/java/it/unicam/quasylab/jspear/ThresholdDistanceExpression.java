@@ -39,6 +39,22 @@ public final class ThresholdDistanceExpression implements DistanceExpression {
 
     @Override
     public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return (relop.eval(expression.compute(step, seq1, seq2),threshold)?1.0:0.0);
+        return (relop.eval(expression.compute(step, seq1, seq2),threshold)?0.0:1.0);
+    }
+
+    @Override
+    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+        double[] res = new double[3];
+        double[] value = expression.evalCI(step, seq1, seq2, m, z);
+        res[0]= relop.eval(value[0],threshold)?0.0:1.0;
+        if(value[1]< threshold && threshold< value[2]){
+            res[1] = 0.0;
+            res[2] = 1.0;
+        }
+        else {
+            res[1] = res[0];
+            res[2] = res[0];
+        }
+        return res;
     }
 }

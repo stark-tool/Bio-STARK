@@ -22,30 +22,21 @@
 
 package it.unicam.quasylab.jspear;
 
-import java.util.stream.IntStream;
+public final class ConjunctionThreeValuedFormula implements ThreeValuedFormula {
 
-public final class UntilRobustnessFormula implements RobustnessFormula {
+    private final ThreeValuedFormula leftFormula;
+    private final ThreeValuedFormula rightFormula;
 
-    private final RobustnessFormula leftFormula;
-    private final int from;
-    private final int to;
-    private final RobustnessFormula rightFormula;
-
-    public UntilRobustnessFormula(RobustnessFormula leftFormula, int from, int to, RobustnessFormula rightFormula) {
-        if ((from<0)||(to<0)||(from>=to)) {
-            throw new IllegalArgumentException();
-        }
+    public ConjunctionThreeValuedFormula(ThreeValuedFormula leftFormula, ThreeValuedFormula rightFormula) {
         this.leftFormula = leftFormula;
-        this.from = from;
-        this.to = to;
         this.rightFormula = rightFormula;
     }
 
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return IntStream.range(from+step, to+step).parallel().anyMatch(
-                i -> rightFormula.eval(sampleSize, i, sequence) &&
-                        IntStream.range(from+step, i).allMatch(j -> leftFormula.eval(sampleSize, j, sequence))
-        );
+    public TruthValues eval(int sampleSize, int step, EvolutionSequence sequence) {
+        return TruthValues.and(leftFormula.eval(sampleSize, step, sequence),rightFormula.eval(sampleSize, step, sequence));
+        //if(leftFormula.eval(sampleSize, step, sequence)==TruthValues.FALSE || rightFormula.eval(sampleSize, step, sequence)==TruthValues.FALSE) return TruthValues.FALSE;
+        //if(leftFormula.eval(sampleSize, step, sequence)==TruthValues.TRUE && rightFormula.eval(sampleSize, step, sequence)==TruthValues.TRUE) return TruthValues.TRUE;
+        //return TruthValues.UNKNOWN;
     }
 }

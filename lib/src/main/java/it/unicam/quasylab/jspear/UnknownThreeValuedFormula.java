@@ -22,28 +22,11 @@
 
 package it.unicam.quasylab.jspear;
 
-import it.unicam.quasylab.jspear.ds.DataStateExpression;
-
-public final class AtomicDistanceExpression implements DistanceExpression {
-
-    private final DataStateExpression rho;
-
-    public AtomicDistanceExpression(DataStateExpression rho) {
-        this.rho = rho;
-    }
+public final class UnknownThreeValuedFormula implements ThreeValuedFormula {
 
     @Override
-    public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return seq1.get(step).distance(rho, seq2.get(step));
-    }
-
-    @Override
-    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
-        double[] res = new double[3];
-        res[0] = seq1.get(step).distance(rho, seq2.get(step));
-        res[1] = seq1.get(step).bootstrapDistance(rho, seq2.get(step),m,z)[0];
-        res[2] = seq1.get(step).bootstrapDistance(rho, seq2.get(step),m,z)[1];
-        return res;
+    public TruthValues eval(int sampleSize, int step, EvolutionSequence sequence) {
+        return TruthValues.UNKNOWN;
     }
 
 }

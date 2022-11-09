@@ -52,4 +52,15 @@ public final class MinIntervalDistanceExpression implements DistanceExpression {
                 .orElse(Double.NaN);
     }
 
+    @Override
+    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        double[] res = new double[3];
+        res[0] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[0]).min().orElse(Double.NaN);
+        res[1] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[1]).min().orElse(Double.NaN);
+        res[2] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[2]).min().orElse(Double.NaN);
+        return res;
+    }
 }

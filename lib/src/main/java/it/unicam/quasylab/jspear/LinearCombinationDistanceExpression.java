@@ -46,4 +46,10 @@ public final class LinearCombinationDistanceExpression implements DistanceExpres
                 .sum();
     }
 
+    @Override
+    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+        return IntStream.range(0,3).mapToDouble(j -> IntStream.range(0, weights.length)
+                .mapToDouble(i -> weights[i]*expressions[i].evalCI(step, seq1, seq2, m, z)[j])
+                .sum()).toArray();
+    }
 }

@@ -22,6 +22,8 @@
 
 package it.unicam.quasylab.jspear;
 
+import java.util.stream.IntStream;
+
 public final class MaxDistanceExpression implements DistanceExpression {
 
     private final DistanceExpression expr1;
@@ -40,4 +42,13 @@ public final class MaxDistanceExpression implements DistanceExpression {
         return Math.max(expr1.compute(step, seq1, seq2), expr2.compute(step, seq1, seq2));
     }
 
+    @Override
+    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        return IntStream.range(0,3)
+                .mapToDouble(i -> Math.max(expr1.evalCI(step, seq1, seq2, m, z)[i], expr2.evalCI(step, seq1, seq2, m, z)[i]))
+                .toArray();
+    }
 }

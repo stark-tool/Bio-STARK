@@ -120,7 +120,7 @@ public class EvolutionSequence {
     public synchronized void generateUpTo(int n) {
         while (getLastGeneratedStep()<n) {
             int lastGeneratedStep = getLastGeneratedStep();
-            startSamplinngsOfStep(lastGeneratedStep);
+            startSamplingsOfStep(lastGeneratedStep);
             doAdd( generateNextStep() );
             endSamplingsOfStep(lastGeneratedStep);
         }
@@ -142,7 +142,7 @@ public class EvolutionSequence {
         }
     }
 
-    private void startSamplinngsOfStep(int j) {
+    private void startSamplingsOfStep(int j) {
         if (monitor != null) {
             monitor.startSamplingsOfStep(j);
         }

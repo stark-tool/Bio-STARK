@@ -43,4 +43,13 @@ public final class MinDistanceExpression implements DistanceExpression {
         return Math.min(expr1.compute(step, seq1, seq2), expr2.compute(step, seq1, seq2));
     }
 
+    @Override
+    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        return IntStream.range(0,3)
+                .mapToDouble(i -> Math.min(expr1.evalCI(step, seq1, seq2, m, z)[i], expr2.evalCI(step, seq1, seq2, m, z)[i]))
+                .toArray();
+    }
 }

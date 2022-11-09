@@ -22,30 +22,18 @@
 
 package it.unicam.quasylab.jspear;
 
-import java.util.stream.IntStream;
+public final class ImplicationThreeValuedFormula implements ThreeValuedFormula {
 
-public final class UntilRobustnessFormula implements RobustnessFormula {
+    private final ThreeValuedFormula leftFormula;
+    private final ThreeValuedFormula rightFormula;
 
-    private final RobustnessFormula leftFormula;
-    private final int from;
-    private final int to;
-    private final RobustnessFormula rightFormula;
-
-    public UntilRobustnessFormula(RobustnessFormula leftFormula, int from, int to, RobustnessFormula rightFormula) {
-        if ((from<0)||(to<0)||(from>=to)) {
-            throw new IllegalArgumentException();
-        }
+    public ImplicationThreeValuedFormula(ThreeValuedFormula leftFormula, ThreeValuedFormula rightFormula) {
         this.leftFormula = leftFormula;
-        this.from = from;
-        this.to = to;
         this.rightFormula = rightFormula;
     }
 
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return IntStream.range(from+step, to+step).parallel().anyMatch(
-                i -> rightFormula.eval(sampleSize, i, sequence) &&
-                        IntStream.range(from+step, i).allMatch(j -> leftFormula.eval(sampleSize, j, sequence))
-        );
+    public TruthValues eval(int sampleSize, int step, EvolutionSequence sequence) {
+        return new DisjunctionThreeValuedFormula(new NegationThreeValuedFormula(leftFormula), rightFormula).eval(sampleSize, step, sequence);
     }
 }

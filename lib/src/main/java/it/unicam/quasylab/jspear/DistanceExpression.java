@@ -24,7 +24,14 @@ package it.unicam.quasylab.jspear;
 
 import java.util.stream.IntStream;
 
-public sealed interface DistanceExpression permits AtomicDistanceExpression, LinearCombinationDistanceExpression, MaxDistanceExpression, MaxIntervalDistanceExpression, MinDistanceExpression, MinIntervalDistanceExpression, ThresholdDistanceExpression {
+public sealed interface DistanceExpression permits
+        AtomicDistanceExpression,
+        LinearCombinationDistanceExpression,
+        MaxDistanceExpression,
+        MaxIntervalDistanceExpression,
+        MinDistanceExpression,
+        MinIntervalDistanceExpression,
+        ThresholdDistanceExpression {
 
     /**
      * Returns the evaluation of the distance expression among the two sequences at the given step.
@@ -43,5 +50,17 @@ public sealed interface DistanceExpression permits AtomicDistanceExpression, Lin
     default double[] compute(int[] steps, EvolutionSequence seq1, EvolutionSequence seq2) {
         return IntStream.of(steps).mapToDouble(i -> compute(i, seq1, seq2)).toArray();
     }
+
+    /**
+     * Returns the evaluation of the distance expression among the two sequences at the given step and the related confidence interval.
+     *
+     * @param step step where the expression is evaluated
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @param m number of repetition for bootstrapping
+     * @param z the desired z-score
+     * @return the evaluation of the distance expression at the given step among the two sequences and its confidence interval.
+     */
+    double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z);
 
 }
