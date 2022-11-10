@@ -31,6 +31,7 @@ public sealed interface DistanceExpression permits
         MaxIntervalDistanceExpression,
         MinDistanceExpression,
         MinIntervalDistanceExpression,
+        UntilDistanceExpression,
         ThresholdDistanceExpression {
 
     /**
