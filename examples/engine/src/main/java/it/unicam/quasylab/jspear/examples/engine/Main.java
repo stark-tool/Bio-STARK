@@ -91,24 +91,34 @@ public class Main {
             EvolutionSequence sequence2_tau2 = sequence.apply(getPerturbation(),TAU2, 100);
             EvolutionSequence sequence2_tau3 = sequence.apply(getPerturbation(),TAU3, 100);
 
+            DistanceExpression expr = new AtomicDistanceExpression(ds -> (ds.get(temp)/Math.abs(MAX_TEMP-MIN_TEMP)));
+            DistanceExpression expr2 = new AtomicDistanceExpression(ds -> (ds.get(ch_wrn)==HOT?1.0:0.0));
+            DistanceExpression expr3 = new AtomicDistanceExpression(ds -> ds.get(stress));
+            DistanceExpression MaxExpr2 = new MaxIntervalDistanceExpression(
+                    expr2,
+                    TAU,
+                    K
+            );
+            DistanceExpression MaxExpr3 = new MaxIntervalDistanceExpression(
+                    expr3,
+                    TAU,
+                    K
+            );
 
+            //Test bootstrap method
             for(int i=50; i<250; i++) {
-                 double[] testBoost = sequence.get(i).bootstrapDistance(ds -> (ds.get(temp)/Math.abs(MAX_TEMP-MIN_TEMP)), sequence2_tau.get(i),100,1.96);
+                double[] testBoost = sequence.get(i).bootstrapDistance(ds -> (ds.get(temp)/Math.abs(MAX_TEMP-MIN_TEMP)), sequence2_tau.get(i),100,1.96);
                 System.out.println("CI at step "+i+" = "+Arrays.toString(testBoost));
             }
 
+            //Test evaluation of RobTL formulae
             RobustnessFormula PHI1 = getFormula1();
             RobustnessFormula PHI2 = getFormula2();
             RobustnessFormula PHI3 = getFormula3();
             RobustnessFormula PHI4 = getFormula4();
-            RobustnessFormula PHI5 = new ImplicationRobustnessFormula(
-                    new ConjunctionRobustnessFormula(PHI1, PHI2),
-                    new ConjunctionRobustnessFormula(PHI3, PHI4)
-            );
-            RobustnessFormula PHI = new EventuallyRobustnessFormula(PHI5,
-                    0,
-                    H
-            );
+            RobustnessFormula PHI5 = getFormula5();
+            RobustnessFormula PHI = getFinalFormula();
+
             int test_step = 50;
             System.out.println("Evaluation of phi1 at step "+test_step+": "+PHI1.eval(100, test_step, sequence));
             System.out.println("Evaluation of phi2 at step "+test_step+": "+PHI2.eval(100, test_step, sequence));
@@ -117,12 +127,15 @@ public class Main {
             System.out.println("Evaluation of phi5 at step "+test_step+": "+PHI5.eval(100, test_step, sequence));
             System.out.println("Evaluation of phi at step 0: "+PHI.eval(100, 0, sequence));
 
+            //Test three-valued version of RobTL
             int m = 50;
             double z = 1.96;
 
+            DistanceExpression expr4 = new AtomicDistanceExpression(ds -> Math.abs((ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)));
+
             ThreeValuedFormula PSI1 = new AtomicThreeValuedFormula(getPerturbation(),
                     new MinIntervalDistanceExpression(
-                            new AtomicDistanceExpression(ds -> Math.abs(ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
+                            expr4,
                             TAU,
                             TAU+N-1
                     ),
@@ -133,7 +146,7 @@ public class Main {
             );
             ThreeValuedFormula PSI2 = new AtomicThreeValuedFormula(getPerturbation(),
                     new MaxIntervalDistanceExpression(
-                            new AtomicDistanceExpression(ds -> Math.abs(ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
+                            expr4,
                             TAU,
                             TAU+N-1
                     ),
@@ -143,22 +156,14 @@ public class Main {
                     z
             );
             ThreeValuedFormula PSI3 = new AtomicThreeValuedFormula(getPerturbation(),
-                    new MaxIntervalDistanceExpression(
-                            new AtomicDistanceExpression(ds -> (ds.get(ch_wrn)==HOT?1.0:0.0)),
-                            TAU,
-                            K
-                    ),
+                    MaxExpr2,
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     ETA3,
                     m,
                     z
             );
             ThreeValuedFormula PSI4 = new AtomicThreeValuedFormula(getPerturbation(),
-                    new MaxIntervalDistanceExpression(
-                            new AtomicDistanceExpression(ds -> ds.get(stress)),
-                            TAU,
-                            K
-                    ),
+                    MaxExpr3,
                     RelationOperator.GREATER_THAN,
                     ETA4,
                     m,
@@ -173,17 +178,16 @@ public class Main {
                     H
             );
 
-            System.out.println("Evaluation of psi1 at step "+test_step+": "+PSI1.eval(100, test_step, sequence));
-            System.out.println("Evaluation of psi2 at step "+test_step+": "+PSI2.eval(100, test_step, sequence));
-            System.out.println("Evaluation of psi3 at step "+test_step+": "+PSI3.eval(100, test_step, sequence));
-            System.out.println("Evaluation of psi4 at step "+test_step+": "+PSI4.eval(100, test_step, sequence));
-            System.out.println("Evaluation of psi5 at step "+test_step+": "+PSI5.eval(100, test_step, sequence));
+            int test_step_threeValued = 50;
+
+            System.out.println("Evaluation of psi1 at step "+test_step_threeValued+": "+PSI1.eval(100, test_step_threeValued, sequence));
+            System.out.println("Evaluation of psi2 at step "+test_step_threeValued+": "+PSI2.eval(100, test_step_threeValued, sequence));
+            System.out.println("Evaluation of psi3 at step "+test_step_threeValued+": "+PSI3.eval(100, test_step_threeValued, sequence));
+            System.out.println("Evaluation of psi4 at step "+test_step_threeValued+": "+PSI4.eval(100, test_step_threeValued, sequence));
+            System.out.println("Evaluation of psi5 at step "+test_step_threeValued+": "+PSI5.eval(100, test_step_threeValued, sequence));
             System.out.println("Evaluation of psi at step 0: "+PSI.eval(100, 0, sequence));
 
-
-            DistanceExpression expr = new AtomicDistanceExpression(ds -> (ds.get(temp)/Math.abs(MAX_TEMP-MIN_TEMP)));
-            DistanceExpression expr2 = new AtomicDistanceExpression(ds -> (ds.get(ch_wrn)==HOT?1.0:0.0));
-            DistanceExpression expr3 = new AtomicDistanceExpression(ds -> ds.get(stress));
+            //Collecting data for behavioural analysis
 
             Util.writeToCSV("./testTemperature.csv", Util.evalDistanceExpression(sequence, sequence2_tau, 90, 300, expr));
 
@@ -192,17 +196,6 @@ public class Main {
             Util.writeToCSV("./testWarning_tau3.csv", Util.evalDistanceExpression(sequence, sequence2_tau3, 290, 410, expr2));
 
             Util.writeToCSV("./testStress.csv", Util.evalDistanceExpression(sequence, sequence2_tau, 90, 220, expr3));
-
-            DistanceExpression MaxExpr2 = new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpression(ds -> (ds.get(ch_wrn)==HOT?1.0:0.0)),
-                    TAU,
-                    K
-            );
-            DistanceExpression MaxExpr3 = new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpression(ds -> ds.get(stress)),
-                    TAU,
-                    K
-            );
 
             int l = 50;
             double[][] warn = new double[l][1];
