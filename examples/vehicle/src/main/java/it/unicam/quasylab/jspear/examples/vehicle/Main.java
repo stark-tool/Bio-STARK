@@ -72,7 +72,7 @@ public class Main {
 
     private static final int p_speed_V2 = 11;//variableRegistry.getVariable("p_speed");
     private static final int s_speed_V2 = 12;//variableRegistry.getVariable("s_speed");
-    private static final int p_distance_V2 = 12;// variableRegistry.getVariable("p_distance");
+    private static final int p_distance_V2 = 13;// variableRegistry.getVariable("p_distance");
     private static final int s_distance_V2 = 14;// variableRegistry.getVariable("s_distance");
     private static final int accel_V2 = 15;//variableRegistry.getVariable("accel");
     private static final int timer_V2 = 16;//variableRegistry.getVariable("timer");
@@ -101,12 +101,12 @@ public class Main {
             Controller controller_V2 = getController_V2();
             DataState state = getInitialState( );
             ControlledSystem system = new ControlledSystem(new ParallelController(controller_V1,controller_V2), (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Vehicle: "), new DefaultRandomGenerator(), rg -> system, 100);
+            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Vehicle: "), new DefaultRandomGenerator(), rg -> system, 1);
             EvolutionSequence sequenceAttSensorSpeed_V1 = sequence.apply(getSpeedSensorPerturbation(), ATTACK_INIT, 30);
 
 
 
-            for(int i=0; i<1000; i++) {
+            for(int i=0; i<100; i++) {
                 System.out.println(i+
                         " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
                                 " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V2))).max() +
@@ -120,6 +120,7 @@ public class Main {
                 );
             }
 
+            /*
             RobustnessFormula PHI_SpeedFakeLowerBound = getFormulaSpeedFakeLowerBound();
             RobustnessFormula PHI_InstantSpeedFakeLowerBound = getFormulaInstantSpeedFakeLowerBound();
 
@@ -157,13 +158,14 @@ public class Main {
 
             Util.writeToCSV("./testSpeedDifferenceH.csv",speed_difference);
             Util.writeToCSV("./testDistanceDifferenceH.csv",distance_difference);
-
+*/
 
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
    }
 
+   /*
 
    private static RobustnessFormula getFormulaInstantSpeedFakeLowerBound() {
         return new AtomicRobustnessFormula(getSpeedSensorPerturbation(),
@@ -238,120 +240,132 @@ public class Main {
                 H
         );
      }
-
+*/
 
 
     public static Controller getController_V1() {
 
         ControllerRegistry registry = new ControllerRegistry();
 
-        registry.set("Ctrl",
+        registry.set("Ctrl_V1",
                 Controller.ifThenElse(
                         DataState.greaterThan(s_speed_V1, 0),
                         Controller.ifThenElse(
                                    DataState.greaterThan(safety_gap_V1, 0 ),
                                    Controller.doAction(
                                            (rg, ds) -> List.of(new DataStateUpdate(accel_V1, ACCELERATION), new DataStateUpdate(timer_V1, TIMER_INIT)),
-                                           registry.get("Accelerate")
+                                           registry.get("Accelerate_V1")
                                    ),
                                    Controller.doAction(
                                            (rg, ds) -> List.of( new DataStateUpdate(accel_V1, - BRAKE), new DataStateUpdate(timer_V1, TIMER_INIT)),
-                                           registry.get("Decelerate"))),
-                        Controller.doTick(registry.get("Stop"))
+                                           registry.get("Decelerate_V1"))),
+                        Controller.doTick(registry.get("Stop_V1"))
                 )
         );
 
-        registry.set("Stop",
-                Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V1, NEUTRAL)), registry.get("Stop"))
+        registry.set("Stop_V1",
+                Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V1, NEUTRAL)), registry.get("Stop_V1"))
         );
 
-        registry.set("Accelerate",
+        registry.set("Accelerate_V1",
                 Controller.ifThenElse(
                         DataState.greaterThan(timer_V1, 0),
-                        Controller.doTick(registry.get("Accelerate")),
-                        registry.get("Ctrl")
+                        Controller.doTick(registry.get("Accelerate_V1")),
+                        registry.get("Ctrl_V1")
                 )
         );
 
-        registry.set("Decelerate",
+        registry.set("Decelerate_V1",
                 Controller.ifThenElse(
                         DataState.greaterThan(timer_V1, 0),
-                        Controller.doTick(registry.get("Decelerate")),
-                        registry.get("Ctrl")
+                        Controller.doTick(registry.get("Decelerate_V1")),
+                        registry.get("Ctrl_V1")
                 )
         );
 
-    registry.set("IDS",
+    registry.set("IDS_V1",
                 Controller.ifThenElse(
                         DataState.lessOrEqualThan(p_distance_V1, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V1, ACCELERATION)),
-                        Controller.doAction(DataStateUpdate.set(warning_V1, DANGER),registry.get("IDS")),
-                        Controller.doAction(DataStateUpdate.set(warning_V1, OK),registry.get("IDS"))
+                        Controller.doAction(DataStateUpdate.set(warning_V1, DANGER),registry.get("IDS_V1")),
+                        Controller.doAction(DataStateUpdate.set(warning_V1, OK),registry.get("IDS_V1"))
                 )
         );
-        return new ParallelController(registry.reference("Ctrl"), registry.reference("IDS"));
+        return new ParallelController(registry.reference("Ctrl_V1"), registry.reference("IDS_V1"));
     }
 
     public static Controller getController_V2() {
 
         ControllerRegistry registry = new ControllerRegistry();
 
-        registry.set("Ctrl",
+        registry.set("Ctrl_V2",
                 Controller.ifThenElse(
                         DataState.greaterThan(s_speed_V2, 0),
                         Controller.ifThenElse(
                                 DataState.greaterThan(safety_gap_V2, 0 ),
                                 Controller.doAction(
                                         (rg, ds) -> List.of(new DataStateUpdate(accel_V2, ACCELERATION), new DataStateUpdate(timer_V2, TIMER_INIT)),
-                                        registry.get("Accelerate")
+                                        registry.get("Accelerate_V2")
                                 ),
                                 Controller.doAction(
                                         (rg, ds) -> List.of( new DataStateUpdate(accel_V2, - BRAKE), new DataStateUpdate(timer_V2, TIMER_INIT)),
-                                        registry.get("Decelerate"))),
-                        Controller.doTick(registry.get("Stop"))
+                                        registry.get("Decelerate_V2"))),
+                        Controller.doTick(registry.get("Stop_V2"))
                 )
         );
 
-        registry.set("Stop",
-                Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V2, NEUTRAL)), registry.get("Stop"))
+        registry.set("Stop_V2",
+                Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V2, NEUTRAL)), registry.get("Stop_V2"))
         );
 
-        registry.set("Accelerate",
+        registry.set("Accelerate_V2",
                 Controller.ifThenElse(
                         DataState.greaterThan(timer_V2, 0),
-                        Controller.doTick(registry.get("Accelerate")),
-                        registry.get("Ctrl")
+                        Controller.doTick(registry.get("Accelerate_V2")),
+                        registry.get("Ctrl_V2")
                 )
         );
 
-        registry.set("Decelerate",
+        registry.set("Decelerate_V2",
                 Controller.ifThenElse(
                         DataState.greaterThan(timer_V2, 0),
-                        Controller.doTick(registry.get("Decelerate")),
-                        registry.get("Ctrl")
+                        Controller.doTick(registry.get("Decelerate_V2")),
+                        registry.get("Ctrl_V2")
                 )
         );
 
-        registry.set("IDS",
+        registry.set("IDS_V2",
                 Controller.ifThenElse(
                         DataState.lessOrEqualThan(p_distance_V2, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V2, ACCELERATION)),
-                        Controller.doAction(DataStateUpdate.set(warning_V2, DANGER),registry.get("IDS")),
-                        Controller.doAction(DataStateUpdate.set(warning_V2, OK),registry.get("IDS"))
+                        Controller.doAction(DataStateUpdate.set(warning_V2, DANGER),registry.get("IDS_V2")),
+                        Controller.doAction(DataStateUpdate.set(warning_V2, OK),registry.get("IDS_V2"))
                 )
         );
-        return new ParallelController(registry.reference("Ctrl"), registry.reference("IDS"));
+        return new ParallelController(registry.reference("Ctrl_V2"), registry.reference("IDS_V2"));
     }
 
 
     public static List<DataStateUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
+        //System.out.println("initial distance: "+state.get(p_distance_V2));
         double travel_V1 = state.get(accel_V1)/2 + state.get(p_speed_V1);
         double new_timer_V1 = state.get(timer_V1) - 1;
         double new_p_speed_V1 = Math.min(Math.max(0,state.get(p_speed_V1) + state.get(accel_V1)),MAX_SPEED);
         double new_p_distance_V1 = state.get(p_distance_V1) - travel_V1;
-      //  updates.add(new VariableUpdate(a,state.getValue(a)+5));
+        //  updates.add(new VariableUpdate(a,state.getValue(a)+5));
+        double travel_V2 = state.get(accel_V2)/2 + state.get(p_speed_V2);
+        double new_timer_V2 = state.get(timer_V2) - 1;
+        double new_p_speed_V2 = Math.min(Math.max(0,state.get(p_speed_V2) + state.get(accel_V2)),MAX_SPEED);
+        //System.out.println("distance before update "+state.get(p_distance_V2));
+        double new_p_distance_V2 = state.get(p_distance_V2) - travel_V2 + travel_V1;
+        //  updates.add(new VariableUpdate(a,state.getValue(a)+5));
         updates.add(new DataStateUpdate(timer_V1, new_timer_V1));
         updates.add(new DataStateUpdate(p_speed_V1, new_p_speed_V1));
         updates.add(new DataStateUpdate(p_distance_V1, new_p_distance_V1));
+        updates.add(new DataStateUpdate(timer_V2, new_timer_V2));
+        updates.add(new DataStateUpdate(p_speed_V2, new_p_speed_V2));
+        updates.add(new DataStateUpdate(p_distance_V2, new_p_distance_V2));
+        //System.out.println("evaluated distance "+new_p_distance_V2);
+        //System.out.println("distance after update "+state.get(p_distance_V2));
         if(new_timer_V1 == 0) {
             double new_s_speed_V1 = new_p_speed_V1;
             double new_bd_V1 = (new_s_speed_V1 * new_s_speed_V1 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
@@ -363,14 +377,6 @@ public class Main {
             updates.add(new DataStateUpdate(required_distance_V1, new_rd_V1));
             updates.add(new DataStateUpdate(safety_gap_V1, new_sg_V1));
         }
-        double travel_V2 = state.get(accel_V2)/2 + state.get(p_speed_V2);
-        double new_timer_V2 = state.get(timer_V2) - 1;
-        double new_p_speed_V2 = Math.min(Math.max(0,state.get(p_speed_V2) + state.get(accel_V2)),MAX_SPEED);
-        double new_p_distance_V2 = state.get(p_distance_V2) - travel_V2 + travel_V1;
-        //  updates.add(new VariableUpdate(a,state.getValue(a)+5));
-        updates.add(new DataStateUpdate(timer_V2, new_timer_V2));
-        updates.add(new DataStateUpdate(p_speed_V2, new_p_speed_V2));
-        updates.add(new DataStateUpdate(p_distance_V2, new_p_distance_V2));
         if(new_timer_V2 == 0) {
             double new_s_speed_V2 = new_p_speed_V2;
             double new_bd_V2 = (new_s_speed_V2 * new_s_speed_V2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
