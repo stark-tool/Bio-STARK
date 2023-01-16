@@ -108,13 +108,13 @@ public class Main {
 
             for(int i=0; i<100; i++) {
                 System.out.println(i+
-                        " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
-                                " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V2))).max() +
+                        //" " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
+                                " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(safety_gap_V1))).max() +
                         //" " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).min() +
                         //" " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
   //                              sequence.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).max())) +
-                                " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).max() +
-                                " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V2))).max()
+                                " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).max()
+                        //        " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V2))).max()
                         //" " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.getValue(p_distance))).min() +
                         //" " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).max()
                 );
