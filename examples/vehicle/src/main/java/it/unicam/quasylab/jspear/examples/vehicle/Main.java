@@ -106,14 +106,17 @@ public class Main {
 
 
 
-            for(int i=0; i<100; i++) {
+            for(int i=0; i<300; i++) {
                 System.out.println(i+
-                        //" " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
-                                " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(safety_gap_V1))).max() +
+                        " speed " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
+                                " safety_gap " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(safety_gap_V1))).max() +
+                                //"breaking_distance " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(braking_distance_V1))).max() +
+                                //"required_distance " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(required_distance_V1))).max() +
                         //" " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).min() +
                         //" " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
   //                              sequence.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).max())) +
-                                " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).max()
+                                " physical_distance " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).max()
+                                //" timer " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(timer_V1))).max()
                         //        " " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V2))).max()
                         //" " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.getValue(p_distance))).min() +
                         //" " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).max()
@@ -254,40 +257,40 @@ public class Main {
                                    DataState.greaterThan(safety_gap_V1, 0 ),
                                    Controller.doAction(
                                            (rg, ds) -> List.of(new DataStateUpdate(accel_V1, ACCELERATION), new DataStateUpdate(timer_V1, TIMER_INIT)),
-                                           registry.get("Accelerate_V1")
+                                           registry.reference("Accelerate_V1")
                                    ),
                                    Controller.doAction(
                                            (rg, ds) -> List.of( new DataStateUpdate(accel_V1, - BRAKE), new DataStateUpdate(timer_V1, TIMER_INIT)),
-                                           registry.get("Decelerate_V1"))),
-                        Controller.doTick(registry.get("Stop_V1"))
+                                           registry.reference("Decelerate_V1"))),
+                        Controller.doTick(registry.reference("Stop_V1"))
                 )
         );
 
         registry.set("Stop_V1",
-                Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V1, NEUTRAL)), registry.get("Stop_V1"))
+                Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V1, NEUTRAL)), registry.reference("Stop_V1"))
         );
 
         registry.set("Accelerate_V1",
                 Controller.ifThenElse(
                         DataState.greaterThan(timer_V1, 0),
-                        Controller.doTick(registry.get("Accelerate_V1")),
-                        registry.get("Ctrl_V1")
+                        Controller.doTick(registry.reference("Accelerate_V1")),
+                        registry.reference("Ctrl_V1")
                 )
         );
 
         registry.set("Decelerate_V1",
                 Controller.ifThenElse(
                         DataState.greaterThan(timer_V1, 0),
-                        Controller.doTick(registry.get("Decelerate_V1")),
-                        registry.get("Ctrl_V1")
+                        Controller.doTick(registry.reference("Decelerate_V1")),
+                        registry.reference("Ctrl_V1")
                 )
         );
 
     registry.set("IDS_V1",
                 Controller.ifThenElse(
                         DataState.lessOrEqualThan(p_distance_V1, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V1, ACCELERATION)),
-                        Controller.doAction(DataStateUpdate.set(warning_V1, DANGER),registry.get("IDS_V1")),
-                        Controller.doAction(DataStateUpdate.set(warning_V1, OK),registry.get("IDS_V1"))
+                        Controller.doAction(DataStateUpdate.set(warning_V1, DANGER),registry.reference("IDS_V1")),
+                        Controller.doAction(DataStateUpdate.set(warning_V1, OK),registry.reference("IDS_V1"))
                 )
         );
         return new ParallelController(registry.reference("Ctrl_V1"), registry.reference("IDS_V1"));
