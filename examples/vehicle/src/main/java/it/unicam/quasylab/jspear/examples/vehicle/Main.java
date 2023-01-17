@@ -25,6 +25,7 @@ package it.unicam.quasylab.jspear.examples.vehicle;
 import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.ControllerRegistry;
+import it.unicam.quasylab.jspear.controller.ExecController;
 import it.unicam.quasylab.jspear.controller.ParallelController;
 import it.unicam.quasylab.jspear.ds.*;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -42,12 +43,11 @@ public class Main {
     public final static double ACCELERATION = 0.1;
     public final static double BRAKE = 0.3;
     public final static double NEUTRAL = 0.0;
-    public final static int TIMER_INIT = 4;
+    public final static int TIMER_INIT = 5;
     public final static int DANGER = 1;
     public final static int OK = 0;
-    public final static double MAX_SPEED_OFFSET = 0.065
+    public final static double MAX_SPEED_OFFSET = 0.109;
 
-            ;
     public final static double INIT_SPEED_V1 = 30.0;
     public final static double INIT_SPEED_V2 = 30.0;
     public final static double MAX_SPEED = 40.0;
@@ -81,6 +81,7 @@ public class Main {
     private static final int braking_distance_V2 = 19;//variableRegistry.getVariable("braking_distance");
     private static final int required_distance_V2 = 20; //variableRegistry.getVariable("required_distance");
     private static final int safety_gap_V2 = 21;//variableRegistry.getVariable("safety_gap");
+    // private static final int x = 22;
 
 
     private static final int NUMBER_OF_VARIABLES = 22;
@@ -89,9 +90,9 @@ public class Main {
     private static final int ETA_SpeedUB = 50;
     private static final int ETA_CRASH = 0;
     private static final int H = 1000;
-    private static final int ATTACK_INIT = 30;
+    private static final int ATTACK_INIT = 0;
 
-    private static final int ATTACK_LENGTH = 100;
+    private static final int ATTACK_LENGTH = 150;
 
 
 
@@ -101,26 +102,30 @@ public class Main {
             Controller controller_V2 = getController_V2();
             DataState state = getInitialState( );
             ControlledSystem system = new ControlledSystem(new ParallelController(controller_V1,controller_V2), (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Vehicle: "), new DefaultRandomGenerator(), rg -> system, 1);
-            EvolutionSequence sequenceAttSensorSpeed_V1 = sequence.apply(getSpeedSensorPerturbation(), ATTACK_INIT, 30);
-
+            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Vehicle: "), new DefaultRandomGenerator(), rg -> system, 100);
+            EvolutionSequence sequenceAttSensorSpeed_V1 = sequence.apply(getSpeedSensorPerturbationV1(), ATTACK_INIT, 30);
+            // EvolutionSequence casino = sequence.apply(perturbazioneV1(), ATTACK_INIT, 1);
 
 
             for(int i=0; i<300; i++) {
                 System.out.println(i+
-                        " speed_v1 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
-                                " speed_v2 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V2))).max() +
-                                " safety_gap_v1 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(safety_gap_V1))).max() +
-                                " safety_gap_v2 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(safety_gap_V2))).max() +
+                           //     " x originale " +    Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(x))).max() +
+                           //     " x taroccata "+     Arrays.stream(casino.get(i).evalPenaltyFunction(ds -> ds.get(x))).max()
+                               " s_speed_v1 " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
+                           //   " timer_v1 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(timer_V1))).max() +
+                       " speed_v1 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
+                       //         " speed_v2 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V2))).max() +
+                           //     " safety_gap_v1 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(safety_gap_V1))).max() +
+                           //     " safety_gap_v2 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(safety_gap_V2))).max() +
                                 //"breaking_distance " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(braking_distance_V1))).max() +
                                 //"required_distance " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(required_distance_V1))).max() +
                         //" " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).min() +
                         //" " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
   //                              sequence.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).max())) +
-                                " physical_distance_v1 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).max() +
+                        " physical_distance_v1 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).max() +
                                 //" timer " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(timer_V1))).max()
-                                " physical_distance_v2 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V2))).max()
-                        //" " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.getValue(p_distance))).min() +
+                        //        " physical_distance_v2 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V2))).max()
+                        " " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).min()
                         //" " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).max()
                 );
             }
@@ -250,7 +255,21 @@ public class Main {
 
     public static Controller getController_V1() {
 
+
         ControllerRegistry registry = new ControllerRegistry();
+
+        /*
+        registry.set("aaa",
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(x, ds.get(x) + 1000)),
+                        registry.reference("bbb")
+                )
+                );
+        registry.set("bbb",
+                Controller.doTick(0,registry.reference("aaa"))
+        );
+        */
+
 
         registry.set("Ctrl_V1",
                 Controller.ifThenElse(
@@ -288,7 +307,7 @@ public class Main {
                 )
         );
 
-    registry.set("IDS_V1",
+        registry.set("IDS_V1",
                 Controller.ifThenElse(
                         DataState.lessOrEqualThan(p_distance_V1, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V1, ACCELERATION)),
                         Controller.doAction(DataStateUpdate.set(warning_V1, DANGER),registry.reference("IDS_V1")),
@@ -296,6 +315,8 @@ public class Main {
                 )
         );
         return new ParallelController(registry.reference("Ctrl_V1"), registry.reference("IDS_V1"));
+
+        // return new ExecController(registry.reference("aaa"));
     }
 
     public static Controller getController_V2() {
@@ -396,28 +417,46 @@ public class Main {
         return updates;
     }
 
-    private static Perturbation getSpeedSensorPerturbation( ) {
-        return new IterativePerturbation(ATTACK_LENGTH, new AtomicPerturbation(0, Main::speedSensorPerturbationFunction));
+
+    /*
+    private static Perturbation perturbazioneV1( ) {
+        return new AtomicPerturbation(0, Main::funzioneV1);
     }
 
-    private static DataState speedSensorPerturbationFunction(RandomGenerator rg, DataState state){
+    private static DataState funzioneV1(RandomGenerator rg, DataState state){
+        List<DataStateUpdate> updates = new LinkedList<>();
+        double fake_x = state.get(x) - 50;
+        updates.add(new DataStateUpdate(x, fake_x));
+        // }
+        return state.apply(updates);
+    }
+    */
+    private static Perturbation getSpeedSensorPerturbationV1( ) {
+        return new IterativePerturbation(ATTACK_LENGTH, new AtomicPerturbation(0, Main::speedSensorPerturbationFunctionV1));
+        //   return new AtomicPerturbation(0, Main::speedSensorPerturbationFunctionV1);
+    }
+
+    private static DataState speedSensorPerturbationFunctionV1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         // updates.add(new VariableUpdate(a,state.getValue(a) +100));
-        double new_timer = state.get(timer_V1);
-        if(new_timer == 0) {
-            double new_p_speed = Math.max(0, state.get(p_speed_V1) + state.get(accel_V1));
-            double offset = new_p_speed * rg.nextDouble() * MAX_SPEED_OFFSET;
-            double fake_speed = new_p_speed - offset;
-            double travel = state.get(accel_V1) / 2 + state.get(p_speed_V1);
-            double new_p_distance = state.get(p_distance_V1) - travel;
+        // double new_timer = state.get(timer_V1);
+        // if(new_timer == 0) {
+            // double new_p_speed = Math.max(0, state.get(p_speed_V1) + state.get(accel_V1));
+            // double offset = new_p_speed * rg.nextDouble() * MAX_SPEED_OFFSET;
+            double offset = state.get(p_speed_V1) * rg.nextDouble() * MAX_SPEED_OFFSET;
+            // double fake_speed = new_p_speed - offset;
+            double fake_speed = state.get(p_speed_V1) - offset;
+            // double travel = state.get(accel_V1) / 2 + state.get(p_speed_V1);
+            // double new_p_distance = state.get(p_distance_V1) - travel;
             double fake_bd = (fake_speed * fake_speed + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
                     2 * fake_speed * TIMER_INIT)) / (2 * BRAKE);
             double fake_rd = fake_bd + SAFETY_DISTANCE;
-            double fake_sg = new_p_distance - fake_rd;
+            // double fake_sg = new_p_distance - fake_rd;
+            double fake_sg = state.get(p_distance_V1) - fake_rd;
             updates.add(new DataStateUpdate(s_speed_V1, fake_speed));
             updates.add(new DataStateUpdate(required_distance_V1, fake_rd));
             updates.add(new DataStateUpdate(safety_gap_V1, fake_sg));
-        }
+        // }
         return state.apply(updates);
     }
 
@@ -430,8 +469,8 @@ public class Main {
     public static DataState getInitialState( ) {
         Map<Integer, Double> values = new HashMap<>();
         // INITIAL DATA FOR V1
+        // values.put(x, (double) 100);
         values.put(timer_V1, (double) 0);
-     //   values.put(a,100.0);
         values.put(p_speed_V1, INIT_SPEED_V1);
         values.put(s_speed_V1, INIT_SPEED_V1);
         values.put(p_distance_V1, INIT_DISTANCE_OBS_V1);

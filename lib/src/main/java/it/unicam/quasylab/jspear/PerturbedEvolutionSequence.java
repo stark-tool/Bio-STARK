@@ -32,8 +32,24 @@ public class PerturbedEvolutionSequence extends EvolutionSequence {
 
     private Perturbation p;
 
+    /* metodo cambiato il 17 gennaio 2023
     protected PerturbedEvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> last, Perturbation p) {
         super(monitor, rg, originalSequence,last);
+        this.p = p;
+        doAdd(doApply(last));
+    }
+    */
+
+    protected PerturbedEvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> secondLast, SampleSet<SystemState> last, Perturbation p) {
+        //metodo aggiunto il 17 gennaio 2023
+        super(monitor, rg, originalSequence, secondLast);
+        this.p = p;
+        doAdd(doApply(last));
+    }
+
+    protected PerturbedEvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> last, Perturbation p) {
+        // metodo aggiunto il 17 gennaio 2023
+        super(monitor, rg);
         this.p = p;
         doAdd(doApply(last));
     }

@@ -163,12 +163,38 @@ public class EvolutionSequence {
         return rg;
     }
 
+
+    /* cambio 17 gennaio 2023
     public EvolutionSequence apply(Perturbation perturbation, int from, int size) {
         if (from<0) {
             throw new IllegalArgumentException();
         }
         return new PerturbedEvolutionSequence(this.monitor, this.rg, subSequence(from-1), get(from).replica(size), perturbation);
     }
+    */
+
+    public EvolutionSequence apply(Perturbation perturbation, int from, int size) {
+        // metodo introdotto 17 gennaio 2023
+        if (from<0) {
+            throw new IllegalArgumentException();
+        }
+        if (from == 0) {
+            return new PerturbedEvolutionSequence(this.monitor, this.rg, subSequence(from - 1), get(from).replica(size), perturbation);
+        }
+        else {
+            return new PerturbedEvolutionSequence(this.monitor, this.rg, subSequence(from - 1), get(from - 1), get(from).replica(size), perturbation);
+        }
+    }
+
+    protected EvolutionSequence(SimulationMonitor monitor, RandomGenerator rg){
+        // metodo aggiunto il 17 gennaio 2023
+        this.lastGenerated = null;
+        this.sequence = new ArrayList<>();
+        this.rg = rg;
+        this.monitor = monitor;
+        //this.sequence.add(lastGenerated);
+    }
+
 
     public double[] compute(Perturbation perturbation, int from, int size, DistanceExpression expr, int t1, int t2) {
         return expr.compute(t1, t2, this, this.apply(perturbation, from, size));
