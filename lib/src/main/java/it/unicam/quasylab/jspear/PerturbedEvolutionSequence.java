@@ -54,6 +54,19 @@ public class PerturbedEvolutionSequence extends EvolutionSequence {
         doAdd(doApply(last));
     }
 
+    //ulteriori costruttori per gestire il caso senza monitor, 17 gennaio 2023
+    protected PerturbedEvolutionSequence(RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> secondLast, SampleSet<SystemState> last, Perturbation p) {
+        super(null, rg, originalSequence, secondLast);
+        this.p = p;
+        doAdd(doApply(last));
+    }
+
+    protected PerturbedEvolutionSequence(RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> last, Perturbation p) {
+        super(null, rg);
+        this.p = p;
+        doAdd(doApply(last));
+    }
+
     @Override
     protected synchronized SampleSet<SystemState> generateNextStep() {
         this.p = this.p.step();

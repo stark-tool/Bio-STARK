@@ -129,7 +129,7 @@ public class EvolutionSequence {
     protected void doAdd(SampleSet<SystemState> sampling) {
         lastGenerated = sampling;
         sequence.add(lastGenerated);
-        System.out.println(lastGenerated.size());
+        //System.out.println(lastGenerated.size());
     }
 
     protected SampleSet<SystemState> generateNextStep() {
@@ -193,6 +193,11 @@ public class EvolutionSequence {
         this.rg = rg;
         this.monitor = monitor;
         //this.sequence.add(lastGenerated);
+    }
+
+    //ulteriore aggiunta per gestire il caso di costruttore senza monitor, 17 gennaio 2023
+    protected EvolutionSequence(RandomGenerator rg) {
+        this(null, rg);
     }
 
 
