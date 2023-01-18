@@ -57,8 +57,7 @@ public class ControlledSystem implements SystemState {
     @Override
     public SystemState sampleNext(RandomGenerator rg) {
         EffectStep<Controller> step = controller.next(rg, state);
-        return new ControlledSystem(step.next(), environment, environment.apply(rg, state).apply(step.effect()));
-       //return new ControlledSystem(step.next(), environment, environment.apply(rg, state.apply(step.effect())));
+        return new ControlledSystem(step.next(), environment, environment.apply(rg, state.apply(step.effect())));
     }
 
     @Override
