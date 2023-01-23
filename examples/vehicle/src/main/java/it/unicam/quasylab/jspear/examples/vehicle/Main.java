@@ -94,7 +94,7 @@ public class Main {
 
     private static final int ETA_SpeedLB = 0;
     private static final int ETA_SpeedUB = 50;
-    private static final int ETA_CRASH = 0;
+    private static final double ETA_CRASH = 0.3;
     private static final int H = 1000;
     private static final int ATTACK_INIT = 0;
 
@@ -108,13 +108,13 @@ public class Main {
             Controller controller_V2 = getController_V2();
             DataState state = getInitialState( );
             ControlledSystem system = new ControlledSystem(new ParallelController(controller_V1,controller_V2), (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Vehicle: "), new DefaultRandomGenerator(), rg -> system, 100);
-            //
-            EvolutionSequence sequenceAttSensorSpeed_V1 = sequence.apply(getSpeedSensorPerturbationV1(), ATTACK_INIT, 30);
-            EvolutionSequence sequenceAttSensorSpeed_V2 = sequence.apply(getSpeedSensorPerturbationV2(), ATTACK_INIT, 30);
+            EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, 100);
+
+            EvolutionSequence sequenceAttSensorSpeed_V1 = sequence.apply(getSpeedSensorPerturbationV1(), ATTACK_INIT, 100);
+            EvolutionSequence sequenceAttDistance_V2 = sequence.apply(getDistancePerturbationV2(), ATTACK_INIT, 100);
             // EvolutionSequence casino = sequence.apply(perturbazioneV1(), ATTACK_INIT, 1);
 
-
+/*
             for(int i=0; i<3000; i++) {
                 System.out.println(i+
                            //     " x originale " +    Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(x))).max() +
@@ -144,6 +144,7 @@ public class Main {
                 );
             }
 
+ */
 
             RobustnessFormula PHI_SpeedFakeLowerBound = getFormulaSpeedFakeLowerBound();
             RobustnessFormula PHI_InstantSpeedFakeLowerBound = getFormulaInstantSpeedFakeLowerBound();
@@ -167,23 +168,75 @@ public class Main {
          //   }
 
 
-            int test_step = 20;
-                      System.out.print("PHI_InstantSpeedFakeLB " + PHI_InstantSpeedFakeLowerBound.eval(10, test_step,  sequence));
-                       System.out.print("  PHI_InstantSpeedFakeUB " + PHI_InstantSpeedFakeUpperBound.eval(10, test_step, sequence));
-                       System.out.print("   PHI_InstantCrash "  + PHI_InstantCrash.eval(10, test_step,  sequence));
-                     System.out.print("   PHI_SpeedFakeLB "  + PHI_SpeedFakeLowerBound.eval(10, test_step,  sequence));
-                      System.out.print("   PHI_SpeedFakeUB "  + PHI_SpeedFakeUpperBound.eval(10, test_step,  sequence));
-                      System.out.print("   PHI_Crash "  + PHI_Crash.eval(10, test_step,  sequence));
-            System.out.println("   PHI_Crash "  + PHI_SpeedFakeInBoundsImpliesCrash.eval(10, test_step,  sequence));
+            //int test_step = 0;
+                      //System.out.println("PHI_InstantSpeedFakeLB " + PHI_InstantSpeedFakeLowerBound.eval(100, test_step,  sequence));
+                       //System.out.println("  PHI_InstantSpeedFakeUB " + PHI_InstantSpeedFakeUpperBound.eval(100, test_step, sequence));
+                       //System.out.println("   PHI_InstantCrash "  + PHI_InstantCrash.eval(100, test_step,  sequence));
+                     //System.out.println("   PHI_SpeedFakeLB "  + PHI_SpeedFakeLowerBound.eval(100, test_step,  sequence));
+                      //System.out.println("   PHI_SpeedFakeUB "  + PHI_SpeedFakeUpperBound.eval(100, test_step,  sequence));
+                      //System.out.println("   PHI_Crash "  + PHI_Crash.eval(100, test_step,  sequence));
+                //System.out.println("   PHI_Crash "  + PHI_SpeedFakeInBoundsImpliesCrash.eval(100, test_step,  sequence));
 
 
 
-            System.out.println("PHI_AttackHasSuccess: " + PHI_AttackHasSuccess.eval(100, ATTACK_INIT, sequence));
+            //System.out.println("PHI_AttackHasSuccess: " + PHI_AttackHasSuccess.eval(100, 0, sequence));
 
 
             DistanceExpression speed_expr = new AtomicDistanceExpression(ds -> ds.get(p_speed_V1));
             DistanceExpression distance_expr = new AtomicDistanceExpression(ds -> - ds.get(p_distance_V1));
 
+            DistanceExpression relative_distance = new AtomicDistanceExpression(ds-> ds.get(p_distance_V1_V2)/INIT_DISTANCE_V1_V2);
+
+            EvolutionSequence doubleAttack = sequence.apply(getIteratedCombinedPerturbation(), 0, 100);
+            EvolutionSequence attackOnV1 = sequence.apply(getIteratedFasterPerturbation(), 0, 100);
+            EvolutionSequence attackOnV2 = sequence.apply(getIteratedSlowerPerturbation(), 0, 100);
+
+            for(int i=0; i<1000; i++) {
+                System.out.println(i +
+                        " Relative distance under double attack: " + Arrays.stream(doubleAttack.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                );
+                System.out.println(i +
+                        " Relative distance under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                );
+                System.out.println(i +
+                        " Relative distance under slower attack: " + Arrays.stream(attackOnV2.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                );
+                System.out.println(i +
+                        " Distance from obstacle under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).average()
+                );
+            }
+
+            RobustnessFormula Phi_1 = new EventuallyRobustnessFormula(
+                    new AtomicRobustnessFormula(getIteratedCombinedPerturbation(),
+                            new MaxIntervalDistanceExpression(relative_distance,100,300),
+                            RelationOperator.LESS_OR_EQUAL_THAN,
+                            ETA_CRASH,
+                            1),
+                    100,
+                    H);
+            RobustnessFormula Phi_2 = new AlwaysRobustnenessFormula(
+                    new AtomicRobustnessFormula(getIteratedFasterPerturbation(),
+                            new MinIntervalDistanceExpression(relative_distance,100,300),
+                            RelationOperator.GREATER_OR_EQUAL_THAN,
+                            ETA_CRASH,
+                            1),
+                    100,
+                    H);
+            RobustnessFormula Phi_3 = new AlwaysRobustnenessFormula(
+                    new AtomicRobustnessFormula(getIteratedSlowerPerturbation(),
+                            new MinIntervalDistanceExpression(relative_distance,100,300),
+                            RelationOperator.GREATER_OR_EQUAL_THAN,
+                            ETA_CRASH,
+                            1),
+                    100,
+                    H);
+
+            RobustnessFormula Phi_4 = new ConjunctionRobustnessFormula(Phi_1, new ConjunctionRobustnessFormula(Phi_2, Phi_3));
+            System.out.println("Evaluation of PHI1: "+Phi_1.eval(100,0,sequence));
+            System.out.println("Evaluation of PHI2: "+Phi_2.eval(100,0,sequence));
+            System.out.println("Evaluation of PHI3: "+Phi_3.eval(100,0,sequence));
+            System.out.println("Evaluation of PHI4: "+Phi_4.eval(100,0,sequence));
+            /*
             int n = 300;
               double[][] speed_difference = new double[n][1];
               double[][] distance_difference = new double[n][1];
@@ -196,11 +249,12 @@ public class Main {
             Util.writeToCSV("./testDistanceDifferenceH.csv",distance_difference);
 
 
+             */
+
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
    }
-
 
 
 
@@ -493,12 +547,12 @@ public class Main {
     }
 
 
-    private static Perturbation getSpeedSensorPerturbationV2( ) {
-        return new IterativePerturbation(ATTACK_LENGTH, new AtomicPerturbation(0, Main::speedSensorPerturbationFunctionV2));
+    private static Perturbation getDistancePerturbationV2( ) {
+        return new IterativePerturbation(ATTACK_LENGTH, new AtomicPerturbation(0, Main::distancePerturbationFunctionV2));
         //   return new AtomicPerturbation(0, Main::speedSensorPerturbationFunctionV1);
     }
 
-    private static DataState speedSensorPerturbationFunctionV2(RandomGenerator rg, DataState state){
+    private static DataState distancePerturbationFunctionV2(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         double offset_V1_V2 = state.get(p_distance_V1_V2) * 15.30;
         double fake_distance_V1_V2 = state.get(p_distance_V1_V2) + offset_V1_V2;
@@ -509,6 +563,55 @@ public class Main {
         updates.add(new DataStateUpdate(safety_gap_V1_V2, new_sg_V1_V2));
         return state.apply(updates);
     }
+
+    private static  Perturbation getFasterPerturbation() {
+        return new IterativePerturbation(3, new AtomicPerturbation(5, Main::fasterPerturbation));
+    }
+
+    private static  Perturbation getIteratedFasterPerturbation() {
+        return new IterativePerturbation(50, getFasterPerturbation());
+    }
+
+    private static  Perturbation getIteratedSlowerPerturbation() {
+        return new IterativePerturbation(50, getSlowerPerturbation());
+    }
+
+    private static  Perturbation getIteratedCombinedPerturbation() {
+        return new IterativePerturbation(50, new SequentialPerturbation(getFasterPerturbation(),getSlowerPerturbation()));
+    }
+
+    private static DataState fasterPerturbation(RandomGenerator rg, DataState state) {
+        List<DataStateUpdate> updates = new LinkedList<>();
+        double offset = state.get(p_speed_V1) * rg.nextDouble() * MAX_SPEED_OFFSET;
+        double fake_speed = state.get(p_speed_V1) + offset;
+        double fake_bd = (fake_speed * fake_speed + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
+                2 * fake_speed * TIMER_INIT)) / (2 * BRAKE);
+        double fake_rd = fake_bd + SAFETY_DISTANCE;
+        double fake_sg = state.get(p_distance_V1) - fake_rd;
+        updates.add(new DataStateUpdate(s_speed_V1, fake_speed));
+        updates.add(new DataStateUpdate(required_distance_V1, fake_rd));
+        updates.add(new DataStateUpdate(safety_gap_V1, fake_sg));
+        return state.apply(updates);
+    }
+
+    private static  Perturbation getSlowerPerturbation() {
+        return new IterativePerturbation(3, new AtomicPerturbation(5, Main::slowerPerturbation));
+    }
+
+    private static DataState slowerPerturbation(RandomGenerator rg, DataState state) {
+        List<DataStateUpdate> updates = new LinkedList<>();
+        double offset = state.get(p_speed_V2) * rg.nextDouble() * MAX_SPEED_OFFSET;
+        double fake_speed = state.get(p_speed_V2) - offset;
+        double fake_bd = (fake_speed * fake_speed + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
+                2 * fake_speed * TIMER_INIT)) / (2 * BRAKE);
+        double fake_rd = fake_bd + SAFETY_DISTANCE;
+        double fake_sg = state.get(p_distance_V1_V2) - fake_rd;
+        updates.add(new DataStateUpdate(s_speed_V2, fake_speed));
+        updates.add(new DataStateUpdate(required_distance_V2, fake_rd));
+        updates.add(new DataStateUpdate(safety_gap_V1_V2, fake_sg));
+        return state.apply(updates);
+    }
+
 
 
 

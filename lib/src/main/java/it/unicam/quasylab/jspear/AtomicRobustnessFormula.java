@@ -30,18 +30,35 @@ public final class AtomicRobustnessFormula implements RobustnessFormula {
     private final DistanceExpression expr;
     private final RelationOperator relop;
     private final double value;
+    private final int op;
 
     public AtomicRobustnessFormula(Perturbation perturbation, DistanceExpression expr, RelationOperator relop, double value) {
         this.perturbation = perturbation;
         this.expr = expr;
         this.relop = relop;
         this.value = value;
+        this.op = 0;
+    }
+
+    public AtomicRobustnessFormula(Perturbation perturbation, DistanceExpression expr, RelationOperator relop, double value, int op) {
+        this.perturbation = perturbation;
+        this.expr = expr;
+        this.relop = relop;
+        this.value = value;
+        this.op = op;
     }
 
     @Override
     public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
+        if (op==0){
         return relop.eval(
                 expr.compute(step, sequence, sequence.apply(perturbation, step, sampleSize)),
                 value);
+        }
+        else{
+            return relop.eval(
+                    expr.compute(step, sequence.apply(perturbation, step, sampleSize), sequence),
+                    value);
+        }
     }
 }
