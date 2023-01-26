@@ -75,11 +75,10 @@ public class EvolutionSequence {
      * @throws IllegalArgumentException if sequence is empty.
      */
     protected EvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> sequence) {
-        if (sequence.isEmpty()) {
-            throw new IllegalArgumentException();
-        }
         this.sequence = new ArrayList<>(sequence);
-        this.lastGenerated = this.sequence.get(this.sequence.size()-1);
+        if (!sequence.isEmpty()) {
+            this.lastGenerated = this.sequence.get(this.sequence.size()-1);
+        }
         this.rg = rg;
         this.monitor = monitor;
     }
