@@ -48,7 +48,7 @@ public class Main {
     public final static int TIMER_INIT = 5;
     public final static int DANGER = 1;
     public final static int OK = 0;
-    public final static double MAX_SPEED_OFFSET = 0.122;
+    public final static double MAX_SPEED_OFFSET = 1.3;
 
     public final static double INIT_SPEED_V1 = 30.0;
     public final static double INIT_SPEED_V2 = 30.0;
@@ -187,24 +187,6 @@ public class Main {
 
             DistanceExpression relative_distance = new AtomicDistanceExpression(ds-> ds.get(p_distance_V1_V2)/INIT_DISTANCE_V1_V2);
 
-            EvolutionSequence doubleAttack = sequence.apply(getIteratedCombinedPerturbation(), 0, 100);
-            EvolutionSequence attackOnV1 = sequence.apply(getIteratedFasterPerturbation(), 0, 100);
-            EvolutionSequence attackOnV2 = sequence.apply(getIteratedSlowerPerturbation(), 0, 100);
-
-            for(int i=0; i<1000; i++) {
-                System.out.println(i +
-                        " Relative distance under double attack: " + Arrays.stream(doubleAttack.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-                );
-                System.out.println(i +
-                        " Relative distance under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-                );
-                System.out.println(i +
-                        " Relative distance under slower attack: " + Arrays.stream(attackOnV2.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-                );
-                System.out.println(i +
-                        " Distance from obstacle under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).average()
-                );
-            }
 
             RobustnessFormula Phi_1 = new EventuallyRobustnessFormula(
                     new AtomicRobustnessFormula(getIteratedCombinedPerturbation(),
@@ -232,10 +214,33 @@ public class Main {
                     H);
 
             RobustnessFormula Phi_4 = new ConjunctionRobustnessFormula(Phi_1, new ConjunctionRobustnessFormula(Phi_2, Phi_3));
-            System.out.println("Evaluation of PHI1: "+Phi_1.eval(100,0,sequence));
-            System.out.println("Evaluation of PHI2: "+Phi_2.eval(100,0,sequence));
-            System.out.println("Evaluation of PHI3: "+Phi_3.eval(100,0,sequence));
-            System.out.println("Evaluation of PHI4: "+Phi_4.eval(100,0,sequence));
+            System.out.println("Evaluation of PHI1: "+Phi_1.eval(30,0,sequence));
+            System.out.println("Evaluation of PHI2: "+Phi_2.eval(30,0,sequence));
+            System.out.println("Evaluation of PHI3: "+Phi_3.eval(30,0,sequence));
+            System.out.println("Evaluation of PHI4: "+Phi_4.eval(30,0,sequence));
+
+            EvolutionSequence doubleAttack = sequence.apply(getIteratedCombinedPerturbation(), 0, 30);
+            EvolutionSequence attackOnV1 = sequence.apply(getIteratedFasterPerturbation(), 0, 30);
+            EvolutionSequence attackOnV2 = sequence.apply(getIteratedSlowerPerturbation(), 0, 30);
+
+            for(int i=0; i<500; i++) {
+                System.out.println(i +
+                        " Relative distance under double attack: " + Arrays.stream(doubleAttack.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                );
+                System.out.println(i +
+                        " Relative distance without attack: " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                );
+                //System.out.println(i +
+                //        " Relative distance under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                //);
+                //System.out.println(i +
+                //        " Relative distance under slower attack: " + Arrays.stream(attackOnV2.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                //);
+                //System.out.println(i +
+                //        " Distance from obstacle under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).average()
+                //);
+            }
+
             /*
             int n = 300;
               double[][] speed_difference = new double[n][1];
@@ -568,12 +573,17 @@ public class Main {
         return new IterativePerturbation(3, new AtomicPerturbation(5, Main::fasterPerturbation));
     }
 
+    private static  Perturbation getSlowerPerturbation() {
+        return new IterativePerturbation(3, new AtomicPerturbation(5, Main::slowerPerturbation));
+    }
+
+
     private static  Perturbation getIteratedFasterPerturbation() {
-        return new IterativePerturbation(50, getFasterPerturbation());
+        return new IterativePerturbation(150, new AtomicPerturbation(5, Main::fasterPerturbation));
     }
 
     private static  Perturbation getIteratedSlowerPerturbation() {
-        return new IterativePerturbation(50, getSlowerPerturbation());
+        return new IterativePerturbation(150, new AtomicPerturbation(5, Main::slowerPerturbation));
     }
 
     private static  Perturbation getIteratedCombinedPerturbation() {
@@ -592,10 +602,6 @@ public class Main {
         updates.add(new DataStateUpdate(required_distance_V1, fake_rd));
         updates.add(new DataStateUpdate(safety_gap_V1, fake_sg));
         return state.apply(updates);
-    }
-
-    private static  Perturbation getSlowerPerturbation() {
-        return new IterativePerturbation(3, new AtomicPerturbation(5, Main::slowerPerturbation));
     }
 
     private static DataState slowerPerturbation(RandomGenerator rg, DataState state) {
