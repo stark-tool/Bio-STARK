@@ -32,40 +32,14 @@ public class PerturbedEvolutionSequence extends EvolutionSequence {
 
     private Perturbation p;
 
-    /* metodo cambiato il 17 gennaio 2023
-    protected PerturbedEvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> last, Perturbation p) {
-        super(monitor, rg, originalSequence,last);
-        this.p = p;
-        doAdd(doApply(last));
-    }
-    */
 
-    protected PerturbedEvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> secondLast, SampleSet<SystemState> last, Perturbation p) {
-        //metodo aggiunto il 17 gennaio 2023
-        super(monitor, rg, originalSequence, secondLast);
+    protected PerturbedEvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> sequence, SampleSet<SystemState> perturbedStep, Perturbation p, int scale) {
+        super(monitor, rg, sequence);
         this.p = p;
-        doAdd(doApply(last));
+        doAdd(doApply(perturbedStep.replica(scale)));
     }
 
-    protected PerturbedEvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> last, Perturbation p) {
-        // metodo aggiunto il 17 gennaio 2023
-        super(monitor, rg);
-        this.p = p;
-        doAdd(doApply(last));
-    }
 
-    //ulteriori costruttori per gestire il caso senza monitor, 17 gennaio 2023
-    protected PerturbedEvolutionSequence(RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> secondLast, SampleSet<SystemState> last, Perturbation p) {
-        super(null, rg, originalSequence, secondLast);
-        this.p = p;
-        doAdd(doApply(last));
-    }
-
-    protected PerturbedEvolutionSequence(RandomGenerator rg, List<SampleSet<SystemState>> originalSequence, SampleSet<SystemState> last, Perturbation p) {
-        super(null, rg);
-        this.p = p;
-        doAdd(doApply(last));
-    }
 
     @Override
     protected synchronized SampleSet<SystemState> generateNextStep() {
