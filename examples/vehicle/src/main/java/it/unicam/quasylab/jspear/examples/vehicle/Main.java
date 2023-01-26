@@ -223,10 +223,11 @@ public class Main {
             EvolutionSequence attackOnV1 = sequence.apply(getIteratedFasterPerturbation(), 0, 30);
             EvolutionSequence attackOnV2 = sequence.apply(getIteratedSlowerPerturbation(), 0, 30);
             EvolutionSequence test = sequence.apply(testAtomica(), 0, 30);
+            EvolutionSequence testNull = sequence.apply(testAtomicaNull(), 0, 30);
 
             for(int i=0; i<5000; i++) {
                 System.out.println(i +
-                        " Test: " + Arrays.stream(test.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                        " Test: " + Arrays.stream(testNull.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
                 );
                 //System.out.println(i +
                 //        " Relative distance under double attack: " + Arrays.stream(doubleAttack.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
@@ -579,6 +580,10 @@ public class Main {
 
     private static DataState identity(RandomGenerator rg, DataState state) {
         return state;
+    }
+
+    private static  Perturbation testAtomicaNull() {
+        return new NonePerturbation();
     }
 
     private static  Perturbation getFasterPerturbation() {
