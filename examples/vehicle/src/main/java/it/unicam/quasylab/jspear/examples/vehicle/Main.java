@@ -229,9 +229,9 @@ public class Main {
                 System.out.println(i +
                         " Test: " + Arrays.stream(testNull.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
                 );
-                //System.out.println(i +
-                //        " Relative distance under double attack: " + Arrays.stream(doubleAttack.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-                //);
+                System.out.println(i +
+                        " Relative distance under double attack: " + Arrays.stream(doubleAttack.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                );
                 //System.out.println(i +
                 //        " Relative distance without attack: " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
                 //);
