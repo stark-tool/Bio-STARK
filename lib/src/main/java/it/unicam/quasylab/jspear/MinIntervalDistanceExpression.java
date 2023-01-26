@@ -58,15 +58,18 @@ public final class MinIntervalDistanceExpression implements DistanceExpression {
             throw new IllegalArgumentException();
         }
         double[] res = new double[3];
+        /*
         for(int i = from; i<to; i++) {
             double[] partial = argument.evalCI(i + step, seq1, seq2, m, z);
             res[0] = Math.min(res[0], partial[0]);
             res[1] = Math.min(res[1], partial[1]);
             res[2] = Math.min(res[2], partial[2]);
         }
-        //res[0] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[0]).min().orElse(Double.NaN);
-        //res[1] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[1]).min().orElse(Double.NaN);
-        //res[2] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[2]).min().orElse(Double.NaN);
+
+         */
+        res[0] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[0]).min().orElse(Double.NaN);
+        res[1] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[1]).min().orElse(Double.NaN);
+        res[2] = IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[2]).min().orElse(Double.NaN);
         return res;
     }
 }
