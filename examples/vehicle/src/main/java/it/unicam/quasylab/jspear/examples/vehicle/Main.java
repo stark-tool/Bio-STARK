@@ -214,10 +214,10 @@ public class Main {
                     H);
 
             RobustnessFormula Phi_4 = new ConjunctionRobustnessFormula(Phi_1, new ConjunctionRobustnessFormula(Phi_2, Phi_3));
-            System.out.println("Evaluation of PHI1: "+Phi_1.eval(30,0,sequence));
-            System.out.println("Evaluation of PHI2: "+Phi_2.eval(30,0,sequence));
-            System.out.println("Evaluation of PHI3: "+Phi_3.eval(30,0,sequence));
-            System.out.println("Evaluation of PHI4: "+Phi_4.eval(30,0,sequence));
+            //System.out.println("Evaluation of PHI1: "+Phi_1.eval(30,0,sequence));
+            //System.out.println("Evaluation of PHI2: "+Phi_2.eval(30,0,sequence));
+            //System.out.println("Evaluation of PHI3: "+Phi_3.eval(30,0,sequence));
+            //System.out.println("Evaluation of PHI4: "+Phi_4.eval(30,0,sequence));
 
             EvolutionSequence doubleAttack = sequence.apply(getIteratedCombinedPerturbation(), 0, 30);
             EvolutionSequence attackOnV1 = sequence.apply(getIteratedFasterPerturbation(), 0, 30);
@@ -574,7 +574,11 @@ public class Main {
     }
 
     private static  Perturbation testAtomica() {
-        return new AtomicPerturbation(5, Main::fasterPerturbation);
+        return new AtomicPerturbation(0, Main::identity);
+    }
+
+    private static DataState identity(RandomGenerator rg, DataState state) {
+        return state;
     }
 
     private static  Perturbation getFasterPerturbation() {
