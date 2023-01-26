@@ -222,14 +222,18 @@ public class Main {
             EvolutionSequence doubleAttack = sequence.apply(getIteratedCombinedPerturbation(), 0, 30);
             EvolutionSequence attackOnV1 = sequence.apply(getIteratedFasterPerturbation(), 0, 30);
             EvolutionSequence attackOnV2 = sequence.apply(getIteratedSlowerPerturbation(), 0, 30);
+            EvolutionSequence test = sequence.apply(testAtomica(), 0, 30);
 
-            for(int i=0; i<500; i++) {
+            for(int i=0; i<5000; i++) {
                 System.out.println(i +
-                        " Relative distance under double attack: " + Arrays.stream(doubleAttack.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                        " Test: " + Arrays.stream(test.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
                 );
-                System.out.println(i +
-                        " Relative distance without attack: " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-                );
+                //System.out.println(i +
+                //        " Relative distance under double attack: " + Arrays.stream(doubleAttack.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                //);
+                //System.out.println(i +
+                //        " Relative distance without attack: " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+                //);
                 //System.out.println(i +
                 //        " Relative distance under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
                 //);
@@ -567,6 +571,10 @@ public class Main {
         updates.add(new DataStateUpdate(brakelight_V1, fake_brake));
         updates.add(new DataStateUpdate(safety_gap_V1_V2, new_sg_V1_V2));
         return state.apply(updates);
+    }
+
+    private static  Perturbation testAtomica() {
+        return new AtomicPerturbation(5, Main::fasterPerturbation);
     }
 
     private static  Perturbation getFasterPerturbation() {
