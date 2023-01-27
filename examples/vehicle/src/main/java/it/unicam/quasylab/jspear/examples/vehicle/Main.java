@@ -225,48 +225,66 @@ public class Main {
             EvolutionSequence test = sequence.apply(testAtomica(), 0, 30);
             EvolutionSequence testNull = sequence.apply(testAtomicaNull(), 0, 30);
 
-            for(int i=0; i<5000; i++) {
-                System.out.println(i +
-                        " Test: " + Arrays.stream(testNull.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-                );
-                System.out.println(i +
-                        " Relative distance under double attack: " + Arrays.stream(doubleAttack.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-                );
-                //System.out.println(i +
-                //        " Relative distance without attack: " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-                //);
-                //System.out.println(i +
-                //        " Relative distance under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-                //);
-                //System.out.println(i +
-                //        " Relative distance under slower attack: " + Arrays.stream(attackOnV2.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-                //);
-                //System.out.println(i +
-                //        " Distance from obstacle under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).average()
-                //);
-            }
+            printData(new DefaultRandomGenerator(), "testRun", ds -> ds.get(p_distance_V1_V2), system, 5000, 100);
+            printData(new DefaultRandomGenerator(), "testNull", ds -> ds.get(p_distance_V1_V2), testAtomicaNull(), system, 5000, 100);
+            printData(new DefaultRandomGenerator(), "doubleAttack", ds -> ds.get(p_distance_V1_V2), getIteratedCombinedPerturbation(), system, 5000, 100);
 
-            /*
-            int n = 300;
-              double[][] speed_difference = new double[n][1];
-              double[][] distance_difference = new double[n][1];
-              for(int i=0; i<n; i++){
-                speed_difference[i][0] = speed_expr.compute(i,sequence,sequenceAttSensorSpeed_V1);
-                distance_difference[i][0] = distance_expr.compute(i,sequence,sequenceAttSensorSpeed_V1);
-             }
-
-            Util.writeToCSV("./testSpeedDifferenceH.csv",speed_difference);
-            Util.writeToCSV("./testDistanceDifferenceH.csv",distance_difference);
-
-
-             */
+//            for(int i=0; i<5000; i++) {
+//                System.out.println(i +
+//                        " Test: " + Arrays.stream(testNull.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+//                );
+//                //System.out.println(i +
+//                //        " Relative distance under double attack: " + Arrays.stream(doubleAttack.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+//                //);
+//                //System.out.println(i +
+//                //        " Relative distance without attack: " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+//                //);
+//                //System.out.println(i +
+//                //        " Relative distance under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+//                //);
+//                //System.out.println(i +
+//                //        " Relative distance under slower attack: " + Arrays.stream(attackOnV2.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
+//                //);
+//                //System.out.println(i +
+//                //        " Distance from obstacle under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).average()
+//                //);
+//            }
+//
+//            /*
+//            int n = 300;
+//              double[][] speed_difference = new double[n][1];
+//              double[][] distance_difference = new double[n][1];
+//              for(int i=0; i<n; i++){
+//                speed_difference[i][0] = speed_expr.compute(i,sequence,sequenceAttSensorSpeed_V1);
+//                distance_difference[i][0] = distance_expr.compute(i,sequence,sequenceAttSensorSpeed_V1);
+//             }
+//
+//            Util.writeToCSV("./testSpeedDifferenceH.csv",speed_difference);
+//            Util.writeToCSV("./testDistanceDifferenceH.csv",distance_difference);
+//
+//
+//             */
 
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
    }
 
+   private static void printData(RandomGenerator rg, String label, DataStateExpression f, SystemState s, int steps, int size) {
+        System.out.println(label);
+        double[] data = SystemState.sample(rg, f, s, steps, size);
+        for(int i=0; i<data.length; i++) {
+            System.out.printf("%d> %f\n", i, data[i]);
+        }
+   }
 
+    private static void printData(RandomGenerator rg, String label, DataStateExpression f, Perturbation p, SystemState s, int steps, int size) {
+        System.out.println(label);
+        double[] data = SystemState.sample(rg, f, p, s, steps, size);
+        for(int i=0; i<data.length; i++) {
+            System.out.printf("%d> %f\n", i, data[i]);
+        }
+    }
 
     private static RobustnessFormula getFormulaInstantSpeedFakeLowerBound() {
         return new AtomicRobustnessFormula(getSpeedSensorPerturbationV1(),
