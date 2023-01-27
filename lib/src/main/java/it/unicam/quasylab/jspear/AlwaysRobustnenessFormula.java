@@ -37,7 +37,12 @@ public final class AlwaysRobustnenessFormula implements RobustnessFormula {
     }
 
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return IntStream.of(from, to).parallel().allMatch(i -> arg.eval(sampleSize, step+i, sequence));
+    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
+        if (parallel) {
+            return IntStream.of(from, to).parallel().allMatch(i -> arg.eval(sampleSize, step+i, sequence, true));
+        } else {
+            return IntStream.of(from, to).sequential().allMatch(i -> arg.eval(sampleSize, step+i, sequence, false));
+
+        }
     }
 }

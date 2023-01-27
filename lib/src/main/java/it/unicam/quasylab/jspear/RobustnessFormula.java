@@ -33,6 +33,10 @@ public sealed interface RobustnessFormula permits
         AlwaysRobustnenessFormula,
         EventuallyRobustnessFormula {
 
-    boolean eval(int sampleSize, int step, EvolutionSequence sequence);
+    default boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
+        return eval(sampleSize, step, sequence, true);
+    }
+
+    boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel);
 
 }

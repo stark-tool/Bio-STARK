@@ -25,7 +25,7 @@ package it.unicam.quasylab.jspear;
 public final class TrueRobustnessFormula implements RobustnessFormula {
 
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
+    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
         return true;
     }
 

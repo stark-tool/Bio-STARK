@@ -36,8 +36,12 @@ public final class EventuallyRobustnessFormula implements RobustnessFormula {
     }
 
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return IntStream.of(from, to).parallel().anyMatch(i -> arg.eval(sampleSize, step+i, sequence));
+    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean isParallel) {
+        if (isParallel) {
+            return IntStream.of(from, to).parallel().anyMatch(i -> arg.eval(sampleSize, step+i, sequence));
+        } else {
+            return IntStream.of(from, to).anyMatch(i -> arg.eval(sampleSize, step+i, sequence));
+        }
     }
 
 }

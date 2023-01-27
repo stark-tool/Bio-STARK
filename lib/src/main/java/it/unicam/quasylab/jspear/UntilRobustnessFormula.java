@@ -42,10 +42,17 @@ public final class UntilRobustnessFormula implements RobustnessFormula {
     }
 
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return IntStream.range(from+step, to+step).parallel().anyMatch(
-                i -> rightFormula.eval(sampleSize, i, sequence) &&
-                        IntStream.range(from+step, i).allMatch(j -> leftFormula.eval(sampleSize, j, sequence))
-        );
+    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
+        if (parallel) {
+            return IntStream.range(from+step, to+step).parallel().anyMatch(
+                    i -> rightFormula.eval(sampleSize, i, sequence, true) &&
+                            IntStream.range(from+step, i).allMatch(j -> leftFormula.eval(sampleSize, j, sequence, true))
+            );
+        } else {
+            return IntStream.range(from+step, to+step).sequential().anyMatch(
+                    i -> rightFormula.eval(sampleSize, i, sequence, false) &&
+                            IntStream.range(from+step, i).allMatch(j -> leftFormula.eval(sampleSize, j, sequence, false))
+            );
+        }
     }
 }

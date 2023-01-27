@@ -32,8 +32,10 @@ public final class DisjunctionRobustnessFormula implements RobustnessFormula {
         this.rightFormula = rightFormula;
     }
 
+
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return leftFormula.eval(sampleSize, step, sequence)||rightFormula.eval(sampleSize, step, sequence);
+    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
+        return leftFormula.eval(sampleSize, step, sequence, parallel)||rightFormula.eval(sampleSize, step, sequence, parallel);
     }
+
 }
