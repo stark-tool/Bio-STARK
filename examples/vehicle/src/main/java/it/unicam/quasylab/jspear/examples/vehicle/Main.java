@@ -529,7 +529,8 @@ public class Main {
         double new_p_distance_V1_V2 = state.get(p_distance_V1_V2) - travel_V2 + travel_V1;
         double new_p_distance_V2 = state.get(p_distance_V2) - travel_V2;
         //  updates.add(new VariableUpdate(a,state.getValue(a)+5));
-        updates.add(new DataStateUpdate(x, state.get(x)/2));
+        double y = state.get(x);
+        updates.add(new DataStateUpdate(x, y/2));
         updates.add(new DataStateUpdate(timer_V1, new_timer_V1));
         updates.add(new DataStateUpdate(p_speed_V1, new_p_speed_V1));
         updates.add(new DataStateUpdate(p_distance_V1, new_p_distance_V1));
@@ -580,7 +581,7 @@ public class Main {
    private static DataState funzioneV1(RandomGenerator rg, DataState state){
 
         List<DataStateUpdate> updates = new LinkedList<>();
-        double fake_x = state.get(x) + 50;
+        double fake_x = state.get(x) + 60;
         updates.add(new DataStateUpdate(x, fake_x));
         // }
         return state.apply(updates);
