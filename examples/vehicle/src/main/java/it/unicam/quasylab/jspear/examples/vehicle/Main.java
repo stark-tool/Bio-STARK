@@ -55,7 +55,7 @@ public class Main {
     public final static double INIT_SPEED_V2 = 30.0;
     public final static double MAX_SPEED = 40.0;
     public final static double INIT_DISTANCE_OBS_V1 = 15000.0;
-    public final static double INIT_DISTANCE_V1_V2 = 5000.0;
+    public final static double INIT_DISTANCE_V1_V2 = 0.0;
     private static final double SAFETY_DISTANCE = 200.0;
     //private static final VariableAllocation variableRegistry = VariableAllocation.create(VARIABLES);
 
@@ -109,7 +109,7 @@ public class Main {
             Controller controller_V2 = getController_V2();
             DataState state = getInitialState( );
             ControlledSystem system = new ControlledSystem(new ParallelController(controller_V1,controller_V2), (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, 100);
+            EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, 1);
 
             EvolutionSequence sequenceAttSensorSpeed_V1 = sequence.apply(getSpeedSensorPerturbationV1(), ATTACK_INIT, 100);
             EvolutionSequence sequenceAttDistance_V2 = sequence.apply(getDistancePerturbationV2(), ATTACK_INIT, 100);
@@ -227,7 +227,7 @@ public class Main {
             //EvolutionSequence testNull = sequence.apply(testAtomicaNull(), 0, 30);
 
             //printData(new DefaultRandomGenerator(), "testRun", ds -> ds.get(p_distance_V1_V2), system, 5000, 100);
-            printData(new DefaultRandomGenerator(), "testDummy", ds -> ds.get(x), perturbazioneV1(), system, 500, 100);
+            //printData(new DefaultRandomGenerator(), "testDummy", ds -> ds.get(x), perturbazioneV1(), system, 500, 1);
             //printData(new DefaultRandomGenerator(), "doubleAttack", ds -> ds.get(p_distance_V1_V2), getIteratedCombinedPerturbation(), system, 3000, 100);
             //printData(new DefaultRandomGenerator(), "real_speedV1", ds -> ds.get(p_speed_V1), getIteratedCombinedPerturbation(), system, 1000, 1);
             //printData(new DefaultRandomGenerator(), "real_speedV2", ds -> ds.get(p_speed_V2), getIteratedCombinedPerturbation(), system, 500, 100);
@@ -249,11 +249,11 @@ public class Main {
             //printData(new DefaultRandomGenerator(), "sensed_speedV2", ds -> ds.get(s_speed_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
             //printData(new DefaultRandomGenerator(), "brakeV2", ds -> ds.get(brakelight_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
 
-            //printData(new DefaultRandomGenerator(), "original_p_speed_V2", ds -> ds.get(s_speed_V2), system, 500, 100);
-            //printData(new DefaultRandomGenerator(), "original_s_speed_V2", ds -> ds.get(s_speed_V2), system, 500, 100);
-            //printData(new DefaultRandomGenerator(), "original_distance_V1", ds -> ds.get(p_distance_V1), system, 1000, 100);
-            //printData(new DefaultRandomGenerator(), "original_distance_V2", ds -> ds.get(p_distance_V2), system, 1000, 100);
-            //printData(new DefaultRandomGenerator(), "original_distance_V1_V2", ds -> ds.get(p_distance_V1_V2), system, 1000, 100);
+            printData(new DefaultRandomGenerator(), "original_p_speed_V2", ds -> ds.get(s_speed_V2), system, 500, 100);
+            printData(new DefaultRandomGenerator(), "original_s_speed_V2", ds -> ds.get(s_speed_V2), system, 500, 100);
+            printData(new DefaultRandomGenerator(), "original_distance_V1", ds -> ds.get(p_distance_V1), system, 1000, 100);
+            printData(new DefaultRandomGenerator(), "original_distance_V2", ds -> ds.get(p_distance_V2), system, 1000, 100);
+            printData(new DefaultRandomGenerator(), "original_distance_V1_V2", ds -> ds.get(p_distance_V1_V2), system, 1000, 100);
 
 
             //printData(new DefaultRandomGenerator(), "real_obs_distV2", ds -> ds.get(p_distance_V2), getIteratedCombinedPerturbation(), system, 10000, 100);
@@ -398,6 +398,7 @@ public class Main {
 
         ControllerRegistry registry = new ControllerRegistry();
 
+        /*
 
         registry.set("aaa",
                 Controller.doAction(
@@ -411,7 +412,9 @@ public class Main {
         return new ExecController(registry.reference("aaa"));
 
 
-/*
+         */
+
+
         registry.set("Ctrl_V1",
                 Controller.ifThenElse(
                         DataState.greaterThan(s_speed_V1, 0),
@@ -460,7 +463,6 @@ public class Main {
         );
         return new ParallelController(registry.reference("Ctrl_V1"), registry.reference("IDS_V1"));
 
- */
     }
 
     public static Controller getController_V2() {
@@ -574,7 +576,7 @@ public class Main {
 
 
     private static Perturbation perturbazioneV1( ) {
-        return new IterativePerturbation(50, new AtomicPerturbation(5, Main::funzioneV1));
+        return new IterativePerturbation(50, new AtomicPerturbation(0, Main::funzioneV1));
     }
 
 
