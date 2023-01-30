@@ -50,7 +50,7 @@ public class Main {
     public final static int TIMER_INIT = 5;
     public final static int DANGER = 1;
     public final static int OK = 0;
-    public final static double MAX_SPEED_OFFSET = 1.0008;
+    public final static double MAX_SPEED_OFFSET = 1.1;
     public final static double INIT_SPEED_V1 = 30.0;
     public final static double INIT_SPEED_V2 = 30.0;
     public final static double MAX_SPEED = 40.0;
@@ -89,9 +89,9 @@ public class Main {
     private static final int safety_gap_V2 = 24;
     private static final int safety_gap_V1_V2 = 25;//variableRegistry.getVariable("safety_gap");
     private static final int brakelight_V2 = 26;
-    //private static final int x = 27;
+    private static final int x = 27;
 
-    private static final int NUMBER_OF_VARIABLES = 27;
+    private static final int NUMBER_OF_VARIABLES = 28;
 
     private static final int ETA_SpeedLB = 0;
     private static final int ETA_SpeedUB = 50;
@@ -227,19 +227,19 @@ public class Main {
             //EvolutionSequence testNull = sequence.apply(testAtomicaNull(), 0, 30);
 
             //printData(new DefaultRandomGenerator(), "testRun", ds -> ds.get(p_distance_V1_V2), system, 5000, 100);
-            //printData(new DefaultRandomGenerator(), "testDummy", ds -> ds.get(x), perturbazioneV1(), system, 500, 100);
+            printData(new DefaultRandomGenerator(), "testDummy", ds -> ds.get(x), perturbazioneV1(), system, 500, 100);
             //printData(new DefaultRandomGenerator(), "doubleAttack", ds -> ds.get(p_distance_V1_V2), getIteratedCombinedPerturbation(), system, 3000, 100);
             //printData(new DefaultRandomGenerator(), "real_speedV1", ds -> ds.get(p_speed_V1), getIteratedCombinedPerturbation(), system, 1000, 1);
-            //printData(new DefaultRandomGenerator(), "real_speedV2", ds -> ds.get(p_speed_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
+            //printData(new DefaultRandomGenerator(), "real_speedV2", ds -> ds.get(p_speed_V2), getIteratedCombinedPerturbation(), system, 500, 100);
             //printData(new DefaultRandomGenerator(), "brakelightV1", ds -> ds.get(brakelight_V1), getIteratedCombinedPerturbation(), system, 1000, 1);
             //printData(new DefaultRandomGenerator(), "brakelightV2", ds -> ds.get(brakelight_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
             //printData(new DefaultRandomGenerator(), "p_distance_V1_V2", ds -> ds.get(p_distance_V1_V2), testAtomica(), system, 1000, 1);
             //printData(new DefaultRandomGenerator(), "p_distance_V1_V2", ds -> ds.get(p_distance_V1_V2), testAtomica(), system, 1000, 1);
             //printData(new DefaultRandomGenerator(), "real_speed_V2", ds -> ds.get(p_speed_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
-            //printData(new DefaultRandomGenerator(), "sensed_speed_V2", ds -> ds.get(s_speed_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
-            printData(new DefaultRandomGenerator(), "real_distance_V1", ds -> ds.get(p_distance_V1), getIteratedCombinedPerturbation(), system, 1000, 100);
-            printData(new DefaultRandomGenerator(), "real_distance_V2", ds -> ds.get(p_distance_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
-            printData(new DefaultRandomGenerator(), "real_distance_V1_V2", ds -> ds.get(p_distance_V1_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
+            //printData(new DefaultRandomGenerator(), "sensed_speed_V2", ds -> ds.get(s_speed_V2), getIteratedCombinedPerturbation(), system, 500, 100);
+            //printData(new DefaultRandomGenerator(), "real_distance_V1", ds -> ds.get(p_distance_V1), getIteratedCombinedPerturbation(), system, 1000, 100);
+            //printData(new DefaultRandomGenerator(), "real_distance_V2", ds -> ds.get(p_distance_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
+            //printData(new DefaultRandomGenerator(), "real_distance_V1_V2", ds -> ds.get(p_distance_V1_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
             //printData(new DefaultRandomGenerator(), "required_distance_V2", ds -> ds.get(required_distance_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
             //printData(new DefaultRandomGenerator(), "safety_gap_V1_V2", ds -> ds.get(safety_gap_V1_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
             //printData(new DefaultRandomGenerator(), "safety_gap_V2", ds -> ds.get(safety_gap_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
@@ -248,6 +248,12 @@ public class Main {
             //printData(new DefaultRandomGenerator(), "safety_gap_V2", ds -> ds.get(safety_gap_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
             //printData(new DefaultRandomGenerator(), "sensed_speedV2", ds -> ds.get(s_speed_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
             //printData(new DefaultRandomGenerator(), "brakeV2", ds -> ds.get(brakelight_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
+
+            //printData(new DefaultRandomGenerator(), "original_p_speed_V2", ds -> ds.get(s_speed_V2), system, 500, 100);
+            //printData(new DefaultRandomGenerator(), "original_s_speed_V2", ds -> ds.get(s_speed_V2), system, 500, 100);
+            //printData(new DefaultRandomGenerator(), "original_distance_V1", ds -> ds.get(p_distance_V1), system, 1000, 100);
+            //printData(new DefaultRandomGenerator(), "original_distance_V2", ds -> ds.get(p_distance_V2), system, 1000, 100);
+            //printData(new DefaultRandomGenerator(), "original_distance_V1_V2", ds -> ds.get(p_distance_V1_V2), system, 1000, 100);
 
 
             //printData(new DefaultRandomGenerator(), "real_obs_distV2", ds -> ds.get(p_distance_V2), getIteratedCombinedPerturbation(), system, 10000, 100);
@@ -392,7 +398,7 @@ public class Main {
 
         ControllerRegistry registry = new ControllerRegistry();
 
-        /*
+
         registry.set("aaa",
                 Controller.doAction(
                         (rg, ds) -> List.of(new DataStateUpdate(x, ds.get(x) + 1000)),
@@ -403,9 +409,9 @@ public class Main {
                 Controller.doTick(0,registry.reference("aaa"))
         );
         return new ExecController(registry.reference("aaa"));
-        */
 
 
+/*
         registry.set("Ctrl_V1",
                 Controller.ifThenElse(
                         DataState.greaterThan(s_speed_V1, 0),
@@ -453,6 +459,8 @@ public class Main {
                 )
         );
         return new ParallelController(registry.reference("Ctrl_V1"), registry.reference("IDS_V1"));
+
+ */
     }
 
     public static Controller getController_V2() {
@@ -521,6 +529,7 @@ public class Main {
         double new_p_distance_V1_V2 = state.get(p_distance_V1_V2) - travel_V2 + travel_V1;
         double new_p_distance_V2 = state.get(p_distance_V2) - travel_V2;
         //  updates.add(new VariableUpdate(a,state.getValue(a)+5));
+        updates.add(new DataStateUpdate(x, state.get(x)/2));
         updates.add(new DataStateUpdate(timer_V1, new_timer_V1));
         updates.add(new DataStateUpdate(p_speed_V1, new_p_speed_V1));
         updates.add(new DataStateUpdate(p_distance_V1, new_p_distance_V1));
@@ -562,25 +571,21 @@ public class Main {
     }
 
 
-/*
+
     private static Perturbation perturbazioneV1( ) {
-        return new IterativePerturbation(50,
-                new SequentialPerturbation(
-                        new IterativePerturbation (3, new AtomicPerturbation(5, Main::funzioneV1)),
-                        new IterativePerturbation( 3, new AtomicPerturbation(5, Main::funzioneV2))
-                )
-        );
+        return new IterativePerturbation(50, new AtomicPerturbation(5, Main::funzioneV1));
     }
 
 
    private static DataState funzioneV1(RandomGenerator rg, DataState state){
 
         List<DataStateUpdate> updates = new LinkedList<>();
-        double fake_x = state.get(x) - 50;
+        double fake_x = state.get(x) + 50;
         updates.add(new DataStateUpdate(x, fake_x));
         // }
         return state.apply(updates);
     }
+
 
     private static DataState funzioneV2(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
@@ -590,7 +595,7 @@ public class Main {
         return state.apply(updates);
     }
 
-     */
+
 
     private static Perturbation getSpeedSensorPerturbationV1( ) {
         return new IterativePerturbation(ATTACK_LENGTH, new AtomicPerturbation(0, Main::speedSensorPerturbationFunctionV1));
@@ -652,11 +657,11 @@ public class Main {
     }
 
     private static  Perturbation getFasterPerturbation() {
-        return new IterativePerturbation(3, new AtomicPerturbation(5, Main::fasterPerturbation));
+        return new IterativePerturbation(3, new AtomicPerturbation(0, Main::fasterPerturbation));
     }
 
     private static  Perturbation getSlowerPerturbation() {
-        return new IterativePerturbation(3, new AtomicPerturbation(5, Main::slowerPerturbation));
+        return new IterativePerturbation(3, new AtomicPerturbation(0, Main::slowerPerturbation));
     }
 
 
@@ -709,7 +714,7 @@ public class Main {
     public static DataState getInitialState( ) {
         Map<Integer, Double> values = new HashMap<>();
         // INITIAL DATA FOR V1
-        //values.put(x, (double) 100);
+        values.put(x, (double) 100);
         values.put(brakelight_V1, (double) 0);
         values.put(timer_V1, (double) 0);
         values.put(p_speed_V1, INIT_SPEED_V1);
