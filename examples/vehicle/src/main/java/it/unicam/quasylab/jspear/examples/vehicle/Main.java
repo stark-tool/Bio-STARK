@@ -444,7 +444,11 @@ public class Main {
         );
 
         registry.set("Stop_V1",
-                Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V1, NEUTRAL)), registry.reference("Stop_V1"))
+                Controller.ifThenElse(
+                        DataState.greaterThan(timer_V1, 0),
+                        Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V1, NEUTRAL)), registry.reference("Stop_V1")),
+                        Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V1, NEUTRAL), new DataStateUpdate(timer_V1, TIMER_INIT)), registry.reference("Stop_V1"))
+                )
         );
 
         registry.set("Accelerate_V1",
@@ -497,7 +501,11 @@ public class Main {
         );
 
         registry.set("Stop_V2",
-                Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V2, NEUTRAL)), registry.reference("Stop_V2"))
+                Controller.ifThenElse(
+                        DataState.greaterThan(timer_V2, 0),
+                        Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V2, NEUTRAL)), registry.reference("Stop_V2")),
+                        Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V2, NEUTRAL), new DataStateUpdate(timer_V2, TIMER_INIT)), registry.reference("Stop_V2"))
+                )
         );
 
         registry.set("Accelerate_V2",
