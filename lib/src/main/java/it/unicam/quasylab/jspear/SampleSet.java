@@ -98,7 +98,7 @@ public class SampleSet<T extends SystemState> {
      * the function <code>f</code>.
      */
     public synchronized double distance(DataStateExpression f, SampleSet<T> other) {
-        if (other.size()%other.size()!=0) {
+        if (other.size()%this.size()!=0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
         double[] thisData = this.evalPenaltyFunction(f);
