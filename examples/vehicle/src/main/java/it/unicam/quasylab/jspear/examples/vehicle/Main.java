@@ -25,7 +25,6 @@ package it.unicam.quasylab.jspear.examples.vehicle;
 import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.ControllerRegistry;
-import it.unicam.quasylab.jspear.controller.ExecController;
 import it.unicam.quasylab.jspear.controller.ParallelController;
 import it.unicam.quasylab.jspear.ds.*;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -38,12 +37,12 @@ public class Main {
     public final static String[] VARIABLES =
             new String[]{"p_speed_V1", "s_speed_V1", "p_distance_V1", "s_distance_V1", "accel_V1", "timer_V1",
                     "warning_V1", "offset_V1", "braking_distance_V1", "required_distance_V1", "safety_gap_V1",
-                    "brakelight_V1",
+                    "brake_light_V1",
                     "p_speed_V2", "s_speed_V2", "p_distance_V2", "s_distance_V2",
                     "p_distance_V1_V2", "s_distance_V1_V2", "accel_V2", "timer_V2",
                     "warning_V2", "offset_V2", "braking_distance_V2", "required_distance_V2", "safety_gap_V2",
-                    "safety_gap_V1_V2", "brakelight_V2",
-                    "x"};
+                    "safety_gap_V1_V2", "brake_light_V2"
+            };
     public final static double ACCELERATION = 0.1;
     public final static double BRAKE = 0.3;
     public final static double NEUTRAL = 0.0;
@@ -57,9 +56,13 @@ public class Main {
     public final static double INIT_DISTANCE_OBS_V1 = 15000.0;
     public final static double INIT_DISTANCE_V1_V2 = 5000.0;
     private static final double SAFETY_DISTANCE = 200.0;
-    //private static final VariableAllocation variableRegistry = VariableAllocation.create(VARIABLES);
+    private static final int ETA_SpeedLB = 0;
+    private static final int ETA_SpeedUB = 50;
+    private static final double ETA_CRASH = 0.3;
+    private static final int H = 1000;
+    private static final int ATTACK_INIT = 0;
+    private static final int ATTACK_LENGTH = 550;
 
-    // private static final Variable a = variableRegistry.getVariable("a");
 
     private static final int p_speed_V1 = 0;//variableRegistry.getVariable("p_speed");
     private static final int s_speed_V1 = 1;//variableRegistry.getVariable("s_speed");
@@ -72,7 +75,7 @@ public class Main {
     private static final int braking_distance_V1 = 8;//variableRegistry.getVariable("braking_distance");
     private static final int required_distance_V1 = 9; //variableRegistry.getVariable("required_distance");
     private static final int safety_gap_V1 = 10;//variableRegistry.getVariable("safety_gap");
-    private static final int brakelight_V1 = 11;
+    private static final int brake_light_V1 = 11;
 
     private static final int p_speed_V2 = 12;//variableRegistry.getVariable("p_speed");
     private static final int s_speed_V2 = 13;//variableRegistry.getVariable("s_speed");
@@ -88,18 +91,10 @@ public class Main {
     private static final int required_distance_V2 = 23; //variableRegistry.getVariable("required_distance");
     private static final int safety_gap_V2 = 24;
     private static final int safety_gap_V1_V2 = 25;//variableRegistry.getVariable("safety_gap");
-    private static final int brakelight_V2 = 26;
-    private static final int x = 27;
+    private static final int brake_light_V2 = 26;
 
-    private static final int NUMBER_OF_VARIABLES = 28;
+    private static final int NUMBER_OF_VARIABLES = 27;
 
-    private static final int ETA_SpeedLB = 0;
-    private static final int ETA_SpeedUB = 50;
-    private static final double ETA_CRASH = 0.3;
-    private static final int H = 1000;
-    private static final int ATTACK_INIT = 0;
-
-    private static final int ATTACK_LENGTH = 550;
 
 
     public static void main(String[] args) throws IOException {
@@ -112,39 +107,6 @@ public class Main {
 
             EvolutionSequence sequenceAttSensorSpeed_V1 = sequence.apply(getSpeedSensorPerturbationV1(), ATTACK_INIT, 100);
             EvolutionSequence sequenceAttDistance_V2 = sequence.apply(getDistancePerturbationV2(), ATTACK_INIT, 100);
-            //EvolutionSequence casino = sequence.apply(perturbazioneV1(), ATTACK_INIT, 1);
-
-/*
-            for(int i=0; i<3000; i++) {
-                System.out.println(i+
-                           //     " x originale " +    Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(x))).max() +
-                           //     " x taroccata "+     Arrays.stream(casino.get(i).evalPenaltyFunction(ds -> ds.get(x))).max()
-                           //    " s_speed_v1 " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
-                           //   " timer_v1 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(timer_V1))).max() +
-                       // " sp_v1 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).min() +
-                      //  " light_v1" + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(brakelight_V1))).max() +
-                      // " sp_v2 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V2))).max().toString() +
-                      //          " light_v2" + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(brakelight_V2))).max()
-                             " safety_gap_v1_v2 " + Arrays.stream(sequenceAttSensorSpeed_V2.get(i).evalPenaltyFunction(ds -> ds.get(safety_gap_V1_V2))).max() +
-                           //     " safety_gap_v2 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(safety_gap_V2))).max() +
-                                //"breaking_distance " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(braking_distance_V1))).max() +
-                                //"required_distance " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(required_distance_V1))).max() +
-                        //" " + Arrays.stream(sequenceAttSensorSpeed.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).min() +
-                        //" " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).max() +
-  //                              sequence.get(i).evalPenaltyFunction(ds -> ds.getValue(p_speed))).max())) +
-                       " bd_v2 " + Arrays.stream(sequenceAttSensorSpeed_V2.get(i).evalPenaltyFunction(ds -> ds.get(braking_distance_V2))).average() +
-                                " speed_v1 " + Arrays.stream(sequenceAttSensorSpeed_V2.get(i).evalPenaltyFunction(ds -> ds.get(p_speed_V1))).average() +
-                                " ph_d_v1_v2 " + Arrays.stream(sequenceAttSensorSpeed_V2.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-                        //   " sensed_distance_v1 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(s_distance_V1))).max() +
-                             //   " sensed_distance_v2 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(s_distance_V1_V2))).max()
-                                //" timer " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(timer_V1))).max()
-                        //        " physical_distance_v2 " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V2))).max()
-                       // " " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).min()
-                        //" " + Arrays.stream(sequenceAttSensorSpeed_V1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).max()
-                );
-            }
-
- */
 
             RobustnessFormula PHI_SpeedFakeLowerBound = getFormulaSpeedFakeLowerBound();
             RobustnessFormula PHI_InstantSpeedFakeLowerBound = getFormulaInstantSpeedFakeLowerBound();
@@ -221,18 +183,7 @@ public class Main {
             EvolutionSequence doubleAttack = sequence.apply(getIteratedCombinedPerturbation(), 0, 30);
             //EvolutionSequence attackOnV1 = sequence.apply(getIteratedFasterPerturbation(), 0, 30);
             //EvolutionSequence attackOnV2 = sequence.apply(getIteratedSlowerPerturbation(), 0, 30);
-            //EvolutionSequence test = sequence.apply(testAtomica(), 0, 30);
-            //EvolutionSequence testNull = sequence.apply(testAtomicaNull(), 0, 30);
 
-            //printData(new DefaultRandomGenerator(), "testRun", ds -> ds.get(p_distance_V1_V2), system, 5000, 100);
-            //printData(new DefaultRandomGenerator(), "testDummy", ds -> ds.get(x), perturbazioneV1(), system, 500, 1);
-            //printData(new DefaultRandomGenerator(), "faster_attack", ds -> ds.get(s_speed_V1), getFasterPerturbation(), system, 500, 1);
-            //printData(new DefaultRandomGenerator(), "real_speedV1", ds -> ds.get(p_speed_V1), getIteratedCombinedPerturbation(), system, 1000, 1);
-            //printData(new DefaultRandomGenerator(), "real_speedV2", ds -> ds.get(p_speed_V2), getIteratedCombinedPerturbation(), system, 2000, 1);
-            //printData(new DefaultRandomGenerator(), "brakelightV1", ds -> ds.get(brakelight_V1), getIteratedCombinedPerturbation(), system, 1000, 1);
-            //printData(new DefaultRandomGenerator(), "brakelightV2", ds -> ds.get(brakelight_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
-            //printData(new DefaultRandomGenerator(), "p_distance_V1_V2", ds -> ds.get(p_distance_V1_V2), testAtomica(), system, 1000, 1);
-            //printData(new DefaultRandomGenerator(), "p_distance_V1_V2", ds -> ds.get(p_distance_V1_V2), testAtomica(), system, 1000, 1);
 
             ArrayList<DataStateExpression> F = new ArrayList<DataStateExpression>();
             ArrayList<String> L = new ArrayList<String>();
@@ -262,63 +213,8 @@ public class Main {
 
 
             printLData(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 1000, 1);
-            //printData(new DefaultRandomGenerator(), "speed_V2", ds -> ds.get(s_speed_V2), ds -> ds.get(p_speed_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
-            //printData(new DefaultRandomGenerator(), "real_distance_V1", ds -> ds.get(p_distance_V1), getIteratedCombinedPerturbation(), system, 1000, 1);
-            //printData(new DefaultRandomGenerator(), "real_distance_V2", ds -> ds.get(p_distance_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
-            //printData(new DefaultRandomGenerator(), "real_distance_V1_V2", ds -> ds.get(p_distance_V1_V2), getIteratedCombinedPerturbation(), system, 3000, 100);
-            //printData(new DefaultRandomGenerator(), "required_distance_V2", ds -> ds.get(required_distance_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
-            //printData(new DefaultRandomGenerator(), "safety_gap_V1_V2", ds -> ds.get(safety_gap_V1_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
-            //printData(new DefaultRandomGenerator(), "safety_gap_V2", ds -> ds.get(safety_gap_V2), getIteratedCombinedPerturbation(), system, 1000, 100);
-            //printData(new DefaultRandomGenerator(), "safety_gap_V1_V2", ds -> ds.get(safety_gap_V1_V2), testAtomica(), system, 500, 1);
-
-            //printData(new DefaultRandomGenerator(), "safety_gap_V2", ds -> ds.get(safety_gap_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
-            //printData(new DefaultRandomGenerator(), "sensed_speedV2", ds -> ds.get(s_speed_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
-            //printData(new DefaultRandomGenerator(), "brakeV2", ds -> ds.get(brakelight_V2), getIteratedCombinedPerturbation(), system, 1000, 1);
-
-            //printData(new DefaultRandomGenerator(), "original_s_speed_V1", ds -> ds.get(s_speed_V1), system, 500, 1);
-            //printData(new DefaultRandomGenerator(), "original_s_speed_V2", ds -> ds.get(s_speed_V2), system, 1000, 100);
-            //printData(new DefaultRandomGenerator(), "original_distance_V1", ds -> ds.get(p_distance_V1), system, 1000, 100);
-            //printData(new DefaultRandomGenerator(), "original_distance_V2", ds -> ds.get(p_distance_V2), system, 1000, 100);
-            //printData(new DefaultRandomGenerator(), "original_distance_V1_V2", ds -> ds.get(p_distance_V1_V2), system, 1000, 100);
 
 
-            //printData(new DefaultRandomGenerator(), "timer", ds -> ds.get(timer_V1), getIteratedCombinedPerturbation(), system, 500, 1);
-            //printData(new DefaultRandomGenerator(), "sensed_obs_distV2", ds -> ds.get(s_distance_V2), getIteratedCombinedPerturbation(), system, 3000, 100);
-            //            for(int i=0; i<5000; i++) {
-//                System.out.println(i +
-//                        " Test: " + Arrays.stream(testNull.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-//                );
-//                //System.out.println(i +
-//                //        " Relative distance under double attack: " + Arrays.stream(doubleAttack.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-//                //);
-//                //System.out.println(i +
-//                //        " Relative distance without attack: " + Arrays.stream(sequence.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-//                //);
-//                //System.out.println(i +
-//                //        " Relative distance under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-//                //);
-//                //System.out.println(i +
-//                //        " Relative distance under slower attack: " + Arrays.stream(attackOnV2.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1_V2))).average()
-//                //);
-//                //System.out.println(i +
-//                //        " Distance from obstacle under faster attack: " + Arrays.stream(attackOnV1.get(i).evalPenaltyFunction(ds -> ds.get(p_distance_V1))).average()
-//                //);
-//            }
-//
-//            /*
-//            int n = 300;
-//              double[][] speed_difference = new double[n][1];
-//              double[][] distance_difference = new double[n][1];
-//              for(int i=0; i<n; i++){
-//                speed_difference[i][0] = speed_expr.compute(i,sequence,sequenceAttSensorSpeed_V1);
-//                distance_difference[i][0] = distance_expr.compute(i,sequence,sequenceAttSensorSpeed_V1);
-//             }
-//
-//            Util.writeToCSV("./testSpeedDifferenceH.csv",speed_difference);
-//            Util.writeToCSV("./testDistanceDifferenceH.csv",distance_difference);
-//
-//
-//             */
 
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -341,14 +237,6 @@ public class Main {
         }
     }
 
-    private static void printData(RandomGenerator rg, String label, DataStateExpression f1, DataStateExpression f2, Perturbation p, SystemState s, int steps, int size) {
-        System.out.println(label);
-        double[][] data = SystemState.sample(rg, f1, f2, p, s, steps, size);
-        for (int i = 0; i < data.length; i++) {
-            System.out.printf("%d> %f\n", i, data[i][0]);
-            System.out.printf("%d> %f\n", i, data[i][1]);
-        }
-    }
 
     private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, Perturbation p, SystemState s, int steps, int size) {
         System.out.println(label);
@@ -471,23 +359,18 @@ public class Main {
                                    DataState.greaterThan(safety_gap_V1, 0 ),
                                    Controller.doAction(
                                            (rg, ds) -> List.of(new DataStateUpdate(accel_V1, ACCELERATION), new DataStateUpdate(timer_V1, TIMER_INIT),
-                                                   new DataStateUpdate(brakelight_V1, 0)),
+                                                   new DataStateUpdate(brake_light_V1, 0)),
                                            registry.reference("Accelerate_V1")
                                    ),
                                    Controller.doAction(
                                            (rg, ds) -> List.of( new DataStateUpdate(accel_V1, - BRAKE), new DataStateUpdate(timer_V1, TIMER_INIT),
-                                                         new DataStateUpdate(brakelight_V1, 1)),
+                                                         new DataStateUpdate(brake_light_V1, 1)),
                                            registry.reference("Decelerate_V1"))
                         ),
-                        registry.reference("Stop_V1")
-                )
-        );
-
-        registry.set("Stop_V1",
-                Controller.ifThenElse(
-                        DataState.greaterThan(timer_V1, 0),
-                        Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V1, NEUTRAL)), registry.reference("Stop_V1")),
-                        Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V1, NEUTRAL), new DataStateUpdate(timer_V1, TIMER_INIT)), registry.reference("Stop_V1"))
+                        Controller.doAction(
+                                (rg,ds)-> List.of(new DataStateUpdate(accel_V1,NEUTRAL), new DataStateUpdate(timer_V1,TIMER_INIT)),
+                                registry.reference("Stop_V1")
+                        )
                 )
         );
 
@@ -507,9 +390,28 @@ public class Main {
                 )
         );
 
+        registry.set("Stop_V1",
+                Controller.ifThenElse(
+                        DataState.greaterThan(timer_V1, 0),
+                        Controller.doTick(registry.reference("Stop_V1")),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(warning_V1,DANGER),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(accel_V1, -BRAKE),
+                                                new DataStateUpdate(timer_V1, TIMER_INIT)),
+                                        registry.reference("Decelerate_V1")
+                                ),
+                                Controller.doAction(
+                                        DataStateUpdate.set(timer_V1,TIMER_INIT),
+                                        registry.reference("Stop_V1")
+                                )
+                        )
+                )
+        );
+
         registry.set("IDS_V1",
                 Controller.ifThenElse(
-                        DataState.lessOrEqualThan(p_distance_V1, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V1, ACCELERATION)),
+                        DataState.lessOrEqualThan(p_distance_V1, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V1, ACCELERATION).or(DataState.equalsTo(accel_V1, NEUTRAL))),
                         Controller.doAction(DataStateUpdate.set(warning_V1, DANGER),registry.reference("IDS_V1")),
                         Controller.doAction(DataStateUpdate.set(warning_V1, OK),registry.reference("IDS_V1"))
                 )
@@ -526,25 +428,20 @@ public class Main {
                 Controller.ifThenElse(
                         DataState.greaterThan(s_speed_V2, 0),
                         Controller.ifThenElse(
-                                DataState.greaterThan(safety_gap_V1_V2, 0 ).and((DataState.equalsTo(brakelight_V1, 0 ).or(DataState.greaterOrEqualThan(s_distance_V1_V2, 300))).and(DataState.greaterThan(safety_gap_V2, 0 ))),
+                                DataState.greaterThan(safety_gap_V1_V2, 0 ).and((DataState.equalsTo(brake_light_V1, 0 ).or(DataState.greaterOrEqualThan(s_distance_V1_V2, 300))).and(DataState.greaterThan(safety_gap_V2, 0 ))),
                                 Controller.doAction(
                                         (rg, ds) -> List.of(new DataStateUpdate(accel_V2, ACCELERATION), new DataStateUpdate(timer_V2, TIMER_INIT),
-                                                new DataStateUpdate(brakelight_V2, 0)),
+                                                new DataStateUpdate(brake_light_V2, 0)),
                                         registry.reference("Accelerate_V2")),
                                 Controller.doAction(
                                         (rg, ds) -> List.of( new DataStateUpdate(accel_V2, - BRAKE), new DataStateUpdate(timer_V2, TIMER_INIT),
-                                                new DataStateUpdate(brakelight_V2, 1)),
+                                                new DataStateUpdate(brake_light_V2, 1)),
                                         registry.reference("Decelerate_V2"))
                         ),
-                        registry.reference("Stop_V2")
-                )
-        );
-
-        registry.set("Stop_V2",
-                Controller.ifThenElse(
-                        DataState.greaterThan(timer_V2, 0),
-                        Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V2, NEUTRAL)), registry.reference("Stop_V2")),
-                        Controller.doAction((rg, ds) -> List.of(new DataStateUpdate(accel_V2, NEUTRAL), new DataStateUpdate(timer_V2, TIMER_INIT)), registry.reference("Stop_V2"))
+                        Controller.doAction(
+                                (rg,ds)-> List.of(new DataStateUpdate(accel_V2,NEUTRAL), new DataStateUpdate(timer_V2,TIMER_INIT)),
+                                registry.reference("Stop_V2")
+                        )
                 )
         );
 
@@ -564,9 +461,28 @@ public class Main {
                 )
         );
 
+        registry.set("Stop_V2",
+                Controller.ifThenElse(
+                        DataState.greaterThan(timer_V2, 0),
+                        Controller.doTick(registry.reference("Stop_V2")),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(warning_V2,DANGER),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(accel_V2, -BRAKE),
+                                                new DataStateUpdate(timer_V2, TIMER_INIT)),
+                                        registry.reference("Decelerate_V2")
+                                ),
+                                Controller.doAction(
+                                        DataStateUpdate.set(timer_V2,TIMER_INIT),
+                                        registry.reference("Stop_V2")
+                                )
+                        )
+                )
+        );
+
         registry.set("IDS_V2",
                 Controller.ifThenElse(
-                        DataState.lessOrEqualThan(p_distance_V2, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V2, ACCELERATION)),
+                        DataState.lessOrEqualThan(p_distance_V2, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V2, ACCELERATION).or(DataState.equalsTo(accel_V2, NEUTRAL))),
                         Controller.doAction(DataStateUpdate.set(warning_V2, DANGER),registry.reference("IDS_V2")),
                         Controller.doAction(DataStateUpdate.set(warning_V2, OK),registry.reference("IDS_V2"))
                 )
@@ -581,15 +497,11 @@ public class Main {
         double new_timer_V1 = state.get(timer_V1) - 1;
         double new_p_speed_V1 = Math.min(MAX_SPEED,Math.max(0,state.get(p_speed_V1) + state.get(accel_V1)));
         double new_p_distance_V1 = state.get(p_distance_V1) - travel_V1;
-        //  updates.add(new VariableUpdate(a,state.getValue(a)+5));
         double travel_V2 = state.get(accel_V2)/2 + state.get(p_speed_V2);
         double new_timer_V2 = state.get(timer_V2) - 1;
         double new_p_speed_V2 = Math.min(MAX_SPEED,Math.max(0,state.get(p_speed_V2) + state.get(accel_V2)));
         double new_p_distance_V1_V2 = state.get(p_distance_V1_V2) - travel_V2 + travel_V1;
         double new_p_distance_V2 = state.get(p_distance_V2) - travel_V2;
-        //  updates.add(new VariableUpdate(a,state.getValue(a)+5));
-        double y = state.get(x);
-        updates.add(new DataStateUpdate(x, y/2));
         updates.add(new DataStateUpdate(timer_V1, new_timer_V1));
         updates.add(new DataStateUpdate(p_speed_V1, new_p_speed_V1));
         updates.add(new DataStateUpdate(p_distance_V1, new_p_distance_V1));
@@ -598,8 +510,6 @@ public class Main {
         updates.add(new DataStateUpdate(p_distance_V2, new_p_distance_V2));
         updates.add(new DataStateUpdate(p_distance_V1_V2, new_p_distance_V1_V2));
         if(new_timer_V1 == 0) {
-            //double new_s_speed_V1 = new_p_speed_V1;
-            //double new_s_distance_V1 = new_p_distance_V1;
             double new_bd_V1 = (new_p_speed_V1 * new_p_speed_V1 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
                     2 * new_p_speed_V1 * TIMER_INIT)) / (2 * BRAKE);
             double new_rd_V1 = new_bd_V1 + SAFETY_DISTANCE;
@@ -611,9 +521,6 @@ public class Main {
             updates.add(new DataStateUpdate(s_distance_V1,new_p_distance_V1));
         }
         if(new_timer_V2 == 0) {
-            //double new_s_speed_V2 = new_p_speed_V2;
-            //double new_s_distance_V2 = new_p_distance_V2;
-            //double new_s_distance_V1_V2 = new_p_distance_V1_V2;
             double new_bd_V2 = (new_p_speed_V2 * new_p_speed_V2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
                     2 * new_p_speed_V2 * TIMER_INIT)) / (2 * BRAKE);
             double new_rd_V2 = new_bd_V2 + SAFETY_DISTANCE;
@@ -632,28 +539,6 @@ public class Main {
 
 
 
-    private static Perturbation perturbazioneV1( ) {
-        return new IterativePerturbation(50, new AtomicPerturbation(0, Main::funzioneV1));
-    }
-
-
-   private static DataState funzioneV1(RandomGenerator rg, DataState state){
-
-        List<DataStateUpdate> updates = new LinkedList<>();
-        double fake_x = state.get(x) + 60;
-        updates.add(new DataStateUpdate(x, fake_x));
-        // }
-        return state.apply(updates);
-    }
-
-
-    private static DataState funzioneV2(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        double fake_x = state.get(x) + 40;
-        updates.add(new DataStateUpdate(x, fake_x));
-        // }
-        return state.apply(updates);
-    }
 
 
 
@@ -664,32 +549,21 @@ public class Main {
 
     private static DataState speedSensorPerturbationFunctionV1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
-        // updates.add(new VariableUpdate(a,state.getValue(a) +100));
-        // double new_timer = state.get(timer_V1);
-        // if(new_timer == 0) {
-            // double new_p_speed = Math.max(0, state.get(p_speed_V1) + state.get(accel_V1));
-            // double offset = new_p_speed * rg.nextDouble() * MAX_SPEED_OFFSET;
-            double offset = state.get(p_speed_V1) * rg.nextDouble() * MAX_SPEED_OFFSET;
-            // double fake_speed = new_p_speed - offset;
-            double fake_speed = state.get(p_speed_V1) - offset;
-            // double travel = state.get(accel_V1) / 2 + state.get(p_speed_V1);
-            // double new_p_distance = state.get(p_distance_V1) - travel;
-            double fake_bd = (fake_speed * fake_speed + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
+        double offset = state.get(p_speed_V1) * rg.nextDouble() * MAX_SPEED_OFFSET;
+        double fake_speed = state.get(p_speed_V1) - offset;
+        double fake_bd = (fake_speed * fake_speed + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
                     2 * fake_speed * TIMER_INIT)) / (2 * BRAKE);
-            double fake_rd = fake_bd + SAFETY_DISTANCE;
-            // double fake_sg = new_p_distance - fake_rd;
-            double fake_sg = state.get(p_distance_V1) - fake_rd;
-            updates.add(new DataStateUpdate(s_speed_V1, fake_speed));
-            updates.add(new DataStateUpdate(required_distance_V1, fake_rd));
-            updates.add(new DataStateUpdate(safety_gap_V1, fake_sg));
-        // }
+        double fake_rd = fake_bd + SAFETY_DISTANCE;
+        double fake_sg = state.get(p_distance_V1) - fake_rd;
+        updates.add(new DataStateUpdate(s_speed_V1, fake_speed));
+        updates.add(new DataStateUpdate(required_distance_V1, fake_rd));
+        updates.add(new DataStateUpdate(safety_gap_V1, fake_sg));
         return state.apply(updates);
     }
 
 
     private static Perturbation getDistancePerturbationV2( ) {
         return new IterativePerturbation(ATTACK_LENGTH, new AtomicPerturbation(0, Main::distancePerturbationFunctionV2));
-        //   return new AtomicPerturbation(0, Main::speedSensorPerturbationFunctionV1);
     }
 
     private static DataState distancePerturbationFunctionV2(RandomGenerator rg, DataState state){
@@ -699,21 +573,9 @@ public class Main {
         double new_sg_V1_V2 = fake_distance_V1_V2 - state.get(required_distance_V2);
         updates.add(new DataStateUpdate(s_distance_V1_V2, fake_distance_V1_V2));
         double fake_brake = 0;
-        updates.add(new DataStateUpdate(brakelight_V1, fake_brake));
+        updates.add(new DataStateUpdate(brake_light_V1, fake_brake));
         updates.add(new DataStateUpdate(safety_gap_V1_V2, new_sg_V1_V2));
         return state.apply(updates);
-    }
-
-    private static  Perturbation testAtomica() {
-        return new AtomicPerturbation(0, Main::identity);
-    }
-
-    private static DataState identity(RandomGenerator rg, DataState state) {
-        return state;
-    }
-
-    private static  Perturbation testAtomicaNull() {
-        return new NonePerturbation();
     }
 
     private static  Perturbation getFasterPerturbation() {
@@ -774,8 +636,7 @@ public class Main {
     public static DataState getInitialState( ) {
         Map<Integer, Double> values = new HashMap<>();
         // INITIAL DATA FOR V1
-        values.put(x, (double) 100);
-        values.put(brakelight_V1, (double) 0);
+        values.put(brake_light_V1, (double) 0);
         values.put(timer_V1, (double) 0);
         values.put(p_speed_V1, INIT_SPEED_V1);
         values.put(s_speed_V1, INIT_SPEED_V1);
@@ -793,8 +654,7 @@ public class Main {
         values.put(safety_gap_V1, init_sg_V1);
         // INITIAL DATA FOR V2
         values.put(timer_V2, (double) 0);
-        values.put(brakelight_V2, (double) 0);
-        //   values.put(a,100.0);
+        values.put(brake_light_V2, (double) 0);
         values.put(p_speed_V2, INIT_SPEED_V2);
         values.put(s_speed_V2, INIT_SPEED_V2);
         values.put(p_distance_V2, INIT_DISTANCE_V1_V2 + INIT_DISTANCE_OBS_V1);
