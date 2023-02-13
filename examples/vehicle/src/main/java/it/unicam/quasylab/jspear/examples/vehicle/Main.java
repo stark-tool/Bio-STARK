@@ -103,7 +103,7 @@ public class Main {
             Controller controller_V2 = getController_V2();
             DataState state = getInitialState();
             ControlledSystem system = new ControlledSystem(new ParallelController(controller_V1, controller_V2), (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, 1);
+            EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, 100);
 
             EvolutionSequence sequenceAttSensorSpeed_V1 = sequence.apply(getSpeedSensorPerturbationV1(), ATTACK_INIT, 100);
             EvolutionSequence sequenceAttDistance_V2 = sequence.apply(getDistancePerturbationV2(), ATTACK_INIT, 100);
@@ -175,10 +175,10 @@ public class Main {
                     H);
 
             RobustnessFormula Phi_4 = new ConjunctionRobustnessFormula(Phi_1, new ConjunctionRobustnessFormula(Phi_2, Phi_3));
-            //System.out.println("Evaluation of PHI1: "+Phi_1.eval(30,0,sequence));
-            //System.out.println("Evaluation of PHI2: "+Phi_2.eval(30,0,sequence));
-            //System.out.println("Evaluation of PHI3: "+Phi_3.eval(30,0,sequence));
-            //System.out.println("Evaluation of PHI4: "+Phi_4.eval(30,0,sequence));
+            System.out.println("Evaluation of PHI1: "+Phi_1.eval(100,0,sequence,false));
+            System.out.println("Evaluation of PHI2: "+Phi_2.eval(100,0,sequence, false));
+            System.out.println("Evaluation of PHI3: "+Phi_3.eval(100,0,sequence, false));
+            System.out.println("Evaluation of PHI4: "+Phi_4.eval(100,0,sequence));
 
             EvolutionSequence doubleAttack = sequence.apply(getIteratedCombinedPerturbation(), 0, 30);
             //EvolutionSequence attackOnV1 = sequence.apply(getIteratedFasterPerturbation(), 0, 30);
@@ -211,8 +211,11 @@ public class Main {
             L.add("dist1vs2");
             F.add(ds -> ds.get(s_distance_V1_V2));
 
+            L.add("brake1");
+            F.add(ds -> ds.get(braking_distance_V1));
 
-            printLData(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 1000, 1);
+
+            printLData(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 1000, 100);
 
 
 
@@ -411,7 +414,7 @@ public class Main {
 
         registry.set("IDS_V1",
                 Controller.ifThenElse(
-                        DataState.lessOrEqualThan(p_distance_V1, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V1, ACCELERATION).or(DataState.equalsTo(accel_V1, NEUTRAL))),
+                        DataState.lessOrEqualThan(p_distance_V1, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V1, ACCELERATION).or(DataState.equalsTo(accel_V1, NEUTRAL).and(DataState.greaterThan(p_speed_V1,0.0)))),
                         Controller.doAction(DataStateUpdate.set(warning_V1, DANGER),registry.reference("IDS_V1")),
                         Controller.doAction(DataStateUpdate.set(warning_V1, OK),registry.reference("IDS_V1"))
                 )
@@ -482,7 +485,7 @@ public class Main {
 
         registry.set("IDS_V2",
                 Controller.ifThenElse(
-                        DataState.lessOrEqualThan(p_distance_V2, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V2, ACCELERATION).or(DataState.equalsTo(accel_V2, NEUTRAL))),
+                        DataState.lessOrEqualThan(p_distance_V2, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V2, ACCELERATION).or(DataState.equalsTo(accel_V2, NEUTRAL).and(DataState.greaterThan(p_speed_V1,0.0)))),
                         Controller.doAction(DataStateUpdate.set(warning_V2, DANGER),registry.reference("IDS_V2")),
                         Controller.doAction(DataStateUpdate.set(warning_V2, OK),registry.reference("IDS_V2"))
                 )
@@ -588,11 +591,11 @@ public class Main {
 
 
     private static  Perturbation getIteratedFasterPerturbation() {
-        return new IterativePerturbation(150, new AtomicPerturbation(5, Main::fasterPerturbation));
+        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(4, Main::fasterPerturbation)));
     }
 
     private static  Perturbation getIteratedSlowerPerturbation() {
-        return new IterativePerturbation(150, new AtomicPerturbation(5, Main::slowerPerturbation));
+        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(4, Main::slowerPerturbation)));
     }
 
     private static  Perturbation getIteratedCombinedPerturbation() {
