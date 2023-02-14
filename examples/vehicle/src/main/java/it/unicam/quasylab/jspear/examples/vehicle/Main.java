@@ -43,10 +43,10 @@ public class Main {
                     "warning_V2", "offset_V2", "braking_distance_V2", "required_distance_V2", "safety_gap_V2",
                     "safety_gap_V1_V2", "brake_light_V2"
             };
-    public final static double ACCELERATION = 0.1;
-    public final static double BRAKE = 0.3;
+    public final static double ACCELERATION = 1.0;
+    public final static double BRAKE = 2.0;
     public final static double NEUTRAL = 0.0;
-    public final static int TIMER_INIT = 5;
+    public final static int TIMER_INIT = 3;
     public final static int DANGER = 1;
     public final static int OK = 0;
     public final static double MAX_SPEED_OFFSET = 3.0;
@@ -58,7 +58,7 @@ public class Main {
     private static final double SAFETY_DISTANCE = 200.0;
     private static final int ETA_SpeedLB = 0;
     private static final int ETA_SpeedUB = 50;
-    private static final double ETA_CRASH = 0.3;
+    private static final double ETA_CRASH = SAFETY_DISTANCE/INIT_DISTANCE_V1_V2;
     private static final int H = 1000;
     private static final int ATTACK_INIT = 0;
     private static final int ATTACK_LENGTH = 550;
@@ -155,7 +155,7 @@ public class Main {
                             RelationOperator.LESS_OR_EQUAL_THAN,
                             ETA_CRASH,
                             1),
-                    100,
+                    0,
                     H);
             RobustnessFormula Phi_2 = new AlwaysRobustnenessFormula(
                     new AtomicRobustnessFormula(getIteratedFasterPerturbation(),
@@ -163,7 +163,7 @@ public class Main {
                             RelationOperator.GREATER_OR_EQUAL_THAN,
                             ETA_CRASH,
                             1),
-                    100,
+                    0,
                     H);
             RobustnessFormula Phi_3 = new AlwaysRobustnenessFormula(
                     new AtomicRobustnessFormula(getIteratedSlowerPerturbation(),
@@ -171,7 +171,7 @@ public class Main {
                             RelationOperator.GREATER_OR_EQUAL_THAN,
                             ETA_CRASH,
                             1),
-                    100,
+                    0,
                     H);
 
             RobustnessFormula Phi_4 = new ConjunctionRobustnessFormula(Phi_1, new ConjunctionRobustnessFormula(Phi_2, Phi_3));
@@ -190,11 +190,14 @@ public class Main {
 
             L.add("stp");
 
-            L.add("rSpeed1");
-            F.add(ds -> ds.get(p_speed_V1));
+            //L.add("rSpeed1");
+            //F.add(ds -> ds.get(p_speed_V1));
 
-            L.add("sSpeed1");
-            F.add(ds -> ds.get(s_speed_V1));
+            //L.add("sSpeed1");
+            //F.add(ds -> ds.get(s_speed_V1));
+
+            L.add("br_light_1");
+            F.add(ds -> ds.get(brake_light_V1));
 
             L.add("rSpeed2");
             F.add(ds -> ds.get(p_speed_V2));
@@ -202,20 +205,29 @@ public class Main {
             L.add("sSpeed2");
             F.add(ds -> ds.get(s_speed_V2));
 
-            L.add("dist1");
-            F.add(ds -> ds.get(s_distance_V1));
+            //L.add("dist1");
+            //F.add(ds -> ds.get(s_distance_V1));
 
-            L.add("dist2");
-            F.add(ds -> ds.get(s_distance_V2));
+            //L.add("dist2");
+            //F.add(ds -> ds.get(s_distance_V2));
 
             L.add("dist1vs2");
             F.add(ds -> ds.get(s_distance_V1_V2));
 
-            L.add("brake1");
-            F.add(ds -> ds.get(braking_distance_V1));
+            L.add("br_dist2");
+            F.add(ds -> ds.get(braking_distance_V2));
+
+            L.add("req_dist2");
+            F.add(ds -> ds.get(required_distance_V2));
+
+            L.add("safety_gap2");
+            F.add(ds -> ds.get(safety_gap_V2));
+
+            L.add("accel2");
+            F.add(ds -> ds.get(accel_V2));
 
 
-            printLData(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 1000, 100);
+            printLData(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 1000, 1);
 
 
 
@@ -431,7 +443,7 @@ public class Main {
                 Controller.ifThenElse(
                         DataState.greaterThan(s_speed_V2, 0),
                         Controller.ifThenElse(
-                                DataState.greaterThan(safety_gap_V1_V2, 0 ).and((DataState.equalsTo(brake_light_V1, 0 ).or(DataState.greaterOrEqualThan(s_distance_V1_V2, 300))).and(DataState.greaterThan(safety_gap_V2, 0 ))),
+                                DataState.greaterThan(safety_gap_V1_V2, 0 ).and(DataState.equalsTo(brake_light_V1, 0 ).or(DataState.greaterOrEqualThan(s_distance_V1_V2, 300))).and(DataState.greaterThan(safety_gap_V2, 0 )),
                                 Controller.doAction(
                                         (rg, ds) -> List.of(new DataStateUpdate(accel_V2, ACCELERATION), new DataStateUpdate(timer_V2, TIMER_INIT),
                                                 new DataStateUpdate(brake_light_V2, 0)),
@@ -485,7 +497,7 @@ public class Main {
 
         registry.set("IDS_V2",
                 Controller.ifThenElse(
-                        DataState.lessOrEqualThan(p_distance_V2, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V2, ACCELERATION).or(DataState.equalsTo(accel_V2, NEUTRAL).and(DataState.greaterThan(p_speed_V1,0.0)))),
+                        DataState.lessOrEqualThan(p_distance_V2, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V2, ACCELERATION).or(DataState.equalsTo(accel_V2, NEUTRAL).and(DataState.greaterThan(p_speed_V2,0.0)))),
                         Controller.doAction(DataStateUpdate.set(warning_V2, DANGER),registry.reference("IDS_V2")),
                         Controller.doAction(DataStateUpdate.set(warning_V2, OK),registry.reference("IDS_V2"))
                 )
@@ -582,24 +594,24 @@ public class Main {
     }
 
     private static  Perturbation getFasterPerturbation() {
-        return new IterativePerturbation(3, new AtomicPerturbation(4, Main::fasterPerturbation));
+        return new IterativePerturbation(3, new AtomicPerturbation(TIMER_INIT-1, Main::fasterPerturbation));
     }
 
     private static  Perturbation getSlowerPerturbation() {
-        return new IterativePerturbation(3, new AtomicPerturbation(4, Main::slowerPerturbation));
+        return new IterativePerturbation(3, new AtomicPerturbation(TIMER_INIT-1, Main::slowerPerturbation));
     }
 
 
     private static  Perturbation getIteratedFasterPerturbation() {
-        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(4, Main::fasterPerturbation)));
+        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(TIMER_INIT-1, Main::fasterPerturbation)));
     }
 
     private static  Perturbation getIteratedSlowerPerturbation() {
-        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(4, Main::slowerPerturbation)));
+        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(TIMER_INIT-1, Main::slowerPerturbation)));
     }
 
     private static  Perturbation getIteratedCombinedPerturbation() {
-        return new AfterPerturbation(1, new IterativePerturbation(20, new SequentialPerturbation(getFasterPerturbation(),getSlowerPerturbation())));
+        return new AfterPerturbation(1, new IterativePerturbation(50, new SequentialPerturbation(getFasterPerturbation(),getSlowerPerturbation())));
     }
 
     private static DataState fasterPerturbation(RandomGenerator rg, DataState state) {
