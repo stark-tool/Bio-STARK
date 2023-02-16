@@ -62,7 +62,7 @@ public class Main {
     private static final double ETA_distance_combined = 0.8;
     private static final double ETA_distance_faster = 0.2;
     private static final double ETA_distance_slower = 0.9;
-    private static final int H = 350;
+    private static final int H = 320;
     //private static final int ATTACK_INIT = 0;
     //private static final int ATTACK_LENGTH = 550;
 
@@ -155,9 +155,8 @@ public class Main {
             DistanceExpression relative_distance_safe = new AtomicDistanceExpression(ds -> Math.min(1, 1 - Math.min(ds.get(p_distance_V1_V2),SAFETY_DISTANCE) / SAFETY_DISTANCE));
             //DistanceExpression obstacle_distance1_safe = new AtomicDistanceExpression(ds -> 1 - Math.min(ds.get(p_distance_V1), SAFETY_DISTANCE) / SAFETY_DISTANCE);
             //DistanceExpression obstacle_distance2_safe = new AtomicDistanceExpression(ds -> 1 - Math.min(ds.get(p_distance_V2), SAFETY_DISTANCE) / SAFETY_DISTANCE);
-            DistanceExpression crash_probability = new AtomicDistanceExpression(Main::rho_crash);
-
-
+            DistanceExpression crash = new AtomicDistanceExpression(Main::rho_crash);
+            DistanceExpression crash_probability = new AtomicDistanceExpression(Main::rho_crash_probability);
 
             RobustnessFormula Phi_1 = new AlwaysRobustnenessFormula(
                     new ConjunctionRobustnessFormula(
@@ -175,7 +174,7 @@ public class Main {
                     0,
                     H);
 
-            RobustnessFormula Phi_2 = new AlwaysRobustnenessFormula(
+            RobustnessFormula Phi_fast = new AlwaysRobustnenessFormula(
                     new AtomicRobustnessFormula(getIteratedFasterPerturbation(),
                             new MaxIntervalDistanceExpression(relative_distance_safe, 250, 500),
                             RelationOperator.LESS_OR_EQUAL_THAN,
@@ -184,7 +183,7 @@ public class Main {
                     0,
                     H);
 
-            RobustnessFormula Phi_3 = new AlwaysRobustnenessFormula(
+            RobustnessFormula Phi_slow = new AlwaysRobustnenessFormula(
                     new AtomicRobustnessFormula(getIteratedSlowerPerturbation(),
                             new MaxIntervalDistanceExpression(relative_distance_safe, 250, 500),
                             RelationOperator.LESS_OR_EQUAL_THAN,
@@ -193,11 +192,22 @@ public class Main {
                     0,
                     H);
 
-            RobustnessFormula Phi = new ConjunctionRobustnessFormula(Phi_1, new ConjunctionRobustnessFormula(Phi_2, Phi_3));
-            System.out.println("Evaluation of PHI1: "+Phi_1.eval(100,0,sequence,false));
-            System.out.println("Evaluation of PHI2: "+Phi_2.eval(100,0,sequence, false));
-            System.out.println("Evaluation of PHI3: "+Phi_3.eval(100,0,sequence, false));
-            //System.out.println("Evaluation of PHI: "+Phi.eval(100,0,sequence));
+            RobustnessFormula Phi_crash = new AlwaysRobustnenessFormula(
+                    new AtomicRobustnessFormula(getIteratedCombinedPerturbation(),
+                        new MaxIntervalDistanceExpression(crash_probability, 250, 500),
+                        RelationOperator.LESS_OR_EQUAL_THAN,
+                        ETA_CRASH,
+                        0),
+                    0,
+                    H);
+
+            RobustnessFormula Phi_comb = new ImplicationRobustnessFormula(new ConjunctionRobustnessFormula(Phi_fast, Phi_slow), Phi_crash);
+
+            //System.out.println("Evaluation of PHI1: "+Phi_1.eval(100,0,sequence,false));
+            System.out.println("Evaluation of PHI_FAST: "+Phi_fast.eval(100,0,sequence, false));
+            System.out.println("Evaluation of PHI_SLOW: "+Phi_slow.eval(100,0,sequence, false));
+            System.out.println("Evaluation of PHI_CRASH: "+Phi_crash.eval(100,0,sequence, false));
+            System.out.println("Evaluation of PHI_COMB: "+Phi_comb.eval(100,0,sequence,false));
 
             ArrayList<DataStateExpression> F = new ArrayList<DataStateExpression>();
             ArrayList<String> L = new ArrayList<String>();
@@ -258,6 +268,9 @@ public class Main {
             L.add("crash_12");
             F.add(Main::rho_crash);
 
+            L.add("crash_prob");
+            F.add(Main::rho_crash_probability);
+
             //L.add("accel2");
             //F.add(ds -> ds.get(accel_V2));
 
@@ -266,8 +279,8 @@ public class Main {
             //printLData_min(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 100);
             //printLData_max(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 100);
             //printLData(new DefaultRandomGenerator(), L, F, system, 1000, 1);
-            //printLData(new DefaultRandomGenerator(), L, F, getIteratedFasterPerturbation(), system, 1000, 1);
-            //printLData(new DefaultRandomGenerator(), L, F, getIteratedSlowerPerturbation(), system, 1000, 30);
+            //printLData(new DefaultRandomGenerator(), L, F, getIteratedFasterPerturbation(), system, 500, 100);
+            //printLData(new DefaultRandomGenerator(), L, F, getIteratedSlowerPerturbation(), system, 500, 100);
 
 
         } catch (RuntimeException e) {
@@ -282,6 +295,14 @@ public class Main {
         }
         else{
             return Math.abs(Math.min(SAFETY_DISTANCE,state.get(p_distance_V1_V2))/SAFETY_DISTANCE);
+        }
+    }
+    public static double rho_crash_probability(DataState state) {
+        if (state.get(p_distance_V1_V2) > 0){
+            return 0.0;
+        }
+        else{
+            return 1.0;
         }
     }
     private static void printData(RandomGenerator rg, String label, DataStateExpression f, SystemState s, int steps, int size) {
@@ -432,23 +453,6 @@ public class Main {
 
 
         ControllerRegistry registry = new ControllerRegistry();
-
-        /*
-
-        registry.set("aaa",
-                Controller.doAction(
-                        (rg, ds) -> List.of(new DataStateUpdate(x, ds.get(x) + 1000)),
-                        registry.reference("bbb")
-                )
-                );
-        registry.set("bbb",
-                Controller.doTick(0,registry.reference("aaa"))
-        );
-        return new ExecController(registry.reference("aaa"));
-
-
-         */
-
 
         registry.set("Ctrl_V1",
                 Controller.ifThenElse(
