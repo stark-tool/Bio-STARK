@@ -49,7 +49,7 @@ public class Main {
     public final static int TIMER_INIT = 3;
     public final static int DANGER = 1;
     public final static int OK = 0;
-    public final static double MAX_SPEED_OFFSET = 1.0;
+    public final static double MAX_SPEED_OFFSET = 0.3;
     public final static double INIT_SPEED_V1 = 30.0;
     public final static double INIT_SPEED_V2 = 30.0;
     public final static double MAX_SPEED = 50.0;
@@ -60,8 +60,9 @@ public class Main {
     //private static final int ETA_SpeedUB = 50;
     private static final double ETA_CRASH = 0.1;
     private static final double ETA_distance_combined = 0.8;
-    private static final double ETA_distance_faster = 0.2;
+    private static final double ETA_distance_faster = 0.05;
     private static final double ETA_distance_slower = 0.9;
+    private static final double ETA_crash_slower = 0.1;
     private static final int H = 320;
     //private static final int ATTACK_INIT = 0;
     //private static final int ATTACK_LENGTH = 550;
@@ -174,40 +175,43 @@ public class Main {
                     0,
                     H);
 
-            RobustnessFormula Phi_fast = new AlwaysRobustnenessFormula(
-                    new AtomicRobustnessFormula(getIteratedFasterPerturbation(),
+            ThreeValuedFormula Phi_fast = new AlwaysThreeValuedFormula(
+                    new AtomicThreeValuedFormula(getIteratedFasterPerturbation(),
                             new MaxIntervalDistanceExpression(relative_distance_safe, 250, 500),
                             RelationOperator.LESS_OR_EQUAL_THAN,
                             ETA_distance_faster,
-                            0),
+                            40,
+                            1.96),
                     0,
                     H);
 
-            RobustnessFormula Phi_slow = new AlwaysRobustnenessFormula(
-                    new AtomicRobustnessFormula(getIteratedSlowerPerturbation(),
-                            new MaxIntervalDistanceExpression(relative_distance_safe, 250, 500),
+            ThreeValuedFormula Phi_slow = new AlwaysThreeValuedFormula(
+                    new AtomicThreeValuedFormula(getIteratedSlowerPerturbation(),
+                            new MaxIntervalDistanceExpression(crash_probability, 250, 500),
                             RelationOperator.LESS_OR_EQUAL_THAN,
-                            ETA_distance_slower,
-                            0),
+                            ETA_crash_slower,
+                            40,
+                            1.96),
                     0,
                     H);
 
-            RobustnessFormula Phi_crash = new AlwaysRobustnenessFormula(
-                    new AtomicRobustnessFormula(getIteratedCombinedPerturbation(),
+            ThreeValuedFormula Phi_crash = new AlwaysThreeValuedFormula(
+                    new AtomicThreeValuedFormula(getIteratedCombinedPerturbation(),
                         new MaxIntervalDistanceExpression(crash_probability, 250, 500),
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         ETA_CRASH,
-                        0),
+                        40,
+                        1.96),
                     0,
                     H);
 
-            RobustnessFormula Phi_comb = new ImplicationRobustnessFormula(new ConjunctionRobustnessFormula(Phi_fast, Phi_slow), Phi_crash);
+            ThreeValuedFormula Phi_comb = new ImplicationThreeValuedFormula(new ConjunctionThreeValuedFormula(Phi_fast, Phi_slow), Phi_crash);
 
             //System.out.println("Evaluation of PHI1: "+Phi_1.eval(100,0,sequence,false));
-            System.out.println("Evaluation of PHI_FAST: "+Phi_fast.eval(100,0,sequence, false));
-            System.out.println("Evaluation of PHI_SLOW: "+Phi_slow.eval(100,0,sequence, false));
-            System.out.println("Evaluation of PHI_CRASH: "+Phi_crash.eval(100,0,sequence, false));
-            System.out.println("Evaluation of PHI_COMB: "+Phi_comb.eval(100,0,sequence,false));
+            //System.out.println("Evaluation of PHI_FAST: "+Phi_fast.eval(60,0,sequence));
+            System.out.println("Evaluation of PHI_SLOW: "+Phi_slow.eval(60,0,sequence));
+            System.out.println("Evaluation of PHI_CRASH: "+Phi_crash.eval(60,0,sequence));
+            System.out.println("Evaluation of PHI_COMB: "+Phi_comb.eval(60,0,sequence));
 
             ArrayList<DataStateExpression> F = new ArrayList<DataStateExpression>();
             ArrayList<String> L = new ArrayList<String>();
