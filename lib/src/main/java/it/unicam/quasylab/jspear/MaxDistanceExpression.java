@@ -51,4 +51,24 @@ public final class MaxDistanceExpression implements DistanceExpression {
                 .mapToDouble(i -> Math.max(expr1.evalCI(step, seq1, seq2, m, z)[i], expr2.evalCI(step, seq1, seq2, m, z)[i]))
                 .toArray();
     }
+
+    @Override
+    public double[] evalCILeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        return IntStream.range(0,3)
+                .mapToDouble(i -> Math.max(expr1.evalCILeq(step, seq1, seq2, m, z)[i], expr2.evalCILeq(step, seq1, seq2, m, z)[i]))
+                .toArray();
+    }
+
+    @Override
+    public double[] evalCIGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        return IntStream.range(0,3)
+                .mapToDouble(i -> Math.max(expr1.evalCIGeq(step, seq1, seq2, m, z)[i], expr2.evalCIGeq(step, seq1, seq2, m, z)[i]))
+                .toArray();
+    }
 }

@@ -69,4 +69,30 @@ public final class MaxIntervalDistanceExpression implements DistanceExpression {
         res[2] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[2]).max().orElse(Double.NaN);
         return res;
     }
+
+    @Override
+    public double[] evalCILeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        double[] res = new double[3];
+
+        res[0] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCILeq(i, seq1, seq2, m, z)[0]).max().orElse(Double.NaN);
+        res[1] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCILeq(i, seq1, seq2, m, z)[1]).max().orElse(Double.NaN);
+        res[2] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCILeq(i, seq1, seq2, m, z)[2]).max().orElse(Double.NaN);
+        return res;
+    }
+
+    @Override
+    public double[] evalCIGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        double[] res = new double[3];
+
+        res[0] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCIGeq(i, seq1, seq2, m, z)[0]).max().orElse(Double.NaN);
+        res[1] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCIGeq(i, seq1, seq2, m, z)[1]).max().orElse(Double.NaN);
+        res[2] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCIGeq(i, seq1, seq2, m, z)[2]).max().orElse(Double.NaN);
+        return res;
+    }
 }

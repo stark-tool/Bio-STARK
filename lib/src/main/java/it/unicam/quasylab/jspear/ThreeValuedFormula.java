@@ -24,6 +24,8 @@ package it.unicam.quasylab.jspear;
 
 public sealed interface ThreeValuedFormula permits
         AtomicThreeValuedFormula,
+        AtomicThreeValuedFormulaLeq,
+        AtomicThreeValuedFormulaGeq,
         ConjunctionThreeValuedFormula,
         DisjunctionThreeValuedFormula,
         ImplicationThreeValuedFormula,

@@ -64,4 +64,31 @@ public sealed interface DistanceExpression permits
      */
     double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z);
 
+
+    /**
+     * Returns the evaluation of the asymmetric distance expression between the second sequence and the first sequence at the given step and the related confidence interval.
+     * The second evolution sequence
+     *
+     * @param step step where the expression is evaluated
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @param m number of repetition for bootstrapping
+     * @param z the desired z-score
+     * @return the evaluation of the distance expression at the given step among the two sequences and its confidence interval.
+     */
+    double[] evalCILeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z);
+
+
+    /**
+     * Returns the evaluation of the asymmetric distance expression between the second sequence and the first sequence at the given step and the related confidence interval.
+     *
+     * @param step step where the expression is evaluated
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @param m number of repetition for bootstrapping
+     * @param z the desired z-score
+     * @return the evaluation of the distance expression at the given step among the two sequences and its confidence interval.
+     */
+    double[] evalCIGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z);
+
 }
