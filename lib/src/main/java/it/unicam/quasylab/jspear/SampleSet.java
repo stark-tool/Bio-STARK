@@ -246,8 +246,8 @@ public class SampleSet<T extends SystemState> {
         double[] otherEvaluated = other.evalPenaltyFunction(f);
 
         for (int i = 0; i<m; i++){
-            double[] thisSampled = Arrays.stream(thisEvaluated).parallel().map(j -> thisEvaluated[rand.nextInt(thisEvaluated.length-1)]).sorted().toArray();
-            double[] otherSampled = Arrays.stream(otherEvaluated).parallel().map(j -> otherEvaluated[rand.nextInt(otherEvaluated.length-1)]).sorted().toArray();
+            double[] thisSampled = Arrays.stream(thisEvaluated).parallel().map(j -> thisEvaluated[rand.nextInt(thisEvaluated.length)]).sorted().toArray();
+            double[] otherSampled = Arrays.stream(otherEvaluated).parallel().map(j -> otherEvaluated[rand.nextInt(otherEvaluated.length)]).sorted().toArray();
 
             int k = otherSampled.length / thisSampled.length;
             WSum += IntStream.range(0, thisSampled.length).parallel()
@@ -287,8 +287,8 @@ public class SampleSet<T extends SystemState> {
         double[] otherEvaluated = other.evalPenaltyFunction(f);
 
         for (int i = 0; i<m; i++){
-            double[] thisSampled = Arrays.stream(thisEvaluated).parallel().map(j -> thisEvaluated[rand.nextInt(thisEvaluated.length-1)]).sorted().toArray();
-            double[] otherSampled = Arrays.stream(otherEvaluated).parallel().map(j -> otherEvaluated[rand.nextInt(otherEvaluated.length-1)]).sorted().toArray();
+            double[] thisSampled = Arrays.stream(thisEvaluated).parallel().map(j -> thisEvaluated[rand.nextInt(thisEvaluated.length)]).sorted().toArray();
+            double[] otherSampled = Arrays.stream(otherEvaluated).parallel().map(j -> otherEvaluated[rand.nextInt(otherEvaluated.length)]).sorted().toArray();
             int k = otherSampled.length / thisSampled.length;
             WSum += IntStream.range(0, thisSampled.length).parallel()
                     .mapToDouble(h -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, thisSampled[h] - otherSampled[h * k + j])).sum())
