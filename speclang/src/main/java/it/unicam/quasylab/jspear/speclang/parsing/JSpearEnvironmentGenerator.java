@@ -20,25 +20,19 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.variables;
+package it.unicam.quasylab.jspear.speclang.parsing;
 
-import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
+import it.unicam.quasylab.jspear.ds.DataStateUpdate;
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
+import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
 
-public class JSpearArrayDataStore implements JSpearStore {
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.random.RandomGenerator;
 
-    private final JSpearValue[] values;
+public class JSpearEnvironmentGenerator extends JSpearSpecificationLanguageBaseVisitor<BiFunction<RandomGenerator, JSpearStore, List<DataStateUpdate>>> {
 
-    public JSpearArrayDataStore(JSpearValue[] values) {
-        this.values = values;
-    }
 
-    @Override
-    public JSpearValue get(Variable variable) {
-        return values[variable.index()];
-    }
 
-    @Override
-    public int size() {
-        return this.values.length;
-    }
+
 }
