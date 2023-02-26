@@ -44,9 +44,10 @@ public final class JSpearCustomValue implements JSpearValue {
     }
 
     @Override
-    public double[] toDoubleArray() {
-        return new double[] { elementIndex };
+    public double toDouble() {
+        return elementIndex;
     }
+
 
     @Override
     public boolean equals(Object o) {
@@ -59,5 +60,9 @@ public final class JSpearCustomValue implements JSpearValue {
     @Override
     public int hashCode() {
         return Objects.hash(type, elementIndex);
+    }
+
+    public String name() {
+        return this.type.getNameOf(this.elementIndex);
     }
 }

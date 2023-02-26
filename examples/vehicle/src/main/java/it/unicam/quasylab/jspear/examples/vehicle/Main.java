@@ -159,7 +159,7 @@ public class Main {
             DistanceExpression crash = new AtomicDistanceExpression(Main::rho_crash);
             DistanceExpression crash_probability = new AtomicDistanceExpression(Main::rho_crash_probability);
 
-            RobustnessFormula Phi_1 = new AlwaysRobustnenessFormula(
+            RobustnessFormula Phi_1 = new AlwaysRobustnessFormula(
                     new ConjunctionRobustnessFormula(
                         new AtomicRobustnessFormula(getIteratedCombinedPerturbation(),
                             new MaxIntervalDistanceExpression(relative_distance_safe, 250, 500),

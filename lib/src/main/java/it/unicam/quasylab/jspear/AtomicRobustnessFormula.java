@@ -33,11 +33,7 @@ public final class AtomicRobustnessFormula implements RobustnessFormula {
     private final int op;
 
     public AtomicRobustnessFormula(Perturbation perturbation, DistanceExpression expr, RelationOperator relop, double value) {
-        this.perturbation = perturbation;
-        this.expr = expr;
-        this.relop = relop;
-        this.value = value;
-        this.op = 0;
+        this(perturbation, expr, relop, value, 0);
     }
 
     public AtomicRobustnessFormula(Perturbation perturbation, DistanceExpression expr, RelationOperator relop, double value, int op) {

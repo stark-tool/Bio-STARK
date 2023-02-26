@@ -20,26 +20,30 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.semantics;
+package it.unicam.quasylab.jspear.speclang.parsing;
 
-import it.unicam.quasylab.jspear.controller.*;
-import it.unicam.quasylab.jspear.ds.DataState;
-import it.unicam.quasylab.jspear.ds.DataStateUpdate;
+import it.unicam.quasylab.jspear.controller.Controller;
+import it.unicam.quasylab.jspear.controller.ControllerRegistry;
+import it.unicam.quasylab.jspear.controller.ParallelController;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
-import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
-import it.unicam.quasylab.jspear.speclang.variables.*;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
-import org.antlr.v4.runtime.Token;
 
-import java.util.List;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
-import java.util.function.ToIntBiFunction;
+public class JSpearControllerGenerator extends JSpearSpecificationLanguageBaseVisitor<Controller> {
 
-import org.apache.commons.math3.random.RandomGenerator;
+    private final ControllerRegistry registry;
 
-public class JSpearControllerBehaviourGenerator extends JSpearSpecificationLanguageBaseVisitor<Controller> {
+    public JSpearControllerGenerator(ControllerRegistry registry) {
+        this.registry = registry;
+    }
 
 
+    @Override
+    public Controller visitControllerExpressionParallel(JSpearSpecificationLanguageParser.ControllerExpressionParallelContext ctx) {
+        return new ParallelController(ctx.left.accept(this), ctx.right.accept(this));
+    }
+
+    @Override
+    public Controller visitControllerExpressionReference(JSpearSpecificationLanguageParser.ControllerExpressionReferenceContext ctx) {
+        return registry.get(ctx.state.getText());
+    }
 }

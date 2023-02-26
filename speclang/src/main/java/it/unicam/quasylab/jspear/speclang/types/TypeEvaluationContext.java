@@ -20,29 +20,27 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear;
+package it.unicam.quasylab.jspear.speclang.types;
 
-import java.util.stream.IntStream;
+import org.antlr.v4.runtime.Token;
 
-public final class AlwaysRobustnenessFormula implements RobustnessFormula {
+public interface TypeEvaluationContext {
 
-    private final RobustnessFormula arg;
-    private final int from;
-    private final int to;
+    boolean isDefined(String name);
 
-    public AlwaysRobustnenessFormula(RobustnessFormula arg, int from, int to) {
-        this.arg = arg;
-        this.from = from;
-        this.to = to;
+    boolean isAReference(String name);
+
+    JSpearType getTypeOf(String name);
+
+    boolean isAFunction(String functionName);
+
+    JSpearType[] getArgumentsType(String functionName);
+
+    JSpearType getReturnType(String functionName);
+
+
+    static TypeEvaluationContext letContext(TypeEvaluationContext outerContext, Token name, JSpearType type) {
+        return new LetTypeEvaluationContext(outerContext, name.getText(), type);
     }
 
-    @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        if (parallel) {
-            return IntStream.of(from, to).parallel().allMatch(i -> arg.eval(sampleSize, step+i, sequence, true));
-        } else {
-            return IntStream.of(from, to).sequential().allMatch(i -> arg.eval(sampleSize, step+i, sequence, false));
-
-        }
-    }
 }

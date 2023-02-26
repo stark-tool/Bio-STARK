@@ -22,10 +22,7 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
-import it.unicam.quasylab.jspear.speclang.types.TypeContext;
-
-public class LocalVariableTypeContext implements TypeContext {
+public class LocalVariableTypeContext implements TypeEvaluationContext {
     private final String name;
     private final JSpearType type;
 
@@ -40,7 +37,7 @@ public class LocalVariableTypeContext implements TypeContext {
     }
 
     @Override
-    public boolean isReferenceable(String name) {
+    public boolean isAReference(String name) {
         return this.name.equals(name);
     }
 

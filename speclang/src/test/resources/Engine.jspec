@@ -90,6 +90,11 @@ controller {
   state ENG = Ctrl || IDS;
 }
 
+agent vehicle( ) {
+    var1;
+    ...
+    varn;
+}
 
 /*
 function temperatureUpdateInOneStep(boolean cool, speed_value speed) {

@@ -23,7 +23,6 @@ package it.unicam.quasylab.jspear.speclang;
 
 import it.unicam.quasylab.jspear.SystemSpecification;
 import it.unicam.quasylab.jspear.speclang.parsing.*;
-import it.unicam.quasylab.jspear.speclang.semantics.VariableAllocation;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -81,111 +80,19 @@ public class SpecificationLoader {
     }
 
     private SystemSpecification load(ParseTree model) {
-        doTask(this::checkSingleControllerDeclaration, model);
-        doTask(this::checkSingleEnvironmentDeclaration, model);
-        doTask(this::checkSingleVariableDefinition, model);
-        doTask(this::validateModel, model);
+        JSpearModelGenerator generator = new JSpearModelGenerator(errors);
+        model.accept(generator);
         if (errors.withErrors()) {
             return null;
+        } else {
+            return generator.getSystemSpecification();
         }
-        return new SystemSpecification(null, null);//new VariableAllocation(), new HashMap<>(), new HashMap<>());
     }
 
-    private VariableAllocation getVariableRegistry(ParseTree mode, SymbolTable table) {
-        return new VariableAllocation();
-    }
 
     private void doTask(Consumer<ParseTree> task, ParseTree model) {
         if (!errors.withErrors()) {
             task.accept(model);
-        }
-    }
-
-    private void validateModel(ParseTree model) {
-        model.accept(new SpecificationLanguageValidator(this.errors));
-    }
-
-    private void checkSingleEnvironmentDeclaration(ParseTree model) {
-        int elements = model.accept(new ElementBlockCounter(ElementType.ENVIRONMENT_DECLARATION));
-        if (elements>1) {
-            errors.record(ParseUtil.duplicatedEnvironmentDeclaration());
-        }
-    }
-
-    private void checkSingleControllerDeclaration(ParseTree model) {
-        int elements = model.accept(new ElementBlockCounter(ElementType.CONTROLLER_DECLARATION));
-        if (elements>1) {
-            errors.record(ParseUtil.duplicatedControllerDeclaration());
-        }
-    }
-
-    private void checkSingleVariableDefinition(ParseTree model) {
-        int elements = model.accept(new ElementBlockCounter(ElementType.VARIABLES_DECLARATION));
-        if (elements == 0) {
-            errors.record(ParseUtil.missingVariablesDeclaration());
-        }
-        if (elements>1) {
-            errors.record(ParseUtil.duplicatedVariablesDeclaration());
-        }
-    }
-
-
-    public static class ElementBlockCounter extends JSpearSpecificationLanguageBaseVisitor<Integer> {
-
-
-        private final ElementType elementType;
-
-        public ElementBlockCounter(ElementType elementType) {
-            this.elementType = elementType;
-        }
-
-        @Override
-        public Integer visitJSpearSpecificationModel(JSpearSpecificationLanguageParser.JSpearSpecificationModelContext ctx) {
-            int counter = 0;
-            for (JSpearSpecificationLanguageParser.ElementContext e: ctx.element()) {
-                counter += e.accept(this);
-            }
-            return counter;
-        }
-
-        @Override
-        public Integer visitFunctionDeclaration(JSpearSpecificationLanguageParser.FunctionDeclarationContext ctx) {
-            return 0;
-        }
-
-        @Override
-        public Integer visitSystemDeclaration(JSpearSpecificationLanguageParser.SystemDeclarationContext ctx) {
-            return 0;
-        }
-
-        @Override
-        public Integer visitPenaltyDeclaration(JSpearSpecificationLanguageParser.PenaltyDeclarationContext ctx) {
-            return 0;
-        }
-
-        @Override
-        public Integer visitControllerDeclaration(JSpearSpecificationLanguageParser.ControllerDeclarationContext ctx) {
-            return (elementType==ElementType.CONTROLLER_DECLARATION?1:0);
-        }
-
-        @Override
-        public Integer visitVariablesDeclaration(JSpearSpecificationLanguageParser.VariablesDeclarationContext ctx) {
-            return (elementType==ElementType.VARIABLES_DECLARATION ?1:0);
-        }
-
-        @Override
-        public Integer visitParameterDeclaration(JSpearSpecificationLanguageParser.ParameterDeclarationContext ctx) {
-            return 0;
-        }
-
-        @Override
-        protected Integer defaultResult() {
-            return 0;
-        }
-
-        @Override
-        protected Integer aggregateResult(Integer aggregate, Integer nextResult) {
-            return aggregate+nextResult;
         }
     }
 

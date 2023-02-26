@@ -50,8 +50,8 @@ public class ParseUtil {
         return new ParseError(MISSING_VARIABLE_DECLARATION,0,0);
     }
 
-    public static ParseError duplicatedVariablesDeclaration() {
-        return new ParseError(DUPLICATED_VARIABLE_DECLARATION,0,0);
+    public static ParseError duplicatedVariablesDeclaration(Token token) {
+        return new ParseError(DUPLICATED_VARIABLE_DECLARATION, token.getLine(), token.getCharPositionInLine());
     }
 
     public static ParseError duplicatedEnvironmentDeclaration() {

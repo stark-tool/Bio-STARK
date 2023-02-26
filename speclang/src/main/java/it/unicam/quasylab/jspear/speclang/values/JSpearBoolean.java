@@ -47,8 +47,8 @@ public final class JSpearBoolean implements JSpearValue {
     }
 
     @Override
-    public double[] toDoubleArray() {
-        return new double[] { (this.value?1.0:0.0) };
+    public double toDouble() {
+        return (value?1.0:0.0);
     }
 
     public  JSpearValue negate() {
@@ -59,18 +59,12 @@ public final class JSpearBoolean implements JSpearValue {
         if (other instanceof JSpearBoolean booleanValue) {
             return JSpearBoolean.of(this.value()&&booleanValue.value());
         }
-        if (other instanceof JSpearArrayElementPredicate predicate) {
-            return (this.value?predicate:this);
-        }
         return JSpearValue.ERROR_VALUE;
     }
 
     public JSpearValue or(JSpearValue other) {
         if (other instanceof JSpearBoolean booleanValue) {
             return JSpearBoolean.of(this.value()||booleanValue.value());
-        }
-        if (other instanceof JSpearArrayElementPredicate predicate) {
-            return (this.value? JSpearArrayElementPredicate.TRUE:this);
         }
         return JSpearValue.ERROR_VALUE;
     }

@@ -43,7 +43,6 @@ public final class DataStateUpdate {
         return (rg, ds) -> List.of(new DataStateUpdate(idx, value));
     }
 
-
     @Override
     public String toString() {
         return index+"<-"+value;

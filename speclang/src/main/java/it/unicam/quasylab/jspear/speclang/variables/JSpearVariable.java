@@ -20,20 +20,29 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.types;
+package it.unicam.quasylab.jspear.speclang.variables;
 
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+public record JSpearVariable(String name, int index) {
 
-public interface TypeContext {
-    boolean isDefined(String name);
+    public static String getTargetVariableName(String name) {
+        return name.substring(0, name.length()-1);
+    }
 
-    boolean isReferenceable(String name);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JSpearVariable variable = (JSpearVariable) o;
+        return index == variable.index;
+    }
 
-    JSpearType getTypeOf(String name);
+    @Override
+    public int hashCode() {
+        return index;
+    }
 
-    boolean isAFunction(String functionName);
-
-    JSpearType[] getArgumentsType(String functionName);
-
-    JSpearType getReturnType(String functionName);
+    @Override
+    public String toString() {
+        return name;
+    }
 }

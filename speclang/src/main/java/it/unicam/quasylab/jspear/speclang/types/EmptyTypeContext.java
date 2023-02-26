@@ -22,17 +22,14 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
-import it.unicam.quasylab.jspear.speclang.types.TypeContext;
-
-public class EmptyTypeContext implements TypeContext {
+public class EmptyTypeContext implements TypeEvaluationContext {
     @Override
     public boolean isDefined(String name) {
         return false;
     }
 
     @Override
-    public boolean isReferenceable(String name) {
+    public boolean isAReference(String name) {
         return false;
     }
 

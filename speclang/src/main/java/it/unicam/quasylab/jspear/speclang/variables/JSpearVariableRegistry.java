@@ -28,9 +28,9 @@ import java.util.Map;
 /**
  * This class is used to associate names to variables.
  */
-public class JSpearNameResolver {
+public class JSpearVariableRegistry {
 
-    private final Map<String, Variable> variables = new HashMap<>();
+    private final Map<String, JSpearVariable> variables = new HashMap<>();
 
     /**
      * Returns the variable with the given name. A <code>null</code> value is returned if not variable with the
@@ -39,7 +39,7 @@ public class JSpearNameResolver {
      * @param name variable name.
      * @return the variable with the given name.
      */
-    public Variable get(String name) {
+    public JSpearVariable get(String name) {
         return variables.get(name);
     }
 
@@ -59,13 +59,13 @@ public class JSpearNameResolver {
      * @param name variable name.
      * @return the variable with the given name.
      */
-    public Variable getOrRegister(String name) {
+    public JSpearVariable getOrRegister(String name) {
         return variables.computeIfAbsent(name, this::getVariable);
     }
 
 
-    private Variable getVariable(String name) {
-        return new Variable(name, variables.size());
+    private JSpearVariable getVariable(String name) {
+        return new JSpearVariable(name, variables.size());
     }
 
     /**
@@ -77,4 +77,7 @@ public class JSpearNameResolver {
         return this.variables.size();
     }
 
+    public void record(String name) {
+        getOrRegister(name);
+    }
 }

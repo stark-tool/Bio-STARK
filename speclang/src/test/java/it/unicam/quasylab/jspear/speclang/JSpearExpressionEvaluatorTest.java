@@ -90,7 +90,6 @@ class JSpearExpressionEvaluatorTest {
         valuesTests.put("sinh(1)", new JSpearReal(Math.sinh(1)));
         valuesTests.put("sqrt(1)", new JSpearReal(Math.sqrt(1)));
         valuesTests.put("tan(1)", new JSpearReal(Math.tan(1)));
-        valuesTests.put("[1,2,3]", new JSpearArray(new double[] {1, 2, 3} ));
         valuesTests.put("atan2(1,2)", new JSpearReal(Math.atan2(1,2)));
         valuesTests.put("hypot(1,2)", new JSpearReal(Math.hypot(1,2)));
         valuesTests.put("max(1,2)", new JSpearReal(Math.max(1,2)));
@@ -131,11 +130,6 @@ class JSpearExpressionEvaluatorTest {
         assertEquals(JSpearType.BOOLEAN_TYPE, inferTypeOf(Map.of("x", JSpearType.BOOLEAN_TYPE), parseTree));
     }
 
-    @Test
-    void shouldInferArrayTypeFromVariable() {
-        ParseTree parseTree = getParseTree("x");
-        assertEquals(JSpearType.ARRAY_TYPE, inferTypeOf(Map.of("x", JSpearType.ARRAY_TYPE), parseTree));
-    }
 
     @Test
     void shouldInferRealType() {

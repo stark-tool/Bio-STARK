@@ -32,7 +32,8 @@ public final class JSpearErrorValue implements JSpearValue {
     }
 
     @Override
-    public double[] toDoubleArray() {
-        return new double[0];
+    public double toDouble() {
+        return Double.NaN;
     }
+
 }

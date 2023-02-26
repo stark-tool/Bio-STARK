@@ -37,4 +37,6 @@ public interface JSpearExpressionEvaluationFunction {
 
 
     default JSpearValue eval() { return eval(null, null); }
+
+    default JSpearValue eval(JSpearStore store) { return eval(null, store); }
 }

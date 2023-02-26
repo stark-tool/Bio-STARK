@@ -22,44 +22,66 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
+import java.util.HashMap;
 import java.util.Map;
 
+public class GlobalTypeContext implements TypeEvaluationContext {
 
-public class LocalTypeContext implements TypeEvaluationContext {
-    private final Map<String, JSpearType> localDeclarations;
+    private final Map<String, JSpearType> symbolType;
+    private final Map<String, JSpearType[]> functionArgumentTypes;
 
-    public LocalTypeContext(Map<String, JSpearType> localDeclarations) {
-        this.localDeclarations = localDeclarations;
+    private final Map<String, JSpearType> functionReturnTypes;
+
+    public GlobalTypeContext() {
+        symbolType = new HashMap<>();
+        functionArgumentTypes = new HashMap<>();
+        functionReturnTypes = new HashMap<>();
     }
 
     @Override
     public boolean isDefined(String name) {
-        return localDeclarations.containsKey(name);
+        return symbolType.containsKey(name)||functionReturnTypes.containsKey(name);
     }
 
     @Override
     public boolean isAReference(String name) {
-        return isDefined(name);
+        return symbolType.containsKey(name);
     }
 
     @Override
     public JSpearType getTypeOf(String name) {
-        return this.localDeclarations.get(name);
+        return symbolType.get(name);
     }
 
     @Override
     public boolean isAFunction(String functionName) {
-        return false;
+        return functionReturnTypes.containsKey(functionName);
     }
 
     @Override
     public JSpearType[] getArgumentsType(String functionName) {
-        return null;
+        return functionArgumentTypes.get(functionName);
     }
 
     @Override
     public JSpearType getReturnType(String functionName) {
-        return null;
+        return functionReturnTypes.get(functionName);
     }
 
+    public boolean add(String name, JSpearType type) {
+        if (isDefined(name)) {
+            return false;
+        }
+        symbolType.put(name, type);
+        return true;
+    }
+
+    public boolean add(String name, JSpearType[] args, JSpearType returnType) {
+        if (isDefined(name)) {
+            return false;
+        }
+        functionReturnTypes.put(name, returnType);
+        functionArgumentTypes.put(name, args);
+        return true;
+    }
 }

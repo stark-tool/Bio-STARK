@@ -20,24 +20,30 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.variables;
+package it.unicam.quasylab.jspear;
 
-import it.unicam.quasylab.jspear.speclang.types.JSpearType;
+import java.util.stream.IntStream;
 
-import java.util.Objects;
+public final class AlwaysRobustnessFormula implements RobustnessFormula {
 
-public record Variable(String name, int index) {
+    private final RobustnessFormula arg;
+    private final int from;
+    private final int to;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Variable variable = (Variable) o;
-        return index == variable.index;
+
+    public AlwaysRobustnessFormula(RobustnessFormula arg, int from, int to) {
+        this.arg = arg;
+        this.from = from;
+        this.to = to;
     }
 
     @Override
-    public int hashCode() {
-        return index;
+    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
+        if (parallel) {
+            return IntStream.of(from, to).parallel().allMatch(i -> arg.eval(sampleSize, step+i, sequence, true));
+        } else {
+            return IntStream.of(from, to).sequential().allMatch(i -> arg.eval(sampleSize, step+i, sequence, false));
+
+        }
     }
 }

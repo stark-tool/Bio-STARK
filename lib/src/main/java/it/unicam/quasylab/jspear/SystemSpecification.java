@@ -22,46 +22,32 @@
 
 package it.unicam.quasylab.jspear;
 
-import it.unicam.quasylab.jspear.ds.DataState;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 
 import java.util.Map;
-import java.util.function.Supplier;
-import java.util.function.ToDoubleFunction;
 
-/**
- * This class is used to describe a JSpear specification.
- */
 public class SystemSpecification {
 
+    private final ControlledSystem system;
 
-    private final Map<String, Supplier<ControlledSystem>> systemRegistry;
+    private final Map<String, DataStateExpression> penalties;
 
-    private final Map<String, Supplier<DataStateExpression>> penaltyFunctions;
 
-    public SystemSpecification(Map<String, Supplier<ControlledSystem>> systemRegistry, Map<String, Supplier<DataStateExpression>> penaltyFunctions) {
-        this.systemRegistry = systemRegistry;
-        this.penaltyFunctions = penaltyFunctions;
+    public SystemSpecification(ControlledSystem system, Map<String, DataStateExpression> penalties) {
+        this.system = system;
+        this.penalties = penalties;
     }
 
-
-
-    public ControlledSystem getControlledSystem(String name) {
-        Supplier<ControlledSystem> supplier = systemRegistry.get(name);
-        if (supplier != null) {
-            return supplier.get();
-        } else {
-            throw new IllegalArgumentException("Unknown system: "+name);
-        }
+    public String[] getPenalties() {
+        return penalties.keySet().toArray(new String[0]);
     }
 
-    public ToDoubleFunction<DataState> getPenaltyFunction(String name) {
-        Supplier<DataStateExpression> supplier = penaltyFunctions.get(name);
-        if (supplier != null) {
-            return supplier.get();
-        } else {
-            throw new IllegalArgumentException("Unknown penalty function: "+name);
-        }
+    public DataStateExpression getPenalty(String name) {
+        return penalties.get(name);
+    }
+
+    public ControlledSystem getSystem() {
+        return system;
     }
 
 }

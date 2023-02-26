@@ -22,44 +22,52 @@
 
 package it.unicam.quasylab.jspear.speclang.types;
 
-import java.util.Map;
 
+public class LetTypeEvaluationContext implements TypeEvaluationContext {
+    private final TypeEvaluationContext outerContext;
+    private final String name;
+    private final JSpearType type;
 
-public class LocalTypeContext implements TypeEvaluationContext {
-    private final Map<String, JSpearType> localDeclarations;
-
-    public LocalTypeContext(Map<String, JSpearType> localDeclarations) {
-        this.localDeclarations = localDeclarations;
+    public LetTypeEvaluationContext(TypeEvaluationContext outerContext, String name, JSpearType type) {
+        this.outerContext = outerContext;
+        this.name = name;
+        this.type = type;
     }
+
 
     @Override
     public boolean isDefined(String name) {
-        return localDeclarations.containsKey(name);
+        return this.name.equals(name)||outerContext.isDefined(name);
     }
 
     @Override
     public boolean isAReference(String name) {
-        return isDefined(name);
+        return this.name.equals(name)||outerContext.isAReference(name);
     }
 
     @Override
     public JSpearType getTypeOf(String name) {
-        return this.localDeclarations.get(name);
+        return (this.name.equals(name)?this.type:outerContext.getTypeOf(name));
     }
 
     @Override
     public boolean isAFunction(String functionName) {
-        return false;
+        return (!this.name.equals(functionName))&&(outerContext.isAFunction(functionName));
     }
 
     @Override
     public JSpearType[] getArgumentsType(String functionName) {
-        return null;
+        if (this.name.equals(functionName)) {
+            return null;
+        }
+        return outerContext.getArgumentsType(functionName);
     }
 
     @Override
     public JSpearType getReturnType(String functionName) {
-        return null;
+        if (this.name.equals(functionName)) {
+            return null;
+        }
+        return outerContext.getReturnType(functionName);
     }
-
 }

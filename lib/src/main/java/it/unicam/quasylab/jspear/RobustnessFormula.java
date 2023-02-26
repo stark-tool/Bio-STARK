@@ -30,7 +30,7 @@ public sealed interface RobustnessFormula permits
         NegationRobustnessFormula,
         TrueRobustnessFormula,
         UntilRobustnessFormula,
-        AlwaysRobustnenessFormula,
+        AlwaysRobustnessFormula,
         EventuallyRobustnessFormula {
 
     default boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
