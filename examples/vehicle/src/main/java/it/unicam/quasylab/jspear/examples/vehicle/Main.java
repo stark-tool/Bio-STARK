@@ -36,11 +36,11 @@ public class Main {
 
     public final static String[] VARIABLES =
             new String[]{"p_speed_V1", "s_speed_V1", "p_distance_V1", "s_distance_V1", "accel_V1", "timer_V1",
-                    "warning_V1", "offset_V1", "braking_distance_V1", "required_distance_V1", "safety_gap_V1",
+                    "warning_V1", "braking_distance_V1", "required_distance_V1", "safety_gap_V1",
                     "brake_light_V1",
                     "p_speed_V2", "s_speed_V2", "p_distance_V2", "s_distance_V2",
                     "p_distance_V1_V2", "s_distance_V1_V2", "accel_V2", "timer_V2",
-                    "warning_V2", "offset_V2", "braking_distance_V2", "required_distance_V2", "safety_gap_V2",
+                    "warning_V2", "braking_distance_V2", "required_distance_V2", "safety_gap_V2",
                     "safety_gap_V1_V2", "brake_light_V2"
             };
     public final static double ACCELERATION = 1.0;
@@ -49,10 +49,10 @@ public class Main {
     public final static int TIMER_INIT = 3;
     public final static int DANGER = 1;
     public final static int OK = 0;
-    public final static double MAX_SPEED_OFFSET = 0.3;
-    public final static double INIT_SPEED_V1 = 30.0;
-    public final static double INIT_SPEED_V2 = 30.0;
-    public final static double MAX_SPEED = 50.0;
+    public final static double MAX_SPEED_OFFSET = 1.1;
+    public final static double INIT_SPEED_V1 = 25.0;
+    public final static double INIT_SPEED_V2 = 25.0;
+    public final static double MAX_SPEED = 40.0;
     public final static double INIT_DISTANCE_OBS_V1 = 10000.0;
     public final static double INIT_DISTANCE_V1_V2 = 5000.0;
     private static final double SAFETY_DISTANCE = 200.0;
@@ -61,7 +61,7 @@ public class Main {
     private static final double ETA_CRASH = 0.1;
     private static final double ETA_distance_combined = 0.8;
     private static final double ETA_distance_faster = 0.05;
-    private static final double ETA_distance_slower = 0.9;
+    //private static final double ETA_distance_slower = 0.9;
     private static final double ETA_crash_slower = 0.1;
     private static final int H = 320;
     //private static final int ATTACK_INIT = 0;
@@ -75,29 +75,27 @@ public class Main {
     private static final int accel_V1 = 4;//variableRegistry.getVariable("accel");
     private static final int timer_V1 = 5;//variableRegistry.getVariable("timer");
     private static final int warning_V1 = 6;//variableRegistry.getVariable("warning");
-    private static final int offset_V1 = 7;//variableRegistry.getVariable("offset");
-    private static final int braking_distance_V1 = 8;//variableRegistry.getVariable("braking_distance");
-    private static final int required_distance_V1 = 9; //variableRegistry.getVariable("required_distance");
-    private static final int safety_gap_V1 = 10;//variableRegistry.getVariable("safety_gap");
-    private static final int brake_light_V1 = 11;
+    private static final int braking_distance_V1 = 7;//variableRegistry.getVariable("braking_distance");
+    private static final int required_distance_V1 = 8; //variableRegistry.getVariable("required_distance");
+    private static final int safety_gap_V1 = 9;//variableRegistry.getVariable("safety_gap");
+    private static final int brake_light_V1 = 10;
 
-    private static final int p_speed_V2 = 12;//variableRegistry.getVariable("p_speed");
-    private static final int s_speed_V2 = 13;//variableRegistry.getVariable("s_speed");
-    private static final int p_distance_V2 = 14;// variableRegistry.getVariable("p_distance");
-    private static final int s_distance_V2 = 15;// variableRegistry.getVariable("s_distance");
-    private static final int p_distance_V1_V2 = 16;// variableRegistry.getVariable("p_distance");
-    private static final int s_distance_V1_V2 = 17;
-    private static final int accel_V2 = 18;//variableRegistry.getVariable("accel");
-    private static final int timer_V2 = 19;//variableRegistry.getVariable("timer");
-    private static final int warning_V2 = 20;//variableRegistry.getVariable("warning");
-    private static final int offset_V2 = 21;//variableRegistry.getVariable("offset");
-    private static final int braking_distance_V2 = 22;//variableRegistry.getVariable("braking_distance");
-    private static final int required_distance_V2 = 23; //variableRegistry.getVariable("required_distance");
-    private static final int safety_gap_V2 = 24;
-    private static final int safety_gap_V1_V2 = 25;//variableRegistry.getVariable("safety_gap");
-    private static final int brake_light_V2 = 26;
+    private static final int p_speed_V2 = 11;//variableRegistry.getVariable("p_speed");
+    private static final int s_speed_V2 = 12;//variableRegistry.getVariable("s_speed");
+    private static final int p_distance_V2 = 13;// variableRegistry.getVariable("p_distance");
+    private static final int s_distance_V2 = 14;// variableRegistry.getVariable("s_distance");
+    private static final int p_distance_V1_V2 = 15;// variableRegistry.getVariable("p_distance");
+    private static final int s_distance_V1_V2 = 16;
+    private static final int accel_V2 = 17;//variableRegistry.getVariable("accel");
+    private static final int timer_V2 = 18;//variableRegistry.getVariable("timer");
+    private static final int warning_V2 = 19;//variableRegistry.getVariable("warning");
+    private static final int braking_distance_V2 = 20;//variableRegistry.getVariable("braking_distance");
+    private static final int required_distance_V2 = 21; //variableRegistry.getVariable("required_distance");
+    private static final int safety_gap_V2 = 22;
+    private static final int safety_gap_V1_V2 = 23;//variableRegistry.getVariable("safety_gap");
+    private static final int brake_light_V2 = 24;
 
-    private static final int NUMBER_OF_VARIABLES = 27;
+    private static final int NUMBER_OF_VARIABLES = 25;
 
 
 
@@ -156,7 +154,7 @@ public class Main {
             DistanceExpression relative_distance_safe = new AtomicDistanceExpression(ds -> Math.min(1, 1 - Math.min(ds.get(p_distance_V1_V2),SAFETY_DISTANCE) / SAFETY_DISTANCE));
             //DistanceExpression obstacle_distance1_safe = new AtomicDistanceExpression(ds -> 1 - Math.min(ds.get(p_distance_V1), SAFETY_DISTANCE) / SAFETY_DISTANCE);
             //DistanceExpression obstacle_distance2_safe = new AtomicDistanceExpression(ds -> 1 - Math.min(ds.get(p_distance_V2), SAFETY_DISTANCE) / SAFETY_DISTANCE);
-            DistanceExpression crash = new AtomicDistanceExpression(Main::rho_crash);
+            //DistanceExpression crash = new AtomicDistanceExpression(Main::rho_crash);
             DistanceExpression crash_probability = new AtomicDistanceExpression(Main::rho_crash_probability);
 
             RobustnessFormula Phi_1 = new AlwaysRobustnessFormula(
@@ -176,7 +174,7 @@ public class Main {
                     H);
 
             ThreeValuedFormula Phi_fast = new AlwaysThreeValuedFormula(
-                    new AtomicThreeValuedFormula(getIteratedFasterPerturbation(),
+                    new AtomicThreeValuedFormulaLeq(getIteratedFasterPerturbation(),
                             new MaxIntervalDistanceExpression(relative_distance_safe, 250, 500),
                             RelationOperator.LESS_OR_EQUAL_THAN,
                             ETA_distance_faster,
@@ -185,8 +183,9 @@ public class Main {
                     0,
                     H);
 
+
             ThreeValuedFormula Phi_slow = new AlwaysThreeValuedFormula(
-                    new AtomicThreeValuedFormula(getIteratedSlowerPerturbation(),
+                    new AtomicThreeValuedFormulaLeq(getIteratedSlowerPerturbation(),
                             new MaxIntervalDistanceExpression(crash_probability, 250, 500),
                             RelationOperator.LESS_OR_EQUAL_THAN,
                             ETA_crash_slower,
@@ -195,8 +194,8 @@ public class Main {
                     0,
                     H);
 
-            ThreeValuedFormula Phi_crash = new AlwaysThreeValuedFormula(
-                    new AtomicThreeValuedFormula(getIteratedCombinedPerturbation(),
+            ThreeValuedFormula Phi_comb = new AlwaysThreeValuedFormula(
+                    new AtomicThreeValuedFormulaLeq(getIteratedCombinedPerturbation(),
                         new MaxIntervalDistanceExpression(crash_probability, 250, 500),
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         ETA_CRASH,
@@ -205,13 +204,48 @@ public class Main {
                     0,
                     H);
 
-            ThreeValuedFormula Phi_comb = new ImplicationThreeValuedFormula(new ConjunctionThreeValuedFormula(Phi_fast, Phi_slow), Phi_crash);
+
+            ThreeValuedFormula Phi_crash = new ImplicationThreeValuedFormula(new ConjunctionThreeValuedFormula(Phi_fast, Phi_slow), Phi_comb);
 
             //System.out.println("Evaluation of PHI1: "+Phi_1.eval(100,0,sequence,false));
             //System.out.println("Evaluation of PHI_FAST: "+Phi_fast.eval(60,0,sequence));
-            System.out.println("Evaluation of PHI_SLOW: "+Phi_slow.eval(60,0,sequence));
-            System.out.println("Evaluation of PHI_CRASH: "+Phi_crash.eval(60,0,sequence));
-            System.out.println("Evaluation of PHI_COMB: "+Phi_comb.eval(60,0,sequence));
+            //System.out.println("Evaluation of PHI_SLOW: "+Phi_slow.eval(60,0,sequence));
+            //System.out.println("Evaluation of PHI_CRASH: "+Phi_crash.eval(60,0,sequence));
+            //System.out.println("Evaluation of PHI_COMB: "+Phi_comb.eval(60,0,sequence));
+
+            double[][] val_slow = new double[30][1];
+            double[][] val_crash = new double[30][1];
+
+            for(int i = 0; i<30; i++) {
+                System.out.println("Phi_slow bootstrap for evaluation n: " + i);
+                TruthValues value1 = Phi_slow.eval(60, i, sequence);
+                if (value1 == TruthValues.TRUE) {
+                    val_slow[i][0] = 1;
+                } else {
+                    if (value1 == TruthValues.UNKNOWN) {
+                        val_slow[i][0] = 0;
+                    } else {
+                        val_slow[i][0] = -1;
+                    }
+                }
+                System.out.println("Phi_comb bootstrap for evaluation n: " + i);
+                TruthValues value2 = Phi_comb.eval(60, i, sequence);
+                if (value2 == TruthValues.TRUE) {
+                    val_crash[i][0] = 1;
+                } else {
+                    if (value2 == TruthValues.UNKNOWN) {
+                        val_crash[i][0] = 0;
+                    } else {
+                        val_crash[i][0] = -1;
+                    }
+                }
+            }
+
+            Util.writeToCSV("./slow_11.csv",val_slow);
+            Util.writeToCSV("./crash_11.csv",val_crash);
+
+
+            /*
 
             ArrayList<DataStateExpression> F = new ArrayList<DataStateExpression>();
             ArrayList<String> L = new ArrayList<String>();
@@ -242,14 +276,14 @@ public class Main {
             //L.add("s_dist2");
             //F.add(ds -> ds.get(s_distance_V2));
 
-            L.add("r_dist1vs2");
-            F.add(ds -> ds.get(p_distance_V1_V2));
+            //L.add("r_dist1vs2");
+            //F.add(ds -> ds.get(p_distance_V1_V2));
 
             //L.add("s_dist1vs2");
             //F.add(ds -> ds.get(s_distance_V1_V2));
 
-            L.add("relative_safe");
-            F.add(ds -> Math.min(1, 1 - Math.min(ds.get(p_distance_V1_V2),SAFETY_DISTANCE) / SAFETY_DISTANCE));
+            //L.add("relative_safe");
+            //F.add(ds -> Math.min(1, 1 - Math.min(ds.get(p_distance_V1_V2),SAFETY_DISTANCE) / SAFETY_DISTANCE));
 
             //L.add("obs1_safe");
             //F.add(ds -> 1 - Math.min(ds.get(p_distance_V1),SAFETY_DISTANCE) / SAFETY_DISTANCE);
@@ -266,11 +300,11 @@ public class Main {
             //L.add("safety_gap1");
             //F.add(ds -> ds.get(safety_gap_V1));
 
-            L.add("safety_gap_12");
-            F.add(ds -> ds.get(safety_gap_V1_V2));
+            //L.add("safety_gap_12");
+            //F.add(ds -> ds.get(safety_gap_V1_V2));
 
-            L.add("crash_12");
-            F.add(Main::rho_crash);
+            //L.add("crash_12");
+            //F.add(Main::rho_crash);
 
             L.add("crash_prob");
             F.add(Main::rho_crash_probability);
@@ -279,12 +313,14 @@ public class Main {
             //F.add(ds -> ds.get(accel_V2));
 
 
-            //printLData(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 100);
+            printLData(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 60);
             //printLData_min(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 100);
             //printLData_max(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 100);
             //printLData(new DefaultRandomGenerator(), L, F, system, 1000, 1);
             //printLData(new DefaultRandomGenerator(), L, F, getIteratedFasterPerturbation(), system, 500, 100);
-            //printLData(new DefaultRandomGenerator(), L, F, getIteratedSlowerPerturbation(), system, 500, 100);
+            printLData(new DefaultRandomGenerator(), L, F, getIteratedSlowerPerturbation(), system, 500, 60);
+
+             */
 
 
         } catch (RuntimeException e) {
@@ -687,20 +723,20 @@ public class Main {
 
  */
     private static  Perturbation getFasterPerturbation() {
-        return new IterativePerturbation(3, new AtomicPerturbation(TIMER_INIT-1, Main::fasterPerturbation));
+        return new IterativePerturbation(3, new AtomicPerturbation(TIMER_INIT - 1, Main::fasterPerturbation));
     }
 
     private static  Perturbation getSlowerPerturbation() {
-        return new IterativePerturbation(3, new AtomicPerturbation(TIMER_INIT-1, Main::slowerPerturbation));
+        return new IterativePerturbation(3, new AtomicPerturbation(TIMER_INIT - 1, Main::slowerPerturbation));
     }
 
 
     private static  Perturbation getIteratedFasterPerturbation() {
-        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(TIMER_INIT-1, Main::fasterPerturbation)));
+        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(TIMER_INIT - 1, Main::fasterPerturbation)));
     }
 
     private static  Perturbation getIteratedSlowerPerturbation() {
-        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(TIMER_INIT-1, Main::slowerPerturbation)));
+        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(TIMER_INIT - 1, Main::slowerPerturbation)));
     }
 
     private static  Perturbation getIteratedCombinedPerturbation() {
@@ -762,7 +798,6 @@ public class Main {
         values.put(s_distance_V1, INIT_DISTANCE_OBS_V1);
         values.put(accel_V1, NEUTRAL);
         values.put(warning_V1, (double) OK);
-        values.put(offset_V1, 0.0);
         double init_bd_V1 = (INIT_SPEED_V1 * INIT_SPEED_V1 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
                 2 * INIT_SPEED_V1 * TIMER_INIT))/(2 * BRAKE);
         double init_rd_V1 = init_bd_V1 + SAFETY_DISTANCE;
@@ -781,7 +816,6 @@ public class Main {
         values.put(s_distance_V1_V2, INIT_DISTANCE_V1_V2 );
         values.put(accel_V2, NEUTRAL);
         values.put(warning_V2, (double) OK);
-        values.put(offset_V2, 0.0);
         double init_bd_V2 = (INIT_SPEED_V2 * INIT_SPEED_V2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
                 2 * INIT_SPEED_V2 * TIMER_INIT))/(2 * BRAKE);
         double init_rd_V2 = init_bd_V2 + SAFETY_DISTANCE;
