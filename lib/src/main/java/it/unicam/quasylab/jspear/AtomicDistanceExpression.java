@@ -37,6 +37,14 @@ public final class AtomicDistanceExpression implements DistanceExpression {
         return seq1.get(step).distance(rho, seq2.get(step));
     }
 
+    public double computeLeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
+        return seq1.get(step).distanceLeq(rho, seq2.get(step));
+    }
+
+    public double computeGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
+        return seq1.get(step).distanceGeq(rho, seq2.get(step));
+    }
+
     @Override
     public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
         double[] res = new double[3];

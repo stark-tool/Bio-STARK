@@ -53,6 +53,30 @@ public final class MinIntervalDistanceExpression implements DistanceExpression {
     }
 
     @Override
+    public double computeLeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        return IntStream.range(from+step, to+step)
+                .sequential()
+                .mapToDouble(i -> argument.computeLeq(i, seq1, seq2))
+                .min()
+                .orElse(Double.NaN);
+    }
+
+    @Override
+    public double computeGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        return IntStream.range(from+step, to+step)
+                .sequential()
+                .mapToDouble(i -> argument.computeGeq(i, seq1, seq2))
+                .min()
+                .orElse(Double.NaN);
+    }
+
+    @Override
     public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
         if (step<0) {
             throw new IllegalArgumentException();

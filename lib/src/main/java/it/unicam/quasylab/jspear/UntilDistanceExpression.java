@@ -54,6 +54,30 @@ public final class UntilDistanceExpression implements DistanceExpression {
     }
 
     @Override
+    public double computeLeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        return IntStream.range(from+step, to+step).parallel()
+                .mapToDouble(i -> Math.max(rightExpression.computeLeq(i, seq1, seq2),
+                        IntStream.range(from+step,i).parallel()
+                                .mapToDouble(j-> leftExpression.computeLeq(j,seq1,seq2)).max().getAsDouble()))
+                .min().orElse(Double.NaN);
+    }
+
+    @Override
+    public double computeGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
+        if (step<0) {
+            throw new IllegalArgumentException();
+        }
+        return IntStream.range(from+step, to+step).parallel()
+                .mapToDouble(i -> Math.max(rightExpression.computeGeq(i, seq1, seq2),
+                        IntStream.range(from+step,i).parallel()
+                                .mapToDouble(j-> leftExpression.computeGeq(j,seq1,seq2)).max().getAsDouble()))
+                .min().orElse(Double.NaN);
+    }
+
+    @Override
     public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
         if (step<0) {
             throw new IllegalArgumentException();

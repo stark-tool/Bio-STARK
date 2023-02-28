@@ -213,7 +213,7 @@ public class SampleSet<T extends SystemState> {
      * @return the limits of the confidence interval of the evaluation of the distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>.
      */
-    public synchronized double[] bootstrapDistanceLeqBacup(DataStateExpression f, SampleSet<T> other, int m, double z) {
+    public synchronized double[] bootstrapDistanceLeq(DataStateExpression f, SampleSet<T> other, int m, double z) {
         Random rand = new Random();
         if (other.size()%this.size()!=0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
@@ -234,6 +234,7 @@ public class SampleSet<T extends SystemState> {
         return CI;
     }
 
+    /*
     public synchronized double[] bootstrapDistanceLeq(DataStateExpression f, SampleSet<T> other, int m, double z) {
         Random rand = new Random();
         if (other.size()%this.size()!=0) {
@@ -262,6 +263,7 @@ public class SampleSet<T extends SystemState> {
         CI[1] = Math.min(BootMean + z*StandardError,1);
         return CI;
     }
+    */
 
     /**
      * Returns the confidence interval of the evaluation of the asymmetric distance between
@@ -275,6 +277,8 @@ public class SampleSet<T extends SystemState> {
      * @return the limits of the confidence interval of the evaluation of the distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>.
      */
+
+    /*
     public synchronized double[] bootstrapDistanceGeq(DataStateExpression f, SampleSet<T> other, int m, double z) {
         Random rand = new Random();
         if (other.size()%this.size()!=0) {
@@ -301,8 +305,9 @@ public class SampleSet<T extends SystemState> {
         CI[1] = Math.min(BootMean + z*StandardError,1);
         return CI;
     }
+    */
 
-    public synchronized double[] bootstrapDistanceGeqbacup(DataStateExpression f, SampleSet<T> other, int m, double z) {
+    public synchronized double[] bootstrapDistanceGeq(DataStateExpression f, SampleSet<T> other, int m, double z) {
         Random rand = new Random();
         if (other.size()%this.size()!=0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");

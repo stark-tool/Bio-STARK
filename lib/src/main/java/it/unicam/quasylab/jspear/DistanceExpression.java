@@ -53,6 +53,43 @@ public sealed interface DistanceExpression permits
     }
 
     /**
+     * Returns the evaluation of the distance expression between teh first and the second sequence at the given step.
+     *
+     * @param step step where the expression is evaluated
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @return the evaluation of the distance expression at the given step among the two sequences.
+     */
+    double computeLeq(int step, EvolutionSequence seq1, EvolutionSequence seq2);
+
+    default double[] computeLeq(int from, int to, EvolutionSequence seq1, EvolutionSequence seq2) {
+        return computeLeq(IntStream.range(from, to+1).toArray(), seq1, seq2);
+    }
+
+    default double[] computeLeq(int[] steps, EvolutionSequence seq1, EvolutionSequence seq2) {
+        return IntStream.of(steps).mapToDouble(i -> computeLeq(i, seq1, seq2)).toArray();
+    }
+
+    /**
+     * Returns the evaluation of the distance expression the second and the first sequence at the given step.
+     *
+     * @param step step where the expression is evaluated
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @return the evaluation of the distance expression at the given step among the two sequences.
+     */
+    double computeGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2);
+
+    default double[] computeGeq(int from, int to, EvolutionSequence seq1, EvolutionSequence seq2) {
+        return computeGeq(IntStream.range(from, to+1).toArray(), seq1, seq2);
+    }
+
+    default double[] computeGeq(int[] steps, EvolutionSequence seq1, EvolutionSequence seq2) {
+        return IntStream.of(steps).mapToDouble(i -> computeGeq(i, seq1, seq2)).toArray();
+    }
+
+
+    /**
      * Returns the evaluation of the distance expression among the two sequences at the given step and the related confidence interval.
      *
      * @param step step where the expression is evaluated
