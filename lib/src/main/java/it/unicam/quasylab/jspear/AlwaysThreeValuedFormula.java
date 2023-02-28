@@ -44,6 +44,9 @@ public final class AlwaysThreeValuedFormula implements ThreeValuedFormula {
         TruthValues value = TruthValues.TRUE;
         for(int i = from+step; i<to+step; i++){
             value = TruthValues.and(value, formula.eval(sampleSize, i, sequence));
+            if (value == TruthValues.FALSE){
+                i = to+step;
+            }
         }
         return value;
         //return IntStream.of(from, to).parallel().allMatch(i -> formula.eval(sampleSize, step+i, sequence));
