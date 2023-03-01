@@ -415,11 +415,11 @@ public class Main {
     }
 
     public static double rho_crash_speed(DataState state) {
-        if (state.get(p_distance_V1_V2) > 0 && state.get(p_distance_V2) > 0){
-            return 0.0;
+        if (state.get(crashed_V2) == 0 && (state.get(p_distance_V2) <=0 || state.get(p_distance_V1_V2) <=0)){
+            return state.get(p_speed_V2)/MAX_SPEED;
         }
         else{
-            return 1.0;
+            return 0.0;
         }
     }
 
