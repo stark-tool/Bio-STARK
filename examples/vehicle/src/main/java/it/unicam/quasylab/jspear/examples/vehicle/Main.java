@@ -162,7 +162,7 @@ public class Main {
             DistanceExpression crash_probability = new AtomicDistanceExpression(Main::rho_crash_probability);
             DistanceExpression crash_dist = new MaxIntervalDistanceExpression(crash_probability, 350, 450);
 
-            DistanceExpression both_distances_safe = new AtomicDistanceExpression(Main::rho_both_distances);
+            DistanceExpression both_distances_safe = new AtomicDistanceExpression(Main::rho_crash_speed);
 
 
 
@@ -414,7 +414,7 @@ public class Main {
         }
     }
 
-    public static double rho_both_distances(DataState state) {
+    public static double rho_crash_speed(DataState state) {
         if (state.get(p_distance_V1_V2) > 0 && state.get(p_distance_V2) > 0){
             return 0.0;
         }
