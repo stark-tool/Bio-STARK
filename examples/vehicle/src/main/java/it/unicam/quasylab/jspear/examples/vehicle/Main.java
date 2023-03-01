@@ -41,7 +41,7 @@ public class Main {
                     "p_speed_V2", "s_speed_V2", "p_distance_V2", "s_distance_V2",
                     "p_distance_V1_V2", "s_distance_V1_V2", "accel_V2", "timer_V2",
                     "warning_V2", "braking_distance_V2", "required_distance_V2", "safety_gap_V2",
-                    "safety_gap_V1_V2", "brake_light_V2"
+                    "safety_gap_V1_V2", "brake_light_V2", "crashed_V1", "crashed_V2"
             };
     public final static double ACCELERATION = 1.0;
     public final static double BRAKE = 2.0;
@@ -66,6 +66,8 @@ public class Main {
     private static final int H = 450;
     //private static final int ATTACK_INIT = 0;
     //private static final int ATTACK_LENGTH = 550;
+    private static final double MAX_DISTANCE_OFFSET = 1.0;
+
 
 
     private static final int p_speed_V1 = 0;//variableRegistry.getVariable("p_speed");
@@ -94,8 +96,10 @@ public class Main {
     private static final int safety_gap_V2 = 22;
     private static final int safety_gap_V1_V2 = 23;//variableRegistry.getVariable("safety_gap");
     private static final int brake_light_V2 = 24;
+    private static final int crashed_V1 = 25;
+    private static final int crashed_V2 = 26;
 
-    private static final int NUMBER_OF_VARIABLES = 25;
+    private static final int NUMBER_OF_VARIABLES = 27;
 
 
 
@@ -158,6 +162,11 @@ public class Main {
             DistanceExpression crash_probability = new AtomicDistanceExpression(Main::rho_crash_probability);
             DistanceExpression crash_dist = new MaxIntervalDistanceExpression(crash_probability, 350, 450);
 
+            DistanceExpression both_distances_safe = new AtomicDistanceExpression(Main::rho_both_distances);
+
+
+
+
             RobustnessFormula Phi_1 = new AlwaysRobustnessFormula(
                     new ConjunctionRobustnessFormula(
                         new AtomicRobustnessFormula(getIteratedCombinedPerturbation(),
@@ -207,6 +216,16 @@ public class Main {
 
 
             ThreeValuedFormula Phi_crash = new ImplicationThreeValuedFormula(new ConjunctionThreeValuedFormula(Phi_fast, Phi_slow), Phi_comb);
+
+            ThreeValuedFormula Phi_both = new AlwaysThreeValuedFormula(
+                    new AtomicThreeValuedFormulaLeq(getIteratedDistanceSensorsPerturbation(),
+                            new MaxIntervalDistanceExpression(both_distances_safe, 250, 500),
+                            RelationOperator.LESS_OR_EQUAL_THAN,
+                            ETA_CRASH,
+                            40,
+                            1.96),
+                    0,
+                    H);
 
             //System.out.println("Evaluation of PHI1: "+Phi_1.eval(100,0,sequence,false));
             //System.out.println("Evaluation of PHI_FAST: "+Phi_fast.eval(60,0,sequence));
@@ -394,6 +413,16 @@ public class Main {
             return 1.0;
         }
     }
+
+    public static double rho_both_distances(DataState state) {
+        if (state.get(p_distance_V1_V2) > 0 && state.get(p_distance_V2) > 0){
+            return 0.0;
+        }
+        else{
+            return 1.0;
+        }
+    }
+
     private static void printData(RandomGenerator rg, String label, DataStateExpression f, SystemState s, int steps, int size) {
         System.out.println(label);
         double[] data = SystemState.sample(rg, f, s, steps, size);
@@ -725,6 +754,12 @@ public class Main {
             updates.add(new DataStateUpdate(s_distance_V2, new_p_distance_V2));
             updates.add(new DataStateUpdate(s_distance_V1_V2, new_p_distance_V1_V2));
         }
+        if(state.get(p_distance_V2) <=0 || state.get(p_distance_V1_V2) <=0){
+            updates.add(new DataStateUpdate(crashed_V2, 1));
+        }
+        if(state.get(p_distance_V1) <=0){
+            updates.add(new DataStateUpdate(crashed_V1, 0));
+        }
         return updates;
     }
 
@@ -830,8 +865,33 @@ public class Main {
         return state.apply(updates);
     }
 
+    private static  Perturbation getIteratedDistanceSensorsPerturbation() {
+        return new AfterPerturbation(1, new IterativePerturbation(5000, new AtomicPerturbation(TIMER_INIT - 1, Main::distanceSensorsPerturbation)));
+    }
 
-
+    private static DataState distanceSensorsPerturbation(RandomGenerator rg, DataState state) {
+        List<DataStateUpdate> updates = new LinkedList<>();
+        double travel_V1 = state.get(accel_V1)/2 + state.get(p_speed_V1);
+        double travel_V2 = state.get(accel_V2)/2 + state.get(p_speed_V2);
+        double new_p_distance_V1_V2 = state.get(p_distance_V1_V2) - travel_V2 + travel_V1;
+        double new_p_distance_V2 = state.get(p_distance_V2) - travel_V2;
+        double offset = rg.nextDouble() * MAX_DISTANCE_OFFSET;
+        double offset_V1_V2 = new_p_distance_V1_V2 * offset;
+        double offset_V2 = new_p_distance_V2 * offset;
+        double noisy_distance_V1_V2 = new_p_distance_V1_V2  + offset_V1_V2;
+        double noisy_distance_V2 = new_p_distance_V2  + offset_V2;
+        double new_p_speed_V2 = Math.min(MAX_SPEED,Math.max(0,state.get(p_speed_V2) + state.get(accel_V2)));
+        double new_bd_V2 = (new_p_speed_V2 * new_p_speed_V2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
+                2 * new_p_speed_V2 * TIMER_INIT)) / (2 * BRAKE);
+        double new_rd_V2 = new_bd_V2 + SAFETY_DISTANCE;
+        double new_sg_V1_V2 = noisy_distance_V1_V2 - new_rd_V2;
+        double new_sg_V2 = noisy_distance_V2 - new_rd_V2;
+        updates.add(new DataStateUpdate(safety_gap_V1_V2, new_sg_V1_V2));
+        updates.add(new DataStateUpdate(safety_gap_V2, new_sg_V2));
+        updates.add(new DataStateUpdate(s_distance_V1_V2,noisy_distance_V1_V2));
+        updates.add(new DataStateUpdate(s_distance_V2,noisy_distance_V2));
+        return state.apply(updates);
+    }
 
 
 
@@ -839,6 +899,7 @@ public class Main {
     public static DataState getInitialState( ) {
         Map<Integer, Double> values = new HashMap<>();
         // INITIAL DATA FOR V1
+        values.put(crashed_V1, (double) 0);
         values.put(brake_light_V1, (double) 0);
         values.put(timer_V1, (double) 0);
         values.put(p_speed_V1, INIT_SPEED_V1);
@@ -855,6 +916,7 @@ public class Main {
         values.put(required_distance_V1, init_rd_V1);
         values.put(safety_gap_V1, init_sg_V1);
         // INITIAL DATA FOR V2
+        values.put(crashed_V2, (double) 0);
         values.put(timer_V2, (double) 0);
         values.put(brake_light_V2, (double) 0);
         values.put(p_speed_V2, INIT_SPEED_V2);
