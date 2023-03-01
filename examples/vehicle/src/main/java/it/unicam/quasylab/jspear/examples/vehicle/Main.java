@@ -44,12 +44,12 @@ public class Main {
                     "safety_gap_V1_V2", "brake_light_V2"
             };
     public final static double ACCELERATION = 1.0;
-    public final static double BRAKE = 3.0;
+    public final static double BRAKE = 2.0;
     public final static double NEUTRAL = 0.0;
-    public final static int TIMER_INIT = 3;
+    public final static int TIMER_INIT = 5;
     public final static int DANGER = 1;
     public final static int OK = 0;
-    public final static double MAX_SPEED_OFFSET = 1.1;
+    public final static double MAX_SPEED_OFFSET = 0.4;
     public final static double INIT_SPEED_V1 = 25.0;
     public final static double INIT_SPEED_V2 = 25.0;
     public final static double MAX_SPEED = 40.0;
@@ -63,7 +63,7 @@ public class Main {
     private static final double ETA_distance_faster = 0.05;
     //private static final double ETA_distance_slower = 0.9;
     private static final double ETA_crash_slower = 0.1;
-    private static final int H = 320;
+    private static final int H = 450;
     //private static final int ATTACK_INIT = 0;
     //private static final int ATTACK_LENGTH = 550;
 
@@ -156,6 +156,7 @@ public class Main {
             //DistanceExpression obstacle_distance2_safe = new AtomicDistanceExpression(ds -> 1 - Math.min(ds.get(p_distance_V2), SAFETY_DISTANCE) / SAFETY_DISTANCE);
             //DistanceExpression crash = new AtomicDistanceExpression(Main::rho_crash);
             DistanceExpression crash_probability = new AtomicDistanceExpression(Main::rho_crash_probability);
+            DistanceExpression crash_dist = new MaxIntervalDistanceExpression(crash_probability, 350, 450);
 
             RobustnessFormula Phi_1 = new AlwaysRobustnessFormula(
                     new ConjunctionRobustnessFormula(
@@ -175,10 +176,10 @@ public class Main {
 
             ThreeValuedFormula Phi_fast = new AlwaysThreeValuedFormula(
                     new AtomicThreeValuedFormulaLeq(getIteratedFasterPerturbation(),
-                            new MaxIntervalDistanceExpression(relative_distance_safe, 250, 500),
+                            new MaxIntervalDistanceExpression(relative_distance_safe, 300, 500),
                             RelationOperator.LESS_OR_EQUAL_THAN,
                             ETA_distance_faster,
-                            40,
+                            50,
                             1.96),
                     0,
                     H);
@@ -186,20 +187,20 @@ public class Main {
 
             ThreeValuedFormula Phi_slow = new AlwaysThreeValuedFormula(
                     new AtomicThreeValuedFormulaLeq(getIteratedSlowerPerturbation(),
-                            new MaxIntervalDistanceExpression(crash_probability, 250, 500),
+                            crash_dist,
                             RelationOperator.LESS_OR_EQUAL_THAN,
                             ETA_crash_slower,
-                            40,
+                            50,
                             1.96),
                     0,
                     H);
 
             ThreeValuedFormula Phi_comb = new AlwaysThreeValuedFormula(
                     new AtomicThreeValuedFormulaLeq(getIteratedCombinedPerturbation(),
-                        new MaxIntervalDistanceExpression(crash_probability, 250, 500),
+                        crash_dist,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         ETA_CRASH,
-                        40,
+                        50,
                         1.96),
                     0,
                     H);
@@ -209,16 +210,19 @@ public class Main {
 
             //System.out.println("Evaluation of PHI1: "+Phi_1.eval(100,0,sequence,false));
             //System.out.println("Evaluation of PHI_FAST: "+Phi_fast.eval(60,0,sequence));
-            //System.out.println("Evaluation of PHI_SLOW: "+Phi_slow.eval(60,0,sequence));
+            //System.out.println("Evaluation of PHI_SLOW: "+Phi_slow.eval(60,350,sequence));
             //System.out.println("Evaluation of PHI_CRASH: "+Phi_crash.eval(60,0,sequence));
             //System.out.println("Evaluation of PHI_COMB: "+Phi_comb.eval(60,0,sequence));
 
-            double[][] val_slow = new double[30][1];
-            double[][] val_crash = new double[30][1];
+            /*
 
-            for(int i = 0; i<30; i++) {
-                System.out.println("Phi_slow bootstrap for evaluation n: " + i);
-                TruthValues value1 = Phi_slow.eval(60, i, sequence);
+            double[][] val_slow = new double[10][1];
+            double[][] val_crash = new double[10][1];
+
+            for(int i = 0; i<10; i++) {
+                int step = i*10;
+                TruthValues value1 = Phi_slow.eval(60, step, sequence);
+                System.out.println("Phi_slow evaluation at step "+step+": " + value1);
                 if (value1 == TruthValues.TRUE) {
                     val_slow[i][0] = 1;
                 } else {
@@ -228,8 +232,8 @@ public class Main {
                         val_slow[i][0] = -1;
                     }
                 }
-                System.out.println("Phi_comb bootstrap for evaluation n: " + i);
-                TruthValues value2 = Phi_comb.eval(60, i, sequence);
+                TruthValues value2 = Phi_comb.eval(60, step, sequence);
+                System.out.println("Phi_comb evaluation at step "+step+": " + value2);
                 if (value2 == TruthValues.TRUE) {
                     val_crash[i][0] = 1;
                 } else {
@@ -241,12 +245,53 @@ public class Main {
                 }
             }
 
-            Util.writeToCSV("./slow_11.csv",val_slow);
-            Util.writeToCSV("./crash_11.csv",val_crash);
+            Util.writeToCSV("./slow_04_bis.csv",val_slow);
+            Util.writeToCSV("./comb_04_bis.csv",val_crash);
+
+
+
+             */
+
 
 
             /*
+            EvolutionSequence sequenceSlow = sequence.apply(getIteratedSlowerPerturbation(), 0, 60);
+            EvolutionSequence sequenceComb = sequence.apply(getIteratedCombinedPerturbation(), 0, 60);
 
+
+            double[][] testLeft_slow = new double[50][1];
+            double[][] testRight_slow = new double[50][1];
+            double[][] testLeft_comb = new double[50][1];
+            double[][] testRight_comb = new double[50][1];
+
+            System.out.println("Starting test on bootstrap");
+
+            for(int i=0; i<50; i++) {
+                double[] res_50 = crash_dist.evalCILeq(i,sequence,sequenceSlow,100,1.96);
+                testLeft_slow[i][0] = res_50[1];
+                testRight_slow[i][0] = res_50[2];
+                System.out.println("Bootstrap evaluation n: "+i);
+                double distanceSlow = sequence.get(i+400).distanceLeq(Main::rho_crash_probability, sequenceSlow.get(i+400));
+                System.out.println("Distance slow: "+distanceSlow);
+
+                double[] res_100 = crash_dist.evalCILeq(i,sequence,sequenceComb,100,1.96);
+                testLeft_comb[i][0] = res_100[1];
+                testRight_comb[i][0] = res_100[2];
+                System.out.println("Bootstrap evaluation n: "+i);
+                double distanceComb = sequence.get(i+400).distanceLeq(Main::rho_crash_probability, sequenceComb.get(i+400));
+                System.out.println("Distance comb: "+distanceComb);
+
+            }
+            Util.writeToCSV("./vehicBootL_slow.csv",testLeft_slow);
+            Util.writeToCSV("./vehicBootR_slow.csv",testRight_slow);
+
+            Util.writeToCSV("./vehicBootL_comb.csv",testLeft_comb);
+            Util.writeToCSV("./vehicBootR_comb.csv",testRight_comb);
+
+             */
+
+
+            /*
             ArrayList<DataStateExpression> F = new ArrayList<DataStateExpression>();
             ArrayList<String> L = new ArrayList<String>();
 
@@ -255,14 +300,14 @@ public class Main {
             //L.add("rSpeed1");
             //F.add(ds -> ds.get(p_speed_V1));
 
-            //L.add("sSpeed1");
-            //F.add(ds -> ds.get(s_speed_V1));
+            L.add("sSpeed1");
+            F.add(ds -> ds.get(s_speed_V1));
 
             //L.add("rSpeed2");
             //F.add(ds -> ds.get(p_speed_V2));
 
-            //L.add("sSpeed2");
-            //F.add(ds -> ds.get(s_speed_V2));
+            L.add("sSpeed2");
+            F.add(ds -> ds.get(s_speed_V2));
 
             //L.add("r_dist_1");
             //F.add(ds -> ds.get(p_distance_V1));
@@ -306,27 +351,31 @@ public class Main {
             //L.add("crash_12");
             //F.add(Main::rho_crash);
 
-            L.add("crash_prob");
-            F.add(Main::rho_crash_probability);
+            //L.add("crash_prob");
+            //F.add(Main::rho_crash_probability);
 
             //L.add("accel2");
             //F.add(ds -> ds.get(accel_V2));
 
 
-            printLData(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 60);
+            //printLData(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 60);
             //printLData_min(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 100);
             //printLData_max(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 100);
-            //printLData(new DefaultRandomGenerator(), L, F, system, 1000, 1);
+            printLData(new DefaultRandomGenerator(), L, F, system, 500, 1);
             //printLData(new DefaultRandomGenerator(), L, F, getIteratedFasterPerturbation(), system, 500, 100);
-            printLData(new DefaultRandomGenerator(), L, F, getIteratedSlowerPerturbation(), system, 500, 60);
+            //printLData(new DefaultRandomGenerator(), L, F, getIteratedSlowerPerturbation(), system, 500, 60);
+
 
              */
 
+            Util.writeToCSV("./real_speed_V1.csv", Util.evalDataStateExpression(sequence, 400, ds->ds.get(p_speed_V1)));
+            Util.writeToCSV("./real_speed_V2.csv", Util.evalDataStateExpression(sequence, 400, ds->ds.get(p_speed_V2)));
 
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
     }
+
 
     public static double rho_crash(DataState state) {
         double value = Math.min(SAFETY_DISTANCE,state.get(p_distance_V1_V2))/SAFETY_DISTANCE;
