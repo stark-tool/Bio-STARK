@@ -58,7 +58,7 @@ public class Main {
     private static final double SAFETY_DISTANCE = 200.0;
     //private static final int ETA_SpeedLB = 0;
     //private static final int ETA_SpeedUB = 50;
-    private static final double ETA_CRASH = 0.1;
+    private static final double ETA_CRASH = 0.5;
     private static final double ETA_distance_combined = 0.8;
     private static final double ETA_distance_faster = 0.05;
     //private static final double ETA_distance_slower = 0.9;
@@ -67,8 +67,7 @@ public class Main {
     //private static final int ATTACK_INIT = 0;
     //private static final int ATTACK_LENGTH = 550;
     private static final double MAX_DISTANCE_OFFSET = 1.0;
-
-
+    private static final double ETA_CRASH_SPEED = 0.05;
 
     private static final int p_speed_V1 = 0;//variableRegistry.getVariable("p_speed");
     private static final int s_speed_V1 = 1;//variableRegistry.getVariable("s_speed");
@@ -111,6 +110,7 @@ public class Main {
             ControlledSystem system = new ControlledSystem(new ParallelController(controller_V1, controller_V2), (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
             EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, 1);
 
+
             /*
             EvolutionSequence sequenceAttSensorSpeed_V1 = sequence.apply(getSpeedSensorPerturbationV1(), ATTACK_INIT, 100);
             EvolutionSequence sequenceAttDistance_V2 = sequence.apply(getDistancePerturbationV2(), ATTACK_INIT, 100);
@@ -148,8 +148,8 @@ public class Main {
 
             DistanceExpression speed_expr = new AtomicDistanceExpression(ds -> ds.get(p_speed_V1));
             DistanceExpression distance_expr = new AtomicDistanceExpression(ds -> -ds.get(p_distance_V1));
+            */
 
-             */
 
             //DistanceExpression relative_distance = new AtomicDistanceExpression(ds -> Math.abs(ds.get(s_distance_V1_V2) - ds.get(p_distance_V1_V2)) / ds.get(p_distance_V1_V2));
             //DistanceExpression obstacle_distance1 = new AtomicDistanceExpression(ds -> Math.abs(ds.get(s_distance_V1) - ds.get(p_distance_V1)) / ds.get(p_distance_V1));
@@ -160,9 +160,10 @@ public class Main {
             //DistanceExpression obstacle_distance2_safe = new AtomicDistanceExpression(ds -> 1 - Math.min(ds.get(p_distance_V2), SAFETY_DISTANCE) / SAFETY_DISTANCE);
             //DistanceExpression crash = new AtomicDistanceExpression(Main::rho_crash);
             DistanceExpression crash_probability = new AtomicDistanceExpression(Main::rho_crash_probability);
+
             DistanceExpression crash_dist = new MaxIntervalDistanceExpression(crash_probability, 350, 450);
 
-            DistanceExpression both_distances_safe = new AtomicDistanceExpression(Main::rho_crash_speed);
+            DistanceExpression crash_speed = new AtomicDistanceExpression(Main::rho_crash_speed);
 
 
 
@@ -212,16 +213,17 @@ public class Main {
                         50,
                         1.96),
                     0,
+
                     H);
 
 
             ThreeValuedFormula Phi_crash = new ImplicationThreeValuedFormula(new ConjunctionThreeValuedFormula(Phi_fast, Phi_slow), Phi_comb);
 
-            ThreeValuedFormula Phi_both = new AlwaysThreeValuedFormula(
+            ThreeValuedFormula Phi_crash_speed = new AlwaysThreeValuedFormula(
                     new AtomicThreeValuedFormulaLeq(getIteratedDistanceSensorsPerturbation(),
-                            new MaxIntervalDistanceExpression(both_distances_safe, 250, 500),
+                            new MaxIntervalDistanceExpression(crash_speed, 250, 500),
                             RelationOperator.LESS_OR_EQUAL_THAN,
-                            ETA_CRASH,
+                            ETA_CRASH_SPEED,
                             40,
                             1.96),
                     0,
@@ -310,23 +312,33 @@ public class Main {
              */
 
 
-            /*
+
             ArrayList<DataStateExpression> F = new ArrayList<DataStateExpression>();
             ArrayList<String> L = new ArrayList<String>();
 
             L.add("stp");
 
-            //L.add("rSpeed1");
-            //F.add(ds -> ds.get(p_speed_V1));
+            L.add("pDist12");
+            F.add(ds -> ds.get(p_distance_V1_V2));
 
-            L.add("sSpeed1");
-            F.add(ds -> ds.get(s_speed_V1));
+            L.add("sDist12");
+            F.add(ds -> ds.get(s_distance_V1_V2));
 
-            //L.add("rSpeed2");
-            //F.add(ds -> ds.get(p_speed_V2));
+            L.add("pDist2");
+            F.add(ds -> ds.get(p_distance_V2));
 
-            L.add("sSpeed2");
-            F.add(ds -> ds.get(s_speed_V2));
+            L.add("sDist2");
+            F.add(ds -> ds.get(s_distance_V2));
+
+            L.add("crashed2");
+            F.add(ds -> ds.get(crashed_V2));
+
+            L.add("speed2");
+            F.add(ds -> ds.get(p_speed_V2));
+
+            L.add("penalty");
+            F.add(ds -> (ds.get(crashed_V2) == 0 && (ds.get(p_distance_V2) <= 0 || ds.get(p_distance_V1_V2) <= 0))?ds.get(p_speed_V2)/MAX_SPEED:0);
+
 
             //L.add("r_dist_1");
             //F.add(ds -> ds.get(p_distance_V1));
@@ -380,15 +392,38 @@ public class Main {
             //printLData(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 60);
             //printLData_min(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 100);
             //printLData_max(new DefaultRandomGenerator(), L, F, getIteratedCombinedPerturbation(), system, 500, 100);
-            printLData(new DefaultRandomGenerator(), L, F, system, 500, 1);
+            printLData(new DefaultRandomGenerator(), L, F, getIteratedDistanceSensorsPerturbation(), system, 500, 100);
+            printLData_min(new DefaultRandomGenerator(), L, F, getIteratedDistanceSensorsPerturbation(), system, 500, 100);
+            printLData_max(new DefaultRandomGenerator(), L, F, getIteratedDistanceSensorsPerturbation(), system, 500,100);
             //printLData(new DefaultRandomGenerator(), L, F, getIteratedFasterPerturbation(), system, 500, 100);
             //printLData(new DefaultRandomGenerator(), L, F, getIteratedSlowerPerturbation(), system, 500, 60);
 
 
-             */
+            double[][] val_crash_speed = new double[10][1];
+            for(int i = 0; i<10; i++) {
+                int step = i*50;
+                TruthValues value1 = Phi_crash_speed.eval(60, step, sequence);
+                System.out.println("Phi_crahs_speed evaluation at step "+step+": " + value1);
+                if (value1 == TruthValues.TRUE) {
+                    val_crash_speed[i][0] = 1;
+                } else {
+                    if (value1 == TruthValues.UNKNOWN) {
+                        val_crash_speed[i][0] = 0;
+                    } else {
+                        val_crash_speed[i][0] = -1;
+                    }
+                }
 
-            Util.writeToCSV("./real_speed_V1.csv", Util.evalDataStateExpression(sequence, 400, ds->ds.get(p_speed_V1)));
-            Util.writeToCSV("./real_speed_V2.csv", Util.evalDataStateExpression(sequence, 400, ds->ds.get(p_speed_V2)));
+            }
+
+            Util.writeToCSV("./crash50_0dot5.csv",val_crash_speed);
+
+
+
+
+
+            //Util.writeToCSV("./real_speed_V1.csv", Util.evalDataStateExpression(sequence, 400, ds->ds.get(p_speed_V1)));
+            //Util.writeToCSV("./real_speed_V2.csv", Util.evalDataStateExpression(sequence, 400, ds->ds.get(p_speed_V2)));
 
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -758,7 +793,7 @@ public class Main {
             updates.add(new DataStateUpdate(crashed_V2, 1));
         }
         if(state.get(p_distance_V1) <=0){
-            updates.add(new DataStateUpdate(crashed_V1, 0));
+            updates.add(new DataStateUpdate(crashed_V1, 1));
         }
         return updates;
     }
@@ -866,7 +901,7 @@ public class Main {
     }
 
     private static  Perturbation getIteratedDistanceSensorsPerturbation() {
-        return new AfterPerturbation(1, new IterativePerturbation(5000, new AtomicPerturbation(TIMER_INIT - 1, Main::distanceSensorsPerturbation)));
+        return new AfterPerturbation(1, new IterativePerturbation(300, new AtomicPerturbation(TIMER_INIT - 1, Main::distanceSensorsPerturbation)));
     }
 
     private static DataState distanceSensorsPerturbation(RandomGenerator rg, DataState state) {
