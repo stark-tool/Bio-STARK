@@ -1,97 +1,216 @@
-param ACCELERATION = 0.1;
-param BRAKE = 0.3;
+param ACCELERATION = 1.0;
+param BRAKE = 2.0;
 param NEUTRAL = 0.0;
-param TIMER_INIT = 4;
+param TIMER_INIT = 5;
 param DANGER = 1;
 param OK = 0;
-param MAX_SPEED_OFFSET = 0.065;
-param INIT_SPEED = 30.0;
+param INIT_SPEED_V1 = 25.0;
+param INIT_SPEED_V2 = 25.0;
 param MAX_SPEED = 40.0;
-param INIT_DISTANCE = 3000.0;
-param MAX_DISTANCE = 3000.0;
+param MAX_SPEED_OFFSET = 0.2;
+param INIT_DISTANCE_OBS_V1 = 10000.0;
+param INIT_DISTANCE_V1_V2 = 5000.0;
+param MAX_DISTANCE_OFFSET = 1.0;
 param SAFETY_DISTANCE = 200.0;
+param ETA_fast = 0.05;
+param ETA_slow = 0.1;
+param ETA_comb = 0.1
+param ETA_CRASH_SPEED = 0.01;
 
-type acc_type = A|N|B;
-type accel_type = ACCEL|NEUTRAL|BRAKE
+type accel_type = ACCELERATION|NEUTRAL|BRAKE;
 
-variables{
-real p_speed [0,MAX_SPEED];
-real s_speed [0,MAX_SPEED];
-real p_distance [0,MAX_DISTANCE];
-real s_distance [0,MAX_DISTANCE];
-acc_type acc;
-accel_type accel;
+global variables{
+real p_speed_V1 [0,MAX_SPEED];
+real p_distance_V1 [0,INIT_DISTANCE_OBS_V1];
+int timer_V1 [0,TIMER_INIT];
+real braking_distance_V1 [0, INIT_DISTANCE_OBS_V1];
+real required_distance_V1 [0, INIT_DISTANCE_OBS_V1];
+real safety_gap_V1 [0, INIT_DISTANCE_OBS_V1];
+int crashed_V1 [0,1];
+real p_speed_V2 [0,MAX_SPEED];
+real p_distance_V2 [0,INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2];
+real p_distance_V1_V2 [0,INIT_DISTANCE_V1_V2];
+int timer_V2 [0,TIMER_INIT];
+real braking_distance_V2 [0, INIT_DISTANCE_V1_V2];
+real required_distance_V2 [0, INIT_DISTANCE_V1_V2];
+real safety_gap_V2 [0, INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2];
+real safety_gap_V1_V2 [0, INIT_DISTANCE_V1_V2];
 }
 
 
-
-
-
-
-
-function temperatureUpdateInOneStep(bool cool, speed_value speed) {
-  if (cool) {
-    return U[-1.2, -0.8];
-  } else {
-    switch speed {
-      case SLOW: return U[0.1, 0.3];
-      case HALF: return U[0.3, 0.7];
-      case FULL: return U[0.7, 1.2];
+component Vehicle1 {
+  variables{
+    real s_speed_V1 [0,MAX_SPEED];
+    real s_distance_V1 [0,INIT_DISTANCE_OBS_V1];
+    accel_type accel_V1;
+    int warning_V1 [0,1];
+    int brake_light_V1 [0,1];
+  }
+  controller {
+    state Ctrl_V1 {
+      if (s_speed_V1 > 0) {
+        if (safety_gap_V1 > 0) {
+          accel_V1 = A;
+          timer_V1 = TIMER;
+          brake_light_V1 = 0;
+          exec Accelerate_V1;
+        } else {
+          accel_V1 = - B;
+          timer_V1 = TIMER;
+          brake_light_V1 = 1;
+          exec Decelerate_V1;
+        }
+      } else {
+        accel_V1 = N;
+        timer_V1 = TIMER;
+        exec Stop_V1;
+      }
+    }
+    state Accelerate_V1 {
+      if (timer_V1 > 0) {
+        step Accelerate_V1;
+      } else {
+        exec Ctrl_V1;
+      }
+    }
+    state Decelerate_V1 {
+      if (timer_V1 > 0) {
+        step Decelerate_V1;
+      } else {
+        exec Ctrl_V1;
+      }
+    }
+    state Stop_V1 {
+      if (timer_V1 > 0) {
+        step Stop_V1;
+      } else {
+        if (warning_V1 == DANGER) {
+          accel_V1 = -BRAKE;
+          timer_V1 = TIMER_INIT;
+          exec Decelerate_V1;
+        } else {
+          timer_V1 = TIMER_INIT;
+          exec Stop_V1;
+        }
+      }
+    }
+    state IDS_V1 {
+      if (p_distance_V1 <= 2*TIMER_INIT*SAFETY_DISTANCE && (accel_V1 == ACCELERATION || (accel_V1 == NEUTRAL && p_speed_V1 > 0.0))) {
+        warning_V1 = DANGER;
+        exec IDS_V1;
+      } else {
+        warning_V1 = OK;
+        exec IDS_V1;
+      }
     }
   }
+  init Ctrl_V1 || IDS_V1;
 }
 
-function isStressed(array P) {
-  return P.count(it > 100)>3;
+component Vehicle2 {
+  variables{
+    real s_speed_V2 [0,MAX_SPEED];
+    real s_distance_V2 [0,INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2];
+    real s_distance_V1_V2 [0,INIT_DISTANCE_V1_V2];
+    accel_type accel_V2;
+    int warning_V2 [0,1];
+    int brake_light_V2 [0,1];
+    int crashed_V2 [0,1];
+  }
+  controller {
+    state Ctrl_V2 {
+      if (s_speed_V2 > 0) {
+        if (safety_gap_V1_V2 > 0 && (brake_light_V1 == 0 || (s_distance_V1_V2 >= 300 && safety_gap_V2 > 0 ))) {
+          accel_V2 = A;
+          timer_V2 = TIMER;
+          brake_light_V2 = 0;
+          exec Accelerate_V2;
+        } else {
+          accel_V2 = - B;
+          timer_V2 = TIMER;
+          brake_light_V2 = 1;
+          exec Decelerate_V2;
+        }
+      } else {
+        accel_V2 = N;
+        timer_V2 = TIMER;
+        exec Stop_V2;
+      }
+    }
+    state Accelerate_V2 {
+      if (timer_V2 > 0) {
+        step Accelerate_V2;
+      } else {
+        exec Ctrl_V2;
+      }
+    }
+    state Decelerate_V2 {
+      if (timer_V2 > 0) {
+        step Decelerate_V2;
+      } else {
+        exec Ctrl_V2;
+      }
+    }
+    state Stop_V2 {
+      if (timer_V2 > 0) {
+        step Stop_V2;
+      } else {
+        if (warning_V2 == DANGER) {
+          accel_V2 = -BRAKE;
+          timer_V2 = TIMER_INIT;
+          exec Decelerate_V2;
+        } else {
+          timer_V2 = TIMER_INIT;
+          exec Stop_V2;
+        }
+      }
+    }
+    state IDS_V1 {
+      if (p_distance_V2 <= 2*TIMER_INIT*SAFETY_DISTANCE && (accel_V2 == ACCELERATION || (accel_V2 == NEUTRAL && p_speed_V2 > 0.0))) {
+        warning_V2 = DANGER;
+        exec IDS_V2;
+      } else {
+        warning_V2 = OK;
+        exec IDS_V2;
+      }
+    }
+  }
+  init Ctrl_V2 || IDS_V2;
 }
 
 environment {
-  let deltaTemp = temperatureUpdateInOneStep(cool, speed)
+  let
+    travel_V1 = accel_V1/2 + p_speed_V1;
+  and
+    travel_V2 = accel_V2/2 + p_speed_V2;
   in
-    temp' = temp + deltaTemp;
-    ch_temp' = ch_temp + deltaTemp;
-    P'[2..6] = P[1..5];
-    P'[1] = temp;
-    when isStressed(P) stress' = stress + STRESS_INCR;
+    timer_V1' = timer_V1 - 1;
+    p_speed_V1' = min(MAX_SPEED, max(0, p_speed_V1 + accel_V1));
+    p_distance_V1' = p_distance_V1 - travel_V1;
+    timer_V2' = timer_V2 - 1;
+    p_speed_V2' = min(MAX_SPEED, max(0, p_speed_V2 + accel_V2));
+    p_distance_V2' = p_distance_V2 - travel_V2;
+    p_distance_V1_V2' = p_distance_V1_V2 - travel_V2 + travel_V1;
+    when (timer_V1' == 0)
+      braking_distance_V1' = p_speed_V1'^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * p_speed_V1' * TIMER_INIT)) / (2 * BRAKE);
+      required_distance_V1' = braking_distance_V1' + SAFETY_DISTANCE;
+      safety_gap_V1' = p_distance_V1' - required_distance_V1';
+      s_speed_V1' = p_speed_V1';
+      s_distance_V1' = p_distance_V1';
+    when (timer_V2' == 0)
+      braking_distance_V2' = p_speed_V2'^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * p_speed_V2' * TIMER_INIT)) / (2 * BRAKE);
+      required_distance_V2' = braking_distance_V2' + SAFETY_DISTANCE;
+      safety_gap_V2' = p_distance_V2' - required_distance_V2';
+      safety_gap_V1_V2' = p_distance_V1_V2' - required_distance_V2';
+      s_speed_V2' = p_speed_V2';
+      s_distance_V2' = p_distance_V2';
+      s_distance_V1_V2' = p_distance_V1_V2';
+    when (p_distance_V1 <= 0)
+          crashed_V1' = 1;
+    when (p_distance_V2 <= 0 || p_distance_V1_V2 <=0)
+      crashed_V2' = 1;
 }
 
-controller {
-  state Ctrl {
-    if (ch_temp >= 99.8) {
-      cool' = true;
-      step Cooling;
-    } else {
-      exec Check;
-    }
-  }
-  state Check {
-    if (ch_speed == SLOW) {
-      speed' = SLOW;
-      cool' = false;
-      step Ctrl;
-    } else {
-      speed' = ch_in;
-      cool' = false;
-      step Ctrl;
-    }
-  }
-  state Cooling {
-    4#step Check;
-  }
-  state IDS {
-    if (temp>101.0)&(cool=OFF) {
-      ch_wrn' = HOT;
-      ch_speed' = LOW;
-      ch_out' = FULL;
-      step IDS;
-    } else {
-      ch_wrn' = OK;
-      ch_speed' = HALF;
-      ch_out' = HALF;
-      step IDS;
-    }
-  }
-  state ENG = Ctrl || IDS;
-}
+
 
 
