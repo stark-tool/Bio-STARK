@@ -20,35 +20,23 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.ds;
+package it.unicam.quasylab.jspear.speclang.semantics;
 
+import it.unicam.quasylab.jspear.ds.DataState;
+import it.unicam.quasylab.jspear.ds.DataStateFunction;
+import it.unicam.quasylab.jspear.ds.DataStateUpdate;
+import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
+import it.unicam.quasylab.jspear.speclang.variables.JSpearVariableAllocation;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.List;
 import java.util.function.BiFunction;
 
-/**
- * Instances of this class are used to represent a random function from data states to data states.
- */
-@FunctionalInterface
-public interface DataStateFunction {
+public interface JSpearEnvironmentUpdateFunction extends BiFunction<RandomGenerator, JSpearStore, List<DataStateUpdate>>, DataStateFunction {
 
-    BiFunction<RandomGenerator, DataState, List<DataStateUpdate>>  TICK_FUNCTION = (rg, ds) -> List.of();
+    JSpearVariableAllocation getVariableAllocation();
 
-    /**
-     * Given a random generator, used to evaluate random expressions, and a data state samples an outcome of this
-     * expression.
-     *
-     * @param rg random generator used to evaluate random expressions.
-     * @return a data state sampled among the ones reachable in one step from ds.
-     */
-    DataState apply(RandomGenerator rg, DataState ds);
-
-
-    default DataStateFunction compose(DataStateFunction other) {
-        return (rg, ds) -> other.apply(rg, this.apply(rg, ds));
+    default DataState apply(RandomGenerator rg, DataState ds) {
+        return ds.apply(this.apply(rg, JSpearStore.storeOf(getVariableAllocation(), ds)));
     }
-
-
-
 }

@@ -41,7 +41,7 @@ public class StepController implements Controller {
         this((rg, ds) -> steps, nextController);
     }
 
-    public StepController(ToIntBiFunction<RandomGenerator,DataState> steps, Controller nextController) {
+    public StepController(ToIntBiFunction<RandomGenerator, DataState> steps, Controller nextController) {
         this.steps = steps;
         this.nextController = nextController;
     }

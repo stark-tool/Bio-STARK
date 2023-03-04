@@ -25,8 +25,6 @@ package it.unicam.quasylab.jspear.controller;
 import it.unicam.quasylab.jspear.ds.DataState;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import java.util.LinkedList;
-
 public class ExecController implements Controller {
 
     private final Controller nextController;

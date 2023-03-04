@@ -20,26 +20,28 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.controller;
+package it.unicam.quasylab.jspear.speclang.semantics;
 
-import it.unicam.quasylab.jspear.ds.DataState;
 import it.unicam.quasylab.jspear.ds.DataStateUpdate;
+import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
+import it.unicam.quasylab.jspear.speclang.variables.JSpearVariableAllocation;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 
-public class AssignmentController implements Controller {
-    private final BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment;
-    private final Controller nextController;
+public class JSpearEnvironmentAssignmentFunction extends JSpearAbstractEnvironmentFunction {
 
-    public AssignmentController(BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment, Controller nextController) {
-        this.assignment = assignment;
-        this.nextController = nextController;
+    private final List<BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>>> assignments;
+
+    public JSpearEnvironmentAssignmentFunction(JSpearVariableAllocation allocation, List<BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>>> assignments) {
+        super(allocation);
+        this.assignments = assignments;
     }
 
     @Override
-    public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
-        return nextController.next(rg, state).applyBefore(assignment.apply(rg, state));
+    public List<DataStateUpdate> apply(RandomGenerator randomGenerator, JSpearStore jSpearStore) {
+        return assignments.stream().map(a -> a.apply(randomGenerator, jSpearStore)).filter(Optional::isPresent).map(Optional::get).toList();
     }
 }

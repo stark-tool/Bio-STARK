@@ -26,7 +26,6 @@ import it.unicam.quasylab.jspear.ds.DataState;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 
 /**
  * A controller that implements an if-then-else behaviour.

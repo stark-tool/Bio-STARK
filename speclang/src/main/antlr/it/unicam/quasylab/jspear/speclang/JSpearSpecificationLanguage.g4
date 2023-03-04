@@ -136,13 +136,31 @@ controllerIfThenElseBehaviour: 'if' guard=expression thenBranch=controllerBlockB
 /* ENVIRONMENT            */
 /**************************/
 declarationEnvironmnet:
-    'environment' '{'
-        ('let' localVariables+=localVariable
-        ('and' localVariables+=localVariable)*
-        'in')?
-        (assignments += variableAssignment)*
-    '}'
+    'environment' block=environmentBlock
 ;
+
+environmentBlock: '{' environmentCommand '}';
+
+environmentCommand:
+    environmentLetCommand
+    | environmentIfThenElse
+    | environmentAssignment
+    | environmentBlock
+;
+
+environmentAssignment: variableAssignment*;
+
+environmentIfThenElse: 'if' '(' guard=expression ')' thenCommand=environmentCommand ('else' elseCommand=environmentCommand)?;
+
+environmentLetCommand:
+        'let' localVariables+=localVariable
+        ('and' localVariables+=localVariable)*
+       'in'
+            body=environmentCommand
+;
+
+
+
 
 
 variableAssignment: ('when' guard=expression)? target=varExpression '=' value=expression ';';

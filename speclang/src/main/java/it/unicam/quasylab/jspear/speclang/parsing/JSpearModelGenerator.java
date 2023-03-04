@@ -31,6 +31,7 @@ import it.unicam.quasylab.jspear.ds.*;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
 import it.unicam.quasylab.jspear.speclang.controller.JSpearControllerFunction;
+import it.unicam.quasylab.jspear.speclang.semantics.JSpearEnvironmentLetUpdateFunction;
 import it.unicam.quasylab.jspear.speclang.semantics.JSpearExpressionEvaluationFunction;
 import it.unicam.quasylab.jspear.speclang.semantics.JSpearExpressionEvaluator;
 import it.unicam.quasylab.jspear.speclang.types.JSpearCustomType;
@@ -135,32 +136,30 @@ public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor
 
     @Override
     public Boolean visitDeclarationEnvironmnet(JSpearSpecificationLanguageParser.DeclarationEnvironmnetContext ctx) {
-        JSpearVariable[] variables = new JSpearVariable[ctx.localVariables.size()];
-        JSpearExpressionEvaluationFunction[] localVariablesValues = new JSpearExpressionEvaluationFunction[variables.length];
-        for(int i=0; i<variables.length; i++) {
-            variables[i] = registry.getOrRegister(ctx.localVariables.get(i).getText());
-            localVariablesValues[i] = JSpearExpressionEvaluator.eval(context, registry, ctx.localVariables.get(i).expression());
-        }
-        BiFunction<RandomGenerator, JSpearStore, List<DataStateUpdate>> updates = getEnvironmentFunction(ctx.assignments);
-        this.environmentFunction = new EnvironmentUpdateFunction(variables, localVariablesValues, updates);
-        return true;
+        this.environmentFunction = ctx.block.accept(new JSpearEnvironmentGenerator(this.allocation, this.context, this.registry));
+        return this.environmentFunction != null;
     }
 
-    private BiFunction<RandomGenerator, JSpearStore, List<DataStateUpdate>> getEnvironmentFunction(List<JSpearSpecificationLanguageParser.VariableAssignmentContext> assignments) {
-        List<BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>>> updates = assignments.stream().map(this::getEnvironmentAssignmentFunction).toList();
-        return (rg, s) -> updates.stream().map(a -> a.apply(rg, s)).filter(Optional::isPresent).map(Optional::get).toList();
+    @Override
+    public Boolean visitEnvironmentBlock(JSpearSpecificationLanguageParser.EnvironmentBlockContext ctx) {
+        return ctx.environmentCommand().accept(this);
     }
 
-    private BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>> getEnvironmentAssignmentFunction(JSpearSpecificationLanguageParser.VariableAssignmentContext variableAssignmentContext) {
-        JSpearVariable variable = registry.get(JSpearVariable.getTargetVariableName(variableAssignmentContext.target.name.getText()));
-        JSpearExpressionEvaluationFunction valueFunction = JSpearExpressionEvaluator.eval(context, registry, variableAssignmentContext.value);
-        if (variableAssignmentContext.guard != null) {
-            JSpearExpressionEvaluationFunction guardFunction = JSpearExpressionEvaluator.eval(context, registry, variableAssignmentContext.guard);
-            return (rg, s) -> (JSpearValue.isTrue(guardFunction.eval(rg, s))?allocation.set(variable, valueFunction.eval(rg, s)):Optional.empty());
-        } else {
-            return (rg, s) -> allocation.set(variable, valueFunction.eval(rg, s));
-        }
+    @Override
+    public Boolean visitEnvironmentAssignment(JSpearSpecificationLanguageParser.EnvironmentAssignmentContext ctx) {
+        return super.visitEnvironmentAssignment(ctx);
     }
+
+    @Override
+    public Boolean visitEnvironmentIfThenElse(JSpearSpecificationLanguageParser.EnvironmentIfThenElseContext ctx) {
+        return super.visitEnvironmentIfThenElse(ctx);
+    }
+
+    @Override
+    public Boolean visitEnvironmentLetCommand(JSpearSpecificationLanguageParser.EnvironmentLetCommandContext ctx) {
+        return super.visitEnvironmentLetCommand(ctx);
+    }
+
 
 
 
@@ -244,29 +243,5 @@ public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor
         return (rg, ds) -> ds.apply(this.environmentFunction.apply(rg, JSpearStore.storeOf(allocation, ds)));
     }
 
-    
-    
-    static class EnvironmentUpdateFunction implements BiFunction<RandomGenerator, JSpearStore, List<DataStateUpdate>> {
-
-        private final JSpearVariable[] localVariables;
-        private final JSpearExpressionEvaluationFunction[] localVariablesValues;
-
-        private final BiFunction<RandomGenerator, JSpearStore, List<DataStateUpdate>> updates;
-
-        EnvironmentUpdateFunction(JSpearVariable[] localVariables, JSpearExpressionEvaluationFunction[] localVariablesValues, BiFunction<RandomGenerator, JSpearStore, List<DataStateUpdate>> updates) {
-            this.localVariables = localVariables;
-            this.localVariablesValues = localVariablesValues;
-            this.updates = updates;
-        }
-
-        @Override
-        public List<DataStateUpdate> apply(RandomGenerator randomGenerator, JSpearStore jSpearStore) {
-            Map<JSpearVariable, JSpearValue> localStore = new HashMap<>();
-            for(int i=0; i<localVariables.length; i++) {
-                localStore.put(localVariables[i], localVariablesValues[i].eval(randomGenerator, JSpearStore.storeOf(localStore, jSpearStore)));
-            }
-            return updates.apply(randomGenerator, JSpearStore.storeOf(localStore, jSpearStore));
-        }
-    }
 
 }

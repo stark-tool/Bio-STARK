@@ -24,15 +24,67 @@ package it.unicam.quasylab.jspear.speclang.parsing;
 
 import it.unicam.quasylab.jspear.ds.DataStateUpdate;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
+import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
+import it.unicam.quasylab.jspear.speclang.semantics.*;
+import it.unicam.quasylab.jspear.speclang.values.JSpearValue;
+import it.unicam.quasylab.jspear.speclang.variables.*;
+import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.random.RandomGenerator;
 
-public class JSpearEnvironmentGenerator extends JSpearSpecificationLanguageBaseVisitor<BiFunction<RandomGenerator, JSpearStore, List<DataStateUpdate>>> {
+public class JSpearEnvironmentGenerator extends JSpearSpecificationLanguageBaseVisitor<JSpearEnvironmentUpdateFunction> {
+
+    private final JSpearVariableAllocation allocation;
+    private final JSpearExpressionEvaluationContext context;
+    private final JSpearVariableRegistry registry;
+
+    public JSpearEnvironmentGenerator(JSpearVariableAllocation allocation, JSpearExpressionEvaluationContext context, JSpearVariableRegistry registry) {
+        this.allocation = allocation;
+        this.context = context;
+        this.registry = registry;
+    }
+
+    @Override
+    public JSpearEnvironmentUpdateFunction visitEnvironmentBlock(JSpearSpecificationLanguageParser.EnvironmentBlockContext ctx) {
+        return ctx.environmentCommand().accept(this);
+    }
+
+    @Override
+    public JSpearEnvironmentUpdateFunction visitEnvironmentAssignment(JSpearSpecificationLanguageParser.EnvironmentAssignmentContext ctx) {
+        return new JSpearEnvironmentAssignmentFunction(this.allocation, ctx.variableAssignment().stream().map(this::getEnvironmentAssignmentFunction).toList());
+    }
+
+    private BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>> getEnvironmentAssignmentFunction(JSpearSpecificationLanguageParser.VariableAssignmentContext variableAssignmentContext) {
+        JSpearVariable variable = registry.get(JSpearVariable.getTargetVariableName(variableAssignmentContext.target.name.getText()));
+        JSpearExpressionEvaluationFunction valueFunction = JSpearExpressionEvaluator.eval(context, registry, variableAssignmentContext.value);
+        if (variableAssignmentContext.guard != null) {
+            JSpearExpressionEvaluationFunction guardFunction = JSpearExpressionEvaluator.eval(context, registry, variableAssignmentContext.guard);
+            return (rg, s) -> (JSpearValue.isTrue(guardFunction.eval(rg, s))?allocation.set(variable, valueFunction.eval(rg, s)):Optional.empty());
+        } else {
+            return (rg, s) -> allocation.set(variable, valueFunction.eval(rg, s));
+        }
+    }
 
 
+    @Override
+    public JSpearEnvironmentUpdateFunction visitEnvironmentIfThenElse(JSpearSpecificationLanguageParser.EnvironmentIfThenElseContext ctx) {
+        return new JSpearEnvironmentConditionalUpdateFunction(
+                this.allocation,
+                JSpearExpressionEvaluator.eval(context, registry, ctx.guard),
+                ctx.thenCommand.accept(this),
+                ctx.elseCommand.accept(this));
+    }
 
-
+    @Override
+    public JSpearEnvironmentUpdateFunction visitEnvironmentLetCommand(JSpearSpecificationLanguageParser.EnvironmentLetCommandContext ctx) {
+        JSpearVariable[] variables = new JSpearVariable[ctx.localVariables.size()];
+        JSpearExpressionEvaluationFunction[] localVariablesValues = new JSpearExpressionEvaluationFunction[variables.length];
+        for(int i=0; i<variables.length; i++) {
+            variables[i] = registry.getOrRegister(ctx.localVariables.get(i).getText());
+            localVariablesValues[i] = JSpearExpressionEvaluator.eval(context, registry, ctx.localVariables.get(i).expression());
+        }
+        return new JSpearEnvironmentLetUpdateFunction(allocation, variables, localVariablesValues, ctx.body.accept(this));
+    }
 }
