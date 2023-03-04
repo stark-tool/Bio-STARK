@@ -20,21 +20,21 @@ param ETA_CRASH_SPEED = 0.01;
 type accel_type = ACCELERATION|NEUTRAL|BRAKE;
 
 global variables{
-real p_speed_V1 [0,MAX_SPEED];
-real p_distance_V1 [0,INIT_DISTANCE_OBS_V1];
-int timer_V1 [0,TIMER_INIT];
-real braking_distance_V1 [0, INIT_DISTANCE_OBS_V1];
-real required_distance_V1 [0, INIT_DISTANCE_OBS_V1];
-real safety_gap_V1 [0, INIT_DISTANCE_OBS_V1];
-int crashed_V1 [0,1];
-real p_speed_V2 [0,MAX_SPEED];
-real p_distance_V2 [0,INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2];
-real p_distance_V1_V2 [0,INIT_DISTANCE_V1_V2];
-int timer_V2 [0,TIMER_INIT];
-real braking_distance_V2 [0, INIT_DISTANCE_V1_V2];
-real required_distance_V2 [0, INIT_DISTANCE_V1_V2];
-real safety_gap_V2 [0, INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2];
-real safety_gap_V1_V2 [0, INIT_DISTANCE_V1_V2];
+  real p_speed_V1 [0,MAX_SPEED];
+  real p_distance_V1 [0,INIT_DISTANCE_OBS_V1];
+  int timer_V1 [0,TIMER_INIT];
+  real braking_distance_V1 [0, INIT_DISTANCE_OBS_V1];
+  real required_distance_V1 [0, INIT_DISTANCE_OBS_V1];
+  real safety_gap_V1 [0, INIT_DISTANCE_OBS_V1];
+  int crashed_V1 [0,1];
+  real p_speed_V2 [0,MAX_SPEED];
+  real p_distance_V2 [0,INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2];
+  real p_distance_V1_V2 [0,INIT_DISTANCE_V1_V2];
+  int timer_V2 [0,TIMER_INIT];
+  real braking_distance_V2 [0, INIT_DISTANCE_V1_V2];
+  real required_distance_V2 [0, INIT_DISTANCE_V1_V2];
+  real safety_gap_V2 [0, INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2];
+  real safety_gap_V1_V2 [0, INIT_DISTANCE_V1_V2];
 }
 
 
@@ -191,13 +191,14 @@ environment {
     p_speed_V2' = min(MAX_SPEED, max(0, p_speed_V2 + accel_V2));
     p_distance_V2' = p_distance_V2 - travel_V2;
     p_distance_V1_V2' = p_distance_V1_V2 - travel_V2 + travel_V1;
-    when (timer_V1' == 0)
+    if (timer_V1' == 0) {
       braking_distance_V1' = p_speed_V1'^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * p_speed_V1' * TIMER_INIT)) / (2 * BRAKE);
       required_distance_V1' = braking_distance_V1' + SAFETY_DISTANCE;
       safety_gap_V1' = p_distance_V1' - required_distance_V1';
       s_speed_V1' = p_speed_V1';
       s_distance_V1' = p_distance_V1';
-    when (timer_V2' == 0)
+    }
+    if (timer_V2' == 0) {
       braking_distance_V2' = p_speed_V2'^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * p_speed_V2' * TIMER_INIT)) / (2 * BRAKE);
       required_distance_V2' = braking_distance_V2' + SAFETY_DISTANCE;
       safety_gap_V2' = p_distance_V2' - required_distance_V2';
@@ -205,8 +206,9 @@ environment {
       s_speed_V2' = p_speed_V2';
       s_distance_V2' = p_distance_V2';
       s_distance_V1_V2' = p_distance_V1_V2';
+    }
     when (p_distance_V1 <= 0)
-          crashed_V1' = 1;
+      crashed_V1' = 1;
     when (p_distance_V2 <= 0 || p_distance_V1_V2 <=0)
       crashed_V2' = 1;
 }
