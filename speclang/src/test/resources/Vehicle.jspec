@@ -51,18 +51,18 @@ component Vehicle1 {
     state Ctrl_V1 {
       if (s_speed_V1 > 0) {
         if (safety_gap_V1 > 0) {
-          accel_V1 = A;
+          accel_V1 = ACCELERATION;
           timer_V1 = TIMER_INIT;
           brake_light_V1 = 0;
           exec Accelerate_V1;
         } else {
-          accel_V1 = - B;
+          accel_V1 = - BRAKE;
           timer_V1 = TIMER_INIT;
           brake_light_V1 = 1;
           exec Decelerate_V1;
         }
       } else {
-        accel_V1 = N;
+        accel_V1 = NEUTRAL;
         timer_V1 = TIMER_INIT;
         exec Stop_V1;
       }
@@ -122,18 +122,18 @@ component Vehicle2 {
     state Ctrl_V2 {
       if (s_speed_V2 > 0) {
         if (safety_gap_V1_V2 > 0 && (brake_light_V1 == 0 || (s_distance_V1_V2 >= 300 && safety_gap_V2 > 0 ))) {
-          accel_V2 = A;
+          accel_V2 = ACCELERATION;
           timer_V2 = TIMER_INIT;
           brake_light_V2 = 0;
           exec Accelerate_V2;
         } else {
-          accel_V2 = - B;
+          accel_V2 = - BRAKE;
           timer_V2 = TIMER_INIT;
           brake_light_V2 = 1;
           exec Decelerate_V2;
         }
       } else {
-        accel_V2 = N;
+        accel_V2 = NEUTRAL;
         timer_V2 = TIMER_INIT;
         exec Stop_V2;
       }
