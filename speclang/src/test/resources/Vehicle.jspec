@@ -88,6 +88,7 @@ component Vehicle1 {
         if (warning_V1 == DANGER) {
           accel_V1' = -BRAKE;
           timer_V1' = TIMER_INIT;
+          brake_light_V1' = 1;
           exec Decelerate_V1;
         } else {
           timer_V1' = TIMER_INIT;
@@ -159,6 +160,7 @@ component Vehicle2 {
         if (warning_V2 == DANGER) {
           accel_V2' = -BRAKE;
           timer_V2' = TIMER_INIT;
+          brake_light_V2' = 1;
           exec Decelerate_V2;
         } else {
           timer_V2' = TIMER_INIT;
