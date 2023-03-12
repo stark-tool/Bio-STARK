@@ -25,6 +25,8 @@ package it.unicam.quasylab.jspear;
 import it.unicam.quasylab.jspear.ds.DataState;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import it.unicam.quasylab.jspear.ds.DataStateFunction;
+import it.unicam.quasylab.jspear.perturbation.NonePerturbation;
+import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.ArrayList;

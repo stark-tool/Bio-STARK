@@ -22,16 +22,17 @@
 
 package it.unicam.quasylab.jspear.speclang.parsing;
 
-import it.unicam.quasylab.jspear.ControlledSystem;
-import it.unicam.quasylab.jspear.SystemSpecification;
+import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.ControllerRegistry;
 import it.unicam.quasylab.jspear.controller.ParallelController;
+import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.ds.*;
+import it.unicam.quasylab.jspear.perturbation.Perturbation;
+import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
 import it.unicam.quasylab.jspear.speclang.controller.JSpearControllerFunction;
-import it.unicam.quasylab.jspear.speclang.semantics.JSpearEnvironmentLetUpdateFunction;
 import it.unicam.quasylab.jspear.speclang.semantics.JSpearExpressionEvaluationFunction;
 import it.unicam.quasylab.jspear.speclang.semantics.JSpearExpressionEvaluator;
 import it.unicam.quasylab.jspear.speclang.types.JSpearCustomType;
@@ -44,7 +45,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiFunction;
 
 public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor<Boolean> {
@@ -68,6 +68,12 @@ public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor
     private final Map<String, JSpearControllerFunction> controllerMap = new HashMap<>();
 
     private Controller controller = null;
+
+    private final Map<String, Perturbation> perturbationMap = new HashMap<>();
+
+    private final Map<String, DistanceExpression> distanceExpressionMap = new HashMap<>();
+
+    private final Map<String, RobustnessFormula> formulaMap = new HashMap<>();
 
     private final Map<String, DataStateExpression> penalties = new HashMap<>();
 
@@ -140,25 +146,6 @@ public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor
         return this.environmentFunction != null;
     }
 
-    @Override
-    public Boolean visitEnvironmentBlock(JSpearSpecificationLanguageParser.EnvironmentBlockContext ctx) {
-        return ctx.environmentCommand().accept(this);
-    }
-
-    @Override
-    public Boolean visitEnvironmentAssignment(JSpearSpecificationLanguageParser.EnvironmentAssignmentContext ctx) {
-        return super.visitEnvironmentAssignment(ctx);
-    }
-
-    @Override
-    public Boolean visitEnvironmentIfThenElse(JSpearSpecificationLanguageParser.EnvironmentIfThenElseContext ctx) {
-        return super.visitEnvironmentIfThenElse(ctx);
-    }
-
-    @Override
-    public Boolean visitEnvironmentLetCommand(JSpearSpecificationLanguageParser.EnvironmentLetCommandContext ctx) {
-        return super.visitEnvironmentLetCommand(ctx);
-    }
 
 
 
@@ -243,5 +230,21 @@ public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor
         return (rg, ds) -> ds.apply(this.environmentFunction.apply(rg, JSpearStore.storeOf(allocation, ds)));
     }
 
+    @Override
+    public Boolean visitDeclarationFormula(JSpearSpecificationLanguageParser.DeclarationFormulaContext ctx) {
+        this.formulaMap.put(ctx.name.getText(), ctx.value.accept(new JSpearRobustnessFormulaGenerator(allocation, context, registry, perturbationMap, distanceExpressionMap, formulaMap)));
+        return super.visitDeclarationFormula(ctx);
+    }
 
+    @Override
+    public Boolean visitDeclarationDistance(JSpearSpecificationLanguageParser.DeclarationDistanceContext ctx) {
+        this.distanceExpressionMap.put(ctx.name.getText(), ctx.value.accept(new JSpearDistanceGenerator(allocation, context, registry, distanceExpressionMap)));
+        return true;
+    }
+
+    @Override
+    public Boolean visitDeclarationPerturbation(JSpearSpecificationLanguageParser.DeclarationPerturbationContext ctx) {
+        this.perturbationMap.put(ctx.name.getText(), ctx.value.accept(new JSpearPerturbationGenerator(allocation, context, registry, perturbationMap)));
+        return true;
+    }
 }

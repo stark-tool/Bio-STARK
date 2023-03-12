@@ -22,11 +22,10 @@
 
 package it.unicam.quasylab.jspear.speclang.semantics;
 
+import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageBaseVisitor;
 import it.unicam.quasylab.jspear.speclang.JSpearSpecificationLanguageParser;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearExpressionEvaluationContext;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearVariableRegistry;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearVariable;
+import it.unicam.quasylab.jspear.speclang.variables.*;
 import it.unicam.quasylab.jspear.speclang.values.*;
 
 import java.util.Arrays;
@@ -90,6 +89,11 @@ public class JSpearExpressionEvaluator extends JSpearSpecificationLanguageBaseVi
 
     public static JSpearExpressionEvaluationFunction eval(JSpearExpressionEvaluationContext context, JSpearVariableRegistry registry, JSpearSpecificationLanguageParser.ExpressionContext expression) {
         return expression.accept(new JSpearExpressionEvaluator(context, registry));
+    }
+
+    public static DataStateExpression evalToDataStateExpression(JSpearVariableAllocation allocation, JSpearExpressionEvaluationContext context, JSpearVariableRegistry registry, JSpearSpecificationLanguageParser.ExpressionContext expression) {
+        JSpearExpressionEvaluationFunction evaluation = expression.accept(new JSpearExpressionEvaluator(context, registry));
+        return ds -> evaluation.eval(JSpearStore.storeOf(allocation, ds)).toDouble();
     }
 
     @Override

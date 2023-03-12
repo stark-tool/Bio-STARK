@@ -48,12 +48,12 @@ public class JSpearEnvironmentGenerator extends JSpearSpecificationLanguageBaseV
 
     @Override
     public JSpearEnvironmentUpdateFunction visitEnvironmentBlock(JSpearSpecificationLanguageParser.EnvironmentBlockContext ctx) {
-        return ctx.environmentCommand().accept(this);
+        return new JSpearEnvironmentBlockFunction(this.allocation, ctx.commands.stream().map(c -> c.accept(this)).toList());
     }
 
     @Override
     public JSpearEnvironmentUpdateFunction visitEnvironmentAssignment(JSpearSpecificationLanguageParser.EnvironmentAssignmentContext ctx) {
-        return new JSpearEnvironmentAssignmentFunction(this.allocation, ctx.variableAssignment().stream().map(this::getEnvironmentAssignmentFunction).toList());
+        return new JSpearEnvironmentAssignmentFunction(this.allocation, List.of(getEnvironmentAssignmentFunction(ctx.variableAssignment())));
     }
 
     private BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>> getEnvironmentAssignmentFunction(JSpearSpecificationLanguageParser.VariableAssignmentContext variableAssignmentContext) {
@@ -70,11 +70,19 @@ public class JSpearEnvironmentGenerator extends JSpearSpecificationLanguageBaseV
 
     @Override
     public JSpearEnvironmentUpdateFunction visitEnvironmentIfThenElse(JSpearSpecificationLanguageParser.EnvironmentIfThenElseContext ctx) {
-        return new JSpearEnvironmentConditionalUpdateFunction(
-                this.allocation,
-                JSpearExpressionEvaluator.eval(context, registry, ctx.guard),
-                ctx.thenCommand.accept(this),
-                ctx.elseCommand.accept(this));
+        if (ctx.elseCommand != null) {
+            return new JSpearEnvironmentConditionalUpdateFunction(
+                    this.allocation,
+                    JSpearExpressionEvaluator.eval(context, registry, ctx.guard),
+                    ctx.thenCommand.accept(this),
+                    ctx.elseCommand.accept(this));
+        } else {
+            return new JSpearEnvironmentConditionalUpdateFunction(
+                    this.allocation,
+                    JSpearExpressionEvaluator.eval(context, registry, ctx.guard),
+                    ctx.thenCommand.accept(this));
+
+        }
     }
 
     @Override

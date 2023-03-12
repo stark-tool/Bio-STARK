@@ -22,6 +22,7 @@
 
 package it.unicam.quasylab.jspear;
 
+import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 
 import java.io.IOException;
@@ -63,7 +64,7 @@ public class Util {
         return IntStream.range(from, to).mapToObj(i -> sequence.get(i).evalPenaltyFunction(expressions)).toArray(double[][]::new);
     }
 
-    public static <T extends SystemState> double[][] evalDistanceExpression(EvolutionSequence sequence, EvolutionSequence sequence2, int to, DistanceExpression ...  expressions) {
+    public static <T extends SystemState> double[][] evalDistanceExpression(EvolutionSequence sequence, EvolutionSequence sequence2, int to, DistanceExpression...  expressions) {
         return evalDistanceExpression(sequence, sequence2, 0, to, expressions);
     }
 

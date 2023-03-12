@@ -14,7 +14,18 @@ element: declarationConstant
 | declarationEnvironmnet
 | declarationPenalty
 | declarationFunction
-| declarationComponent;
+| declarationComponent
+| declarationPerturbation
+| declarationDistance
+| declarationFormula
+;
+
+declarationFormula: 'formula' name=ID '=' value=robtlFormula ';';
+
+declarationDistance: 'distance' name=ID '=' value=distanceExpression ';';
+
+declarationPerturbation: 'perturbation' name=ID '=' value=perturbationExpression ';';
+
 
 /**************************/
 /* FUNCTIONS DECLARATIONS */
@@ -130,7 +141,7 @@ controllerStepAtion: (steps=expression '#')? 'step' target=ID ';';
 
 
 
-controllerIfThenElseBehaviour: 'if' guard=expression thenBranch=controllerBlockBehaviour ('else' elseBranch=controllerBlockBehaviour)?;
+controllerIfThenElseBehaviour: 'if' '(' guard=expression ')' thenBranch=controllerBlockBehaviour ('else' elseBranch=controllerBlockBehaviour)?;
 
 /**************************/
 /* ENVIRONMENT            */
@@ -139,7 +150,7 @@ declarationEnvironmnet:
     'environment' block=environmentBlock
 ;
 
-environmentBlock: '{' environmentCommand '}';
+environmentBlock: '{' commands+=environmentCommand* '}';
 
 environmentCommand:
     environmentLetCommand
@@ -148,7 +159,7 @@ environmentCommand:
     | environmentBlock
 ;
 
-environmentAssignment: variableAssignment*;
+environmentAssignment: variableAssignment;
 
 environmentIfThenElse: 'if' '(' guard=expression ')' thenCommand=environmentCommand ('else' elseCommand=environmentCommand)?;
 
@@ -255,6 +266,42 @@ unaryMathFunction: 'abs'
     ;
 
 
+perturbationExpression:
+        'nil' # perturbationExpressionNil
+     |  first=perturbationExpression ';' second=perturbationExpression # perturbationExpressionSequence
+     | '(' perturbationExpression ')' # perturbationExpressionBrackets
+     | argument=perturbationExpression '^' iterationValue=expression # perturbationExpressionIteration
+     | '[' assignments += perturbationAssignment (',' assignments += perturbationAssignment)* ']' '@' time=expression # perturbationExpressionAtomic
+     | name=ID # perturbationExpressionReference
+;
+
+perturbationAssignment:
+    name=ID '<-' value=expression
+;
+
+distanceExpression:
+    '<' value=expression # distanceExpressionAtomicLeft
+    | '>' value=expression # distanceExpressionAtomicRight
+    | '\\F' '[' from=expression ',' to=expression ']' argument=distanceExpression # distanceExpressionFinally
+    | '\\G' '[' from=expression ',' to=expression ']' argument=distanceExpression # distanceExpressionGlobally
+    | left=distanceExpression '\\U' '[' from=expression ',' to=expression ']' right=distanceExpression # distanceExpressionUntil
+    | '(' distanceExpression ')' # distanceExpressionBrackets
+    | name=ID # distanceExpressionReference
+    | 'min' '(' first = distanceExpression ',' second = distanceExpression ')' # distanceExpressionMin
+    | 'max' '(' first = distanceExpression ',' second = distanceExpression ')' # distanceExpressionMax
+    | weights += expression '*' values += distanceExpression ('+' weights += expression '*' values += distanceExpression)* # distanceExpressionLinearCombination
+    | left=distanceExpression op=('<'|'<='|'>='|'>') right=expression # distanceExpressionThreshold
+;
+
+robtlFormula:
+      'true'  # robtlFormulaTrue
+    | 'false' # robtlFormulaFalse
+    | '\\D' '[' expressionReference=ID ',' perturbationReference=ID ']' op=('<'|'<='|'=='|'>='|'>') value=expression # robtlFormulaDistance
+    | '!' argument=robtlFormula # robtlFormulaNegation
+    | left=robtlFormula '&&' right=robtlFormula  # robtlFormulaConjunction
+    | left=robtlFormula '||' right=robtlFormula # robtlFormulaDisjunction
+    | left=robtlFormula '\\U' '[' from=expression ',' to=expression ']'  right=robtlFormula # robtlFormulaUntil
+;
 
 fragment DIGIT  :   [0-9];
 fragment LETTER :   [a-zA-Z_];

@@ -20,25 +20,31 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.semantics;
+package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.ds.DataStateUpdate;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearVariableAllocation;
-import org.apache.commons.math3.random.RandomGenerator;
+import it.unicam.quasylab.jspear.EvolutionSequence;
 
-import java.util.List;
+public final class NegationRobustnessFormula implements RobustnessFormula {
 
-public abstract class JSpearAbstractEnvironmentFunction implements JSpearEnvironmentUpdateFunction {
-    protected final JSpearVariableAllocation allocation;
+    private final RobustnessFormula argument;
 
-    public JSpearAbstractEnvironmentFunction(JSpearVariableAllocation allocation) {
-        this.allocation = allocation;
+    public NegationRobustnessFormula(RobustnessFormula argument) {
+        this.argument = argument;
     }
 
 
+
     @Override
-    public JSpearVariableAllocation getVariableAllocation() {
-        return allocation;
+    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
+        return !argument.eval(sampleSize, step, sequence, parallel);
+    }
+
+    @Override
+    public <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator) {
+        return evaluator.evalNegation(this);
+    }
+
+    public RobustnessFormula getArgument() {
+        return argument;
     }
 }

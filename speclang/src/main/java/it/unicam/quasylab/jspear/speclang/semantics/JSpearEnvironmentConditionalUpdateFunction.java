@@ -44,12 +44,21 @@ public class JSpearEnvironmentConditionalUpdateFunction extends JSpearAbstractEn
         this.elseFunction = elseFunction;
     }
 
+    public JSpearEnvironmentConditionalUpdateFunction(JSpearVariableAllocation allocation, JSpearExpressionEvaluationFunction guard, JSpearEnvironmentUpdateFunction thenFunction) {
+        this(allocation, guard, thenFunction, null);
+
+    }
+
     @Override
     public List<DataStateUpdate> apply(RandomGenerator randomGenerator, JSpearStore jSpearStore) {
         if (JSpearValue.isTrue(this.guard.eval(randomGenerator, jSpearStore))) {
             return thenFunction.apply(randomGenerator, jSpearStore);
         } else {
-            return elseFunction.apply(randomGenerator, jSpearStore);
+            if (elseFunction != null) {
+                return elseFunction.apply(randomGenerator, jSpearStore);
+            } else {
+                return List.of();
+            }
         }
     }
 }

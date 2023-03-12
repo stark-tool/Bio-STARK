@@ -29,16 +29,26 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.List;
 
-public abstract class JSpearAbstractEnvironmentFunction implements JSpearEnvironmentUpdateFunction {
-    protected final JSpearVariableAllocation allocation;
+/**
+ * Instances of this class act as container for a list of environment functions.
+ */
+public class JSpearEnvironmentBlockFunction extends JSpearAbstractEnvironmentFunction {
 
-    public JSpearAbstractEnvironmentFunction(JSpearVariableAllocation allocation) {
-        this.allocation = allocation;
+    private final List<JSpearEnvironmentUpdateFunction> commands;
+
+    /**
+     * Creates a new block funciton containing the given list of functions.
+     *
+     * @param allocation allocation used to solve variables
+     * @param commands executed commands in the block
+     */
+    public JSpearEnvironmentBlockFunction(JSpearVariableAllocation allocation, List<JSpearEnvironmentUpdateFunction> commands) {
+        super(allocation);
+        this.commands = commands;
     }
 
-
     @Override
-    public JSpearVariableAllocation getVariableAllocation() {
-        return allocation;
+    public List<DataStateUpdate> apply(RandomGenerator randomGenerator, JSpearStore jSpearStore) {
+        return commands.stream().flatMap(c -> c.apply(randomGenerator, jSpearStore).stream()).toList();
     }
 }

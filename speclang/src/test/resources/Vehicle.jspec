@@ -26,7 +26,6 @@ global variables{
   real braking_distance_V1 range [0, INIT_DISTANCE_OBS_V1] = eval_bd(INIT_SPEED_V1);
   real required_distance_V1 range [0, INIT_DISTANCE_OBS_V1] = eval_rd(INIT_SPEED_V1);
   real safety_gap_V1 range [0, INIT_DISTANCE_OBS_V1] = INIT_DISTANCE_OBS_V1 - eval_rd(INIT_SPEED_V1);
-  int crashed_V1 range [0,1] = 0;
   real p_speed_V2 range [0,MAX_SPEED] = INIT_SPEED_V2;
   real p_distance_V2 range [0,INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2] = INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2;
   real p_distance_V1_V2 range [0,INIT_DISTANCE_V1_V2] = INIT_DISTANCE_V1_V2;
@@ -224,8 +223,8 @@ function new_timer (int timer){
   return timer - 1;
 }
 
-function new_distance (real distance, real travel){
- return distance - travel;
+function new_distance (real dist, real travel){
+ return dist - travel;
 }
 
 function eval_bd (real speed){

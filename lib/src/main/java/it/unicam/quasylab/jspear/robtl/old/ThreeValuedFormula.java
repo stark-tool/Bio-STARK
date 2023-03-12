@@ -20,25 +20,25 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.semantics;
+package it.unicam.quasylab.jspear.robtl.old;
 
-import it.unicam.quasylab.jspear.ds.DataStateUpdate;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearVariableAllocation;
-import org.apache.commons.math3.random.RandomGenerator;
+import it.unicam.quasylab.jspear.EvolutionSequence;
+import it.unicam.quasylab.jspear.robtl.TruthValues;
 
-import java.util.List;
+public sealed interface ThreeValuedFormula permits
+        AtomicThreeValuedFormula,
+        AtomicThreeValuedFormulaLeq,
+        AtomicThreeValuedFormulaGeq,
+        ConjunctionThreeValuedFormula,
+        DisjunctionThreeValuedFormula,
+        ImplicationThreeValuedFormula,
+        NegationThreeValuedFormula,
+        TrueThreeValuedFormula,
+        UnknownThreeValuedFormula,
+        UntilThreeValuedFormula,
+        AlwaysThreeValuedFormula,
+        EventuallyThreeValuedFormula {
 
-public abstract class JSpearAbstractEnvironmentFunction implements JSpearEnvironmentUpdateFunction {
-    protected final JSpearVariableAllocation allocation;
+    TruthValues eval(int sampleSize, int step, EvolutionSequence sequence);
 
-    public JSpearAbstractEnvironmentFunction(JSpearVariableAllocation allocation) {
-        this.allocation = allocation;
-    }
-
-
-    @Override
-    public JSpearVariableAllocation getVariableAllocation() {
-        return allocation;
-    }
 }

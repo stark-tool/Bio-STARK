@@ -26,7 +26,13 @@ import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.ControllerRegistry;
 import it.unicam.quasylab.jspear.controller.ParallelController;
+import it.unicam.quasylab.jspear.distance.AtomicDistanceExpressionLeq;
+import it.unicam.quasylab.jspear.distance.DistanceExpression;
+import it.unicam.quasylab.jspear.distance.MaxIntervalDistanceExpression;
 import it.unicam.quasylab.jspear.ds.*;
+import it.unicam.quasylab.jspear.perturbation.*;
+import it.unicam.quasylab.jspear.robtl.*;
+import it.unicam.quasylab.jspear.robtl.old.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.IOException;
@@ -155,15 +161,15 @@ public class Main {
             //DistanceExpression obstacle_distance1 = new AtomicDistanceExpression(ds -> Math.abs(ds.get(s_distance_V1) - ds.get(p_distance_V1)) / ds.get(p_distance_V1));
             //DistanceExpression obstacle_distance2 = new AtomicDistanceExpression(ds -> Math.abs(ds.get(s_distance_V2) - ds.get(p_distance_V2)) / ds.get(p_distance_V2));
 
-            DistanceExpression relative_distance_safe = new AtomicDistanceExpression(ds -> Math.min(1, 1 - Math.min(ds.get(p_distance_V1_V2),SAFETY_DISTANCE) / SAFETY_DISTANCE));
+            DistanceExpression relative_distance_safe = new AtomicDistanceExpressionLeq(ds -> Math.min(1, 1 - Math.min(ds.get(p_distance_V1_V2),SAFETY_DISTANCE) / SAFETY_DISTANCE));
             //DistanceExpression obstacle_distance1_safe = new AtomicDistanceExpression(ds -> 1 - Math.min(ds.get(p_distance_V1), SAFETY_DISTANCE) / SAFETY_DISTANCE);
             //DistanceExpression obstacle_distance2_safe = new AtomicDistanceExpression(ds -> 1 - Math.min(ds.get(p_distance_V2), SAFETY_DISTANCE) / SAFETY_DISTANCE);
             //DistanceExpression crash = new AtomicDistanceExpression(Main::rho_crash);
-            DistanceExpression crash_probability = new AtomicDistanceExpression(Main::rho_crash_probability);
+            DistanceExpression crash_probability = new AtomicDistanceExpressionLeq(Main::rho_crash_probability);
 
             DistanceExpression crash_dist = new MaxIntervalDistanceExpression(crash_probability, 350, 450);
 
-            DistanceExpression crash_speed = new AtomicDistanceExpression(Main::rho_crash_speed);
+            DistanceExpression crash_speed = new AtomicDistanceExpressionLeq(Main::rho_crash_speed);
 
 
 

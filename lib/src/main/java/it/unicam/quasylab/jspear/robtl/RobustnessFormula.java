@@ -20,25 +20,18 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.semantics;
+package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.ds.DataStateUpdate;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearVariableAllocation;
-import org.apache.commons.math3.random.RandomGenerator;
+import it.unicam.quasylab.jspear.EvolutionSequence;
 
-import java.util.List;
+public sealed interface RobustnessFormula permits AlwaysRobustnessFormula, AtomicRobustnessFormula, ConjunctionRobustnessFormula, DisjunctionRobustnessFormula, EventuallyRobustnessFormula, FalseRobustnessFormula, ImplicationRobustnessFormula, NegationRobustnessFormula, TrueRobustnessFormula, UntilRobustnessFormula {
 
-public abstract class JSpearAbstractEnvironmentFunction implements JSpearEnvironmentUpdateFunction {
-    protected final JSpearVariableAllocation allocation;
-
-    public JSpearAbstractEnvironmentFunction(JSpearVariableAllocation allocation) {
-        this.allocation = allocation;
+    default boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
+        return eval(sampleSize, step, sequence, true);
     }
 
+    boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel);
 
-    @Override
-    public JSpearVariableAllocation getVariableAllocation() {
-        return allocation;
-    }
+    <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator);
+
 }

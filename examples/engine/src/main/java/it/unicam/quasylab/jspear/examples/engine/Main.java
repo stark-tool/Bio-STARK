@@ -26,7 +26,16 @@ import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.ControllerRegistry;
 import it.unicam.quasylab.jspear.controller.ParallelController;
+import it.unicam.quasylab.jspear.distance.AtomicDistanceExpressionLeq;
+import it.unicam.quasylab.jspear.distance.DistanceExpression;
+import it.unicam.quasylab.jspear.distance.MaxIntervalDistanceExpression;
+import it.unicam.quasylab.jspear.distance.MinIntervalDistanceExpression;
 import it.unicam.quasylab.jspear.ds.*;
+import it.unicam.quasylab.jspear.perturbation.AtomicPerturbation;
+import it.unicam.quasylab.jspear.perturbation.IterativePerturbation;
+import it.unicam.quasylab.jspear.perturbation.Perturbation;
+import it.unicam.quasylab.jspear.robtl.*;
+import it.unicam.quasylab.jspear.robtl.old.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.IOException;
@@ -91,9 +100,9 @@ public class Main {
             EvolutionSequence sequence2_tau2 = sequence.apply(getPerturbation(),TAU2, 100);
             EvolutionSequence sequence2_tau3 = sequence.apply(getPerturbation(),TAU3, 100);
 
-            DistanceExpression expr = new AtomicDistanceExpression(ds -> (ds.get(temp)/Math.abs(MAX_TEMP-MIN_TEMP)));
-            DistanceExpression expr2 = new AtomicDistanceExpression(ds -> (ds.get(ch_wrn)==HOT?1.0:0.0));
-            DistanceExpression expr3 = new AtomicDistanceExpression(ds -> ds.get(stress));
+            DistanceExpression expr = new AtomicDistanceExpressionLeq(ds -> (ds.get(temp)/Math.abs(MAX_TEMP-MIN_TEMP)));
+            DistanceExpression expr2 = new AtomicDistanceExpressionLeq(ds -> (ds.get(ch_wrn)==HOT?1.0:0.0));
+            DistanceExpression expr3 = new AtomicDistanceExpressionLeq(ds -> ds.get(stress));
             DistanceExpression MaxExpr2 = new MaxIntervalDistanceExpression(
                     expr2,
                     TAU,
@@ -131,7 +140,7 @@ public class Main {
             int m = 50;
             double z = 1.96;
 
-            DistanceExpression expr4 = new AtomicDistanceExpression(ds -> Math.abs((ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)));
+            DistanceExpression expr4 = new AtomicDistanceExpressionLeq(ds -> Math.abs((ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)));
 
             ThreeValuedFormula PSI1 = new AtomicThreeValuedFormula(getPerturbation(),
                     new MinIntervalDistanceExpression(
@@ -216,7 +225,7 @@ public class Main {
     private static RobustnessFormula getFormula1() {
         return new AtomicRobustnessFormula(getPerturbation(),
                 new MinIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> Math.abs(ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
+                        new AtomicDistanceExpressionLeq(ds -> Math.abs(ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
                         TAU,
                         TAU+N-1
                 ),
@@ -228,7 +237,7 @@ public class Main {
     private static RobustnessFormula getFormula2() {
         return new AtomicRobustnessFormula(getPerturbation(),
                 new MaxIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> Math.abs(ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
+                        new AtomicDistanceExpressionLeq(ds -> Math.abs(ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)),
                         TAU,
                         TAU+N-1
                 ),
@@ -240,7 +249,7 @@ public class Main {
     private static RobustnessFormula getFormula3() {
         return new AtomicRobustnessFormula(getPerturbation(),
                 new MaxIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> (ds.get(ch_wrn)==HOT?1.0:0.0)),
+                        new AtomicDistanceExpressionLeq(ds -> (ds.get(ch_wrn)==HOT?1.0:0.0)),
                         TAU,
                         K
                 ),
@@ -252,7 +261,7 @@ public class Main {
     private static RobustnessFormula getFormula4() {
         return new AtomicRobustnessFormula(getPerturbation(),
                 new MaxIntervalDistanceExpression(
-                        new AtomicDistanceExpression(ds -> ds.get(stress)),
+                        new AtomicDistanceExpressionLeq(ds -> ds.get(stress)),
                         TAU,
                         K
                 ),

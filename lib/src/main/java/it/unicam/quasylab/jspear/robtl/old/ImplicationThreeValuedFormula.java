@@ -20,25 +20,23 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.semantics;
+package it.unicam.quasylab.jspear.robtl.old;
 
-import it.unicam.quasylab.jspear.ds.DataStateUpdate;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearVariableAllocation;
-import org.apache.commons.math3.random.RandomGenerator;
+import it.unicam.quasylab.jspear.EvolutionSequence;
+import it.unicam.quasylab.jspear.robtl.TruthValues;
 
-import java.util.List;
+public final class ImplicationThreeValuedFormula implements ThreeValuedFormula {
 
-public abstract class JSpearAbstractEnvironmentFunction implements JSpearEnvironmentUpdateFunction {
-    protected final JSpearVariableAllocation allocation;
+    private final ThreeValuedFormula leftFormula;
+    private final ThreeValuedFormula rightFormula;
 
-    public JSpearAbstractEnvironmentFunction(JSpearVariableAllocation allocation) {
-        this.allocation = allocation;
+    public ImplicationThreeValuedFormula(ThreeValuedFormula leftFormula, ThreeValuedFormula rightFormula) {
+        this.leftFormula = leftFormula;
+        this.rightFormula = rightFormula;
     }
 
-
     @Override
-    public JSpearVariableAllocation getVariableAllocation() {
-        return allocation;
+    public TruthValues eval(int sampleSize, int step, EvolutionSequence sequence) {
+        return new DisjunctionThreeValuedFormula(new NegationThreeValuedFormula(leftFormula), rightFormula).eval(sampleSize, step, sequence);
     }
 }

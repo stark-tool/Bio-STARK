@@ -40,4 +40,23 @@ public enum RelationOperator {
         };
     }
 
+    public static RelationOperator get(String op) {
+        if (">".equals(op)) {
+            return GREATER_THAN;
+        }
+        if (">=".equals(op)) {
+            return GREATER_OR_EQUAL_THAN;
+        }
+        if ("==".equals(op)) {
+            return EQUAL_TO;
+        }
+        if ("<".equals(op)) {
+            return LESS_THAN;
+        }
+        if ("<=".equals(op)) {
+            return LESS_OR_EQUAL_THAN;
+        }
+        throw new IllegalArgumentException("Unknown relation "+op);
+    }
+
 }

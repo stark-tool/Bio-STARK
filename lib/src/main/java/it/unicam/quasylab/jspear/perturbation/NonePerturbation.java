@@ -20,25 +20,29 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.speclang.semantics;
+package it.unicam.quasylab.jspear.perturbation;
 
-import it.unicam.quasylab.jspear.ds.DataStateUpdate;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
-import it.unicam.quasylab.jspear.speclang.variables.JSpearVariableAllocation;
-import org.apache.commons.math3.random.RandomGenerator;
+import it.unicam.quasylab.jspear.ds.DataStateFunction;
 
-import java.util.List;
+import java.util.Optional;
 
-public abstract class JSpearAbstractEnvironmentFunction implements JSpearEnvironmentUpdateFunction {
-    protected final JSpearVariableAllocation allocation;
-
-    public JSpearAbstractEnvironmentFunction(JSpearVariableAllocation allocation) {
-        this.allocation = allocation;
-    }
-
+/**
+ * Represents a perturbation that has terminated its effects.
+ */
+public final class NonePerturbation implements Perturbation {
 
     @Override
-    public JSpearVariableAllocation getVariableAllocation() {
-        return allocation;
+    public Optional<DataStateFunction> effect() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Perturbation step() {
+        return this;
+    }
+
+    @Override
+    public boolean isDone() {
+        return true;
     }
 }
