@@ -23,6 +23,7 @@
 package it.unicam.quasylab.jspear;
 
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
+import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
 
 import java.util.Map;
 
@@ -32,10 +33,13 @@ public class SystemSpecification {
 
     private final Map<String, DataStateExpression> penalties;
 
+    private final Map<String, RobustnessFormula> formulas;
 
-    public SystemSpecification(ControlledSystem system, Map<String, DataStateExpression> penalties) {
+
+    public SystemSpecification(ControlledSystem system, Map<String, DataStateExpression> penalties, Map<String, RobustnessFormula> formulas) {
         this.system = system;
         this.penalties = penalties;
+        this.formulas = formulas;
     }
 
     public String[] getPenalties() {
@@ -50,4 +54,9 @@ public class SystemSpecification {
         return system;
     }
 
+    public String[] getFormulas() { return formulas.keySet().toArray(new String[0]); }
+
+    public RobustnessFormula getFormula(String name) {
+        return formulas.get(name);
+    }
 }

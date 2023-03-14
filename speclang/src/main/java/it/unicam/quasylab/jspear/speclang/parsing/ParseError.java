@@ -68,4 +68,8 @@ public class ParseError {
         return offset;
     }
 
+
+    public String getErrorMessage() {
+        return String.format("Line %d Char %d: %s", line, offset, message);
+    }
 }

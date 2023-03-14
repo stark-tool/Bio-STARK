@@ -14,4 +14,5 @@ include('examples')
 include('examples:engine')
 include('examples:vehicle')
 include('speclang')
+include('cli')
 

@@ -215,7 +215,7 @@ public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor
     }
 
     public SystemSpecification getSystemSpecification() {
-        return new SystemSpecification(getControlledSystem(), this.penalties);
+        return new SystemSpecification(getControlledSystem(), this.penalties, this.formulaMap);
     }
 
     private ControlledSystem getControlledSystem() {
@@ -233,7 +233,7 @@ public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor
     @Override
     public Boolean visitDeclarationFormula(JSpearSpecificationLanguageParser.DeclarationFormulaContext ctx) {
         this.formulaMap.put(ctx.name.getText(), ctx.value.accept(new JSpearRobustnessFormulaGenerator(allocation, context, registry, perturbationMap, distanceExpressionMap, formulaMap)));
-        return super.visitDeclarationFormula(ctx);
+        return true;
     }
 
     @Override

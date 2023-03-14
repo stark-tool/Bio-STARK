@@ -70,6 +70,11 @@ public class JSpearRobustnessFormulaGenerator extends JSpearSpecificationLanguag
     }
 
     @Override
+    public RobustnessFormula visitRobtlFormulaReference(JSpearSpecificationLanguageParser.RobtlFormulaReferenceContext ctx) {
+        return formulaMap.get(ctx.name.getText());
+    }
+
+    @Override
     public RobustnessFormula visitRobtlFormulaUntil(JSpearSpecificationLanguageParser.RobtlFormulaUntilContext ctx) {
         int from = JSpearValue.intValue(JSpearExpressionEvaluator.evalToValue(context, registry, ctx.from));
         int to = JSpearValue.intValue(JSpearExpressionEvaluator.evalToValue(context, registry, ctx.to));

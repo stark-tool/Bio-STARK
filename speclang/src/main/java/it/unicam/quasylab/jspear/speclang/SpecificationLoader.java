@@ -32,11 +32,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class SpecificationLoader {
 
     private final ParseErrorCollector errors = new ParseErrorCollector();
+
 
     public enum ElementType {
         VARIABLES_DECLARATION,
@@ -94,6 +96,10 @@ public class SpecificationLoader {
         if (!errors.withErrors()) {
             task.accept(model);
         }
+    }
+
+    public List<String> getErrorMessage() {
+        return this.errors.getSyntaxErrorList().stream().map(Object::toString).toList();
     }
 
 

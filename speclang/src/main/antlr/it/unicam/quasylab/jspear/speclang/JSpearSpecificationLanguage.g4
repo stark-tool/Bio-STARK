@@ -296,6 +296,7 @@ distanceExpression:
 robtlFormula:
       'true'  # robtlFormulaTrue
     | 'false' # robtlFormulaFalse
+    | name=ID # robtlFormulaReference
     | '\\D' '[' expressionReference=ID ',' perturbationReference=ID ']' op=('<'|'<='|'=='|'>='|'>') value=expression # robtlFormulaDistance
     | '!' argument=robtlFormula # robtlFormulaNegation
     | left=robtlFormula '&&' right=robtlFormula  # robtlFormulaConjunction
