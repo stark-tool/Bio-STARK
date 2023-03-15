@@ -108,7 +108,8 @@ class SpecificationLoaderTest {
     void vehicleSlowThreeValuedCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
-        spec.setSize(50);
+        ControlledSystem system = spec.getSystem();
+        spec.setSize(10);
         spec.setM(50);
         spec.setZ(1.96);
         assertEquals(TruthValues.TRUE, spec.evalThreeValuedSemantic("phi_slow", 60, 0));

@@ -23,23 +23,26 @@ global variables{
   real p_speed_V1 range [0,MAX_SPEED] = INIT_SPEED_V1;
   real p_distance_V1 range [0,INIT_DISTANCE_OBS_V1] = INIT_DISTANCE_OBS_V1;
   int timer_V1 range [0,TIMER_INIT] = 0;
-  real braking_distance_V1 range [0, INIT_DISTANCE_OBS_V1] = eval_bd(INIT_SPEED_V1);
-  real required_distance_V1 range [0, INIT_DISTANCE_OBS_V1] = eval_rd(INIT_SPEED_V1);
-  real safety_gap_V1 range [0, INIT_DISTANCE_OBS_V1] = INIT_DISTANCE_OBS_V1 - eval_rd(INIT_SPEED_V1);
+  real braking_distance_V1 range [0, INIT_DISTANCE_OBS_V1] = (INIT_SPEED_V1^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * INIT_SPEED_V1 * TIMER_INIT)) / (2 * BRAKE);
+  real required_distance_V1 range [0, INIT_DISTANCE_OBS_V1] = (INIT_SPEED_V1^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * INIT_SPEED_V1 * TIMER_INIT)) / (2 * BRAKE) + SAFETY_DISTANCE;
+  real safety_gap_V1 range [0, INIT_DISTANCE_OBS_V1] = INIT_DISTANCE_OBS_V1 - (INIT_SPEED_V1^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * INIT_SPEED_V1 * TIMER_INIT)) / (2 * BRAKE) - SAFETY_DISTANCE;
   real p_speed_V2 range [0,MAX_SPEED] = INIT_SPEED_V2;
   real p_distance_V2 range [0,INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2] = INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2;
   real p_distance_V1_V2 range [0,INIT_DISTANCE_V1_V2] = INIT_DISTANCE_V1_V2;
   int timer_V2 range [0,TIMER_INIT] = 0;
-  real braking_distance_V2 range [0, INIT_DISTANCE_V1_V2] = eval_bd(INIT_SPEED_V2);
-  real required_distance_V2 range [0, INIT_DISTANCE_V1_V2] = eval_rd(INIT_SPEED_V2);
-  real safety_gap_V2 range [0, INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2] = INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2 - eval_rd(INIT_SPEED_V2);
-  real safety_gap_V1_V2 range [0, INIT_DISTANCE_V1_V2] = INIT_DISTANCE_V1_V2 - eval_rd(INIT_SPEED_V2);
+  real braking_distance_V2 range [0, INIT_DISTANCE_V1_V2] = (INIT_SPEED_V2^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * INIT_SPEED_V2 * TIMER_INIT)) / (2 * BRAKE);
+  real required_distance_V2 range [0, INIT_DISTANCE_V1_V2] = (INIT_SPEED_V2^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * INIT_SPEED_V2 * TIMER_INIT)) / (2 * BRAKE) + SAFETY_DISTANCE;
+  real safety_gap_V2 range [0, INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2] = INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2 - (INIT_SPEED_V2^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * INIT_SPEED_V2 * TIMER_INIT)) / (2 * BRAKE) - SAFETY_DISTANCE;
+  real safety_gap_V1_V2 range [0, INIT_DISTANCE_V1_V2] = INIT_DISTANCE_V1_V2 - (INIT_SPEED_V2^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * INIT_SPEED_V2 * TIMER_INIT)) / (2 * BRAKE) - SAFETY_DISTANCE;
+  real offset_speed_V1 range [0,MAX_SPEED*MAX_SPEED_OFFSET] = 0.0;
+  real offset_speed_V2 range [0,MAX_SPEED*MAX_SPEED_OFFSET] = 0.0;
+  real offset_distance range [0,INIT_DISTANCE_V1_V2*MAX_DISTANCE_OFFSET] = 0.0;
 }
 
 
 component Vehicle1 {
   variables{
-    real s_speed_V1 range [0,MAX_SPEED] = 25;
+    real s_speed_V1 range [0,MAX_SPEED] = 25.0;
     real s_distance_V1 range [0,INIT_DISTANCE_OBS_V1] = INIT_DISTANCE_OBS_V1;
     accel_type accel_V1 = NEUTRAL;
     int warning_V1 range [0,1] = 0;
@@ -110,7 +113,7 @@ component Vehicle1 {
 
 component Vehicle2 {
   variables{
-    real s_speed_V2 range [0,MAX_SPEED] = 25;
+    real s_speed_V2 range [0,MAX_SPEED] = 25.0;
     real s_distance_V2 range [0,INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2] = INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2;
     real s_distance_V1_V2 range [0,INIT_DISTANCE_V1_V2] = INIT_DISTANCE_V1_V2;
     accel_type accel_V2 = NEUTRAL;
@@ -259,21 +262,23 @@ distance exp_crash = \G[350,450] < rho_crash;
 
 distance exp_crash_speed = \G[10,400] < rho_crash_speed;
 
-perturbation p_ItSlow = ([s_speed_V2 <- p_speed_V2]@0); (p_slow)^150;
+perturbation p_ItSlow = ([offset <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@0); (p_slow)^150;
 
-perturbation p_slow = [offset <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1],
-                       s_speed_V2 <- fake_speed(p_speed_V2,offset),
-                       required_distance_V2 <- eval_rd(fake_speed(p_speed_V2,offset)),
-                       safety_gap_V1_V2 <- p_distance_V1_V2 - eval_rd(fake_speed(p_speed_V2,offset))]@(TIMER-1);
+perturbation p_slow = [offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1],
+                       s_speed_V2 <- fake_speed(p_speed_V2,offset_speed_V2),
+                       required_distance_V2 <- eval_rd(fake_speed(p_speed_V2,offset_speed_V2)),
+                       safety_gap_V1_V2 <- p_distance_V1_V2 - eval_rd(fake_speed(p_speed_V2,offset_speed_V2))]@(TIMER-1);
 
-perturbation p_ItFast = ([s_speed_V1 <- p_speed_V1]@0); (p_fast)^150;
+perturbation p_ItFast = ([offset_speed_V1 <- p_speed_V1 * MAX_SPEED_OFFSET * R[0,1]]@0); (p_fast)^150;
 
-perturbation p_fast = [offset <- p_speed_V1 * MAX_SPEED_OFFSET * R[0,1],
-                       s_speed_V1 <- fast_speed(p_speed_V1,offset),
-                       required_distance_V1 <- eval_rd(fast_speed(p_speed_V1,offset)),
-                       safety_gap_V1 <- p_distance_V1 - eval_rd(fast_speed(p_speed_V1,offset))]@(TIMER-1);
+perturbation p_fast = [offset_speed_V1 <- p_speed_V1 * MAX_SPEED_OFFSET * R[0,1],
+                       s_speed_V1 <- fast_speed(p_speed_V1,offset_speed_V1),
+                       required_distance_V1 <- eval_rd(fast_speed(p_speed_V1,offset_speed_V1)),
+                       safety_gap_V1 <- p_distance_V1 - eval_rd(fast_speed(p_speed_V1,offset_speed_V1))]@(TIMER-1);
 
-perturbation p_comb = ([s_speed_V2 <- p_speed_V2]@0); ((p_fast)^3;(p_slow)^3)^50;
+perturbation p_comb = ([offset_speed_V1 <- p_speed_V1 * MAX_SPEED_OFFSET * R[0,1],
+                        offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@0);
+                      ((p_fast)^3;(p_slow)^3)^50;
 
 function slow_speed(real speed, real offs){
   return max(0, speed - offs);
@@ -285,11 +290,11 @@ function fast_speed(real speed, real offs){
 
 perturbation p_ItDistSens = ([s_speed_V2 <- p_speed_V2]@0); (p_distSens)^300;
 
-perturbation p_distSens = [offset <- R[0,1] * MAX_DISTANCE_OFFSET,
-                           s_distance_V1_V2 <- p_distance_V1_V2 * (1 + offset),
-                           s_distance_V2 <- p_distance_V2 * (1 + offset),
-                           safety_gap_V1_V2 <- p_distance_V1_V2 * (1 + offset) - eval_rd(p_speed_V2),
-                           safety_gap_V2 <- p_distance_V2 * (1 + offset) - eval_rd(p_speed_V2)]@(TIMER-1);
+perturbation p_distSens = [offset_distance <- R[0,1] * MAX_DISTANCE_OFFSET,
+                           s_distance_V1_V2 <- p_distance_V1_V2 * (1 + offset_distance),
+                           s_distance_V2 <- p_distance_V2 * (1 + offset_distance),
+                           safety_gap_V1_V2 <- p_distance_V1_V2 * (1 + offset_distance) - eval_rd(p_speed_V2),
+                           safety_gap_V2 <- p_distance_V2 * (1 + offset_distance) - eval_rd(p_speed_V2)]@(TIMER-1);
 
 formula atomic_slow = \D[exp_crash,p_ItSlow] <= ETA_slow;
 formula eventually_slow = true \U[0,450] !atomic_slow;
