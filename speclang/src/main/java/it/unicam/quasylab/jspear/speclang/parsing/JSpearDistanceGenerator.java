@@ -66,7 +66,7 @@ public class JSpearDistanceGenerator extends JSpearSpecificationLanguageBaseVisi
     public DistanceExpression visitDistanceExpressionFinally(JSpearSpecificationLanguageParser.DistanceExpressionFinallyContext ctx) {
         int from = JSpearValue.intValue(JSpearExpressionEvaluator.evalToValue(context, registry, ctx.from));
         int to = JSpearValue.intValue(JSpearExpressionEvaluator.evalToValue(context, registry, ctx.to));
-        return new MaxIntervalDistanceExpression(ctx.argument.accept(this),from, to);
+        return new MinIntervalDistanceExpression(ctx.argument.accept(this),from, to);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class JSpearDistanceGenerator extends JSpearSpecificationLanguageBaseVisi
     public DistanceExpression visitDistanceExpressionGlobally(JSpearSpecificationLanguageParser.DistanceExpressionGloballyContext ctx) {
         int from = JSpearValue.intValue(JSpearExpressionEvaluator.evalToValue(context, registry, ctx.from));
         int to = JSpearValue.intValue(JSpearExpressionEvaluator.evalToValue(context, registry, ctx.to));
-        return new MinIntervalDistanceExpression(ctx.argument.accept(this),from, to);
+        return new MaxIntervalDistanceExpression(ctx.argument.accept(this),from, to);
     }
 
     @Override
