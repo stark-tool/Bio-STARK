@@ -39,6 +39,10 @@ public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<Tru
         this.z = z;
     }
 
+    public ThreeValuedSemanticsVisitor() {
+        this(50,1.96);
+    }
+
     @Override
     public RobustnessFunction<TruthValues> eval(RobustnessFormula formula) {
         return formula.eval(this);

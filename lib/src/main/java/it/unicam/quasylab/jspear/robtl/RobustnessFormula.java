@@ -34,4 +34,16 @@ public sealed interface RobustnessFormula permits AlwaysRobustnessFormula, Atomi
 
     <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator);
 
+    static RobustnessFunction<Boolean> getBooleanEvaluationFunction(RobustnessFormula formula) {
+        return formula.eval(new BooleanSemanticsVisitor());
+    }
+
+    static RobustnessFunction<TruthValues> getThreeValuedEvaluationFunction(RobustnessFormula formula) {
+        return formula.eval(new ThreeValuedSemanticsVisitor());
+    }
+
+    static RobustnessFunction<TruthValues> getThreeValuedEvaluationFunction(int m, double z, RobustnessFormula formula) {
+        return formula.eval(new ThreeValuedSemanticsVisitor(m, z));
+    }
+
 }

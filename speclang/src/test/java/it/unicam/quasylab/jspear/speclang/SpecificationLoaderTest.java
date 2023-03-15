@@ -22,7 +22,11 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
+import it.unicam.quasylab.jspear.ControlledSystem;
 import it.unicam.quasylab.jspear.SystemSpecification;
+import it.unicam.quasylab.jspear.robtl.BooleanSemanticsVisitor;
+import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
+import it.unicam.quasylab.jspear.robtl.TruthValues;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -57,4 +61,39 @@ class SpecificationLoaderTest {
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
         assertNotNull(spec);
     }
+
+    @Test
+    void loadVehicleSystem() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        ControlledSystem system = spec.getSystem();
+        assertNotNull(system);
+    }
+
+    @Test
+    void loadVehicleProperty() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        RobustnessFormula formula = spec.getFormula("phi_crash_speed");
+        assertNotNull(formula);
+    }
+
+    @Test
+    void vehiclePropertyBooleanCheck() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(50);
+        assertFalse(spec.evalBooleanSemantic("phi_crash_speed", 10, 5));
+    }
+
+    @Test
+    void vehiclePropertyThreeValuedCheck() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(50);
+        spec.setM(50);
+        spec.setZ(1.96);
+        assertEquals(TruthValues.FALSE, spec.evalThreeValuedSemantic("phi_crash_speed", 10, 5));
+    }
+
 }
