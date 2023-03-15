@@ -288,7 +288,7 @@ function fast_speed(real speed, real offs){
   return max(0, speed + offs);
 }
 
-perturbation p_ItDistSens = ([s_speed_V2 <- p_speed_V2]@0); (p_distSens)^300;
+perturbation p_ItDistSens = ([offset_distance <- R[0,1] * MAX_DISTANCE_OFFSET]@0); (p_distSens)^300;
 
 perturbation p_distSens = [offset_distance <- R[0,1] * MAX_DISTANCE_OFFSET,
                            s_distance_V1_V2 <- p_distance_V1_V2 * (1 + offset_distance),
