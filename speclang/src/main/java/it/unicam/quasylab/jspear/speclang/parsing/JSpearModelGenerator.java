@@ -114,7 +114,8 @@ public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor
             recordVariable(v);
         }
         for(JSpearSpecificationLanguageParser.ControllerStateDeclarationContext state: ctx.states) {
-            String stateName = getStateName(componentName, state.name.getText());
+            //String stateName = getStateName(componentName, state.name.getText());
+            String stateName = state.name.getText();
             JSpearControllerFunction function = JSpearControllerStateGenerator.generate(context, registry, allocation, controllerMap, controllerRegistry, state.body);
             controllerRegistry.set(stateName, JSpearControllerFunction.toController(allocation, function));
             controllerMap.put(stateName, function);
@@ -128,7 +129,7 @@ public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor
         return true;
     }
 
-    private String getStateName(String componentName, String stateName) {
+    public static String getStateName(String componentName, String stateName) {
         return componentName+"."+stateName;
     }
 

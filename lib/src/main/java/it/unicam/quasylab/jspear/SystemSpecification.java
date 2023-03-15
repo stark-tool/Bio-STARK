@@ -27,7 +27,6 @@ import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
 import it.unicam.quasylab.jspear.robtl.RobustnessFunction;
 import it.unicam.quasylab.jspear.robtl.TruthValues;
 
-import java.util.Arrays;
 import java.util.Map;
 
 public class SystemSpecification {
@@ -151,5 +150,9 @@ public class SystemSpecification {
 
     public void setZ(double z) {
         this.z = z;
+    }
+
+    public SampleSet<SystemState> getSamplesAt(int step) {
+        return getSequence().get(step);
     }
 }

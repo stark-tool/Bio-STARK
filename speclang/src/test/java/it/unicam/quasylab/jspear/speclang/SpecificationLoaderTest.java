@@ -24,7 +24,6 @@ package it.unicam.quasylab.jspear.speclang;
 
 import it.unicam.quasylab.jspear.ControlledSystem;
 import it.unicam.quasylab.jspear.SystemSpecification;
-import it.unicam.quasylab.jspear.robtl.BooleanSemanticsVisitor;
 import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
 import it.unicam.quasylab.jspear.robtl.TruthValues;
 import org.junit.jupiter.api.Disabled;
@@ -56,6 +55,7 @@ class SpecificationLoaderTest {
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(ENGINE)).openStream());
         assertNotNull(spec);
     }
+
     @Test
     void loadVehicleSpecification() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
@@ -70,6 +70,15 @@ class SpecificationLoaderTest {
         ControlledSystem system = spec.getSystem();
         assertNotNull(system);
     }
+
+    @Test
+    void simulateVehicleSystem() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(1);
+        assertNotNull(spec.getSamplesAt(50));
+    }
+
 
     @Test
     void loadVehicleProperty() throws IOException {
