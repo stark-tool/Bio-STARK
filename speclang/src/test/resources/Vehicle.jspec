@@ -56,17 +56,17 @@ component Vehicle1 {
           accel_V1' = ACCELERATION;
           timer_V1' = TIMER_INIT;
           brake_light_V1' = 0;
-          exec Accelerate_V1;
+          step Accelerate_V1;
         } else {
           accel_V1' = - BRAKE;
           timer_V1' = TIMER_INIT;
           brake_light_V1' = 1;
-          exec Decelerate_V1;
+          step Decelerate_V1;
         }
       } else {
         accel_V1' = NEUTRAL;
         timer_V1' = TIMER_INIT;
-        exec Stop_V1;
+        step Stop_V1;
       }
     }
     state Accelerate_V1 {
@@ -91,20 +91,20 @@ component Vehicle1 {
           accel_V1' = -BRAKE;
           timer_V1' = TIMER_INIT;
           brake_light_V1' = 1;
-          exec Decelerate_V1;
+          step Decelerate_V1;
         } else {
           timer_V1' = TIMER_INIT;
-          exec Stop_V1;
+          step Stop_V1;
         }
       }
     }
     state IDS_V1 {
       if (p_distance_V1 <= 2*TIMER_INIT*SAFETY_DISTANCE && (accel_V1 == ACCELERATION || (accel_V1 == NEUTRAL && p_speed_V1 > 0.0))) {
         warning_V1' = DANGER;
-        exec IDS_V1;
+        step IDS_V1;
       } else {
         warning_V1' = OK;
-        exec IDS_V1;
+        step IDS_V1;
       }
     }
   }
@@ -128,17 +128,17 @@ component Vehicle2 {
           accel_V2' = ACCELERATION;
           timer_V2' = TIMER_INIT;
           brake_light_V2' = 0;
-          exec Accelerate_V2;
+          step Accelerate_V2;
         } else {
           accel_V2' = - BRAKE;
           timer_V2' = TIMER_INIT;
           brake_light_V2' = 1;
-          exec Decelerate_V2;
+          step Decelerate_V2;
         }
       } else {
         accel_V2' = NEUTRAL;
         timer_V2' = TIMER_INIT;
-        exec Stop_V2;
+        step Stop_V2;
       }
     }
     state Accelerate_V2 {
@@ -163,20 +163,20 @@ component Vehicle2 {
           accel_V2' = -BRAKE;
           timer_V2' = TIMER_INIT;
           brake_light_V2' = 1;
-          exec Decelerate_V2;
+          step Decelerate_V2;
         } else {
           timer_V2' = TIMER_INIT;
-          exec Stop_V2;
+          step Stop_V2;
         }
       }
     }
     state IDS_V2 {
       if (p_distance_V2 <= 2*TIMER_INIT*SAFETY_DISTANCE && (accel_V2 == ACCELERATION || (accel_V2 == NEUTRAL && p_speed_V2 > 0.0))) {
         warning_V2' = DANGER;
-        exec IDS_V2;
+        step IDS_V2;
       } else {
         warning_V2' = OK;
-        exec IDS_V2;
+        step IDS_V2;
       }
     }
   }
@@ -262,7 +262,7 @@ distance exp_crash = \G[350,450] < rho_crash;
 
 distance exp_crash_speed = \G[10,400] < rho_crash_speed;
 
-perturbation p_ItSlow = ([offset <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@0); (p_slow)^150;
+perturbation p_ItSlow = ([offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@0); (p_slow)^150;
 
 perturbation p_slow = [offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1],
                        s_speed_V2 <- fake_speed(p_speed_V2,offset_speed_V2),
