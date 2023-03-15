@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -104,15 +105,99 @@ class SpecificationLoaderTest {
         RobustnessFormula formula = spec.getFormula("phi_slow");
         assertNotNull(formula);
     }
+
     @Test
-    void vehicleSlowThreeValuedCheck() throws IOException {
+    void vehicleSlowThreeValuedCheckTen() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
-        ControlledSystem system = spec.getSystem();
-        spec.setSize(10);
+        spec.setSize(1);
         spec.setM(50);
         spec.setZ(1.96);
-        assertEquals(TruthValues.TRUE, spec.evalThreeValuedSemantic("phi_slow", 60, 0));
+        TruthValues[] expected = new TruthValues[10];
+        Arrays.fill(expected,TruthValues.TRUE);
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_comb", 60, 0,100,10));
+    }
+
+    @Test
+    void vehicleSlowThreeValuedCheckThirty() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(1);
+        spec.setM(50);
+        spec.setZ(1.96);
+        TruthValues[] expected = new TruthValues[10];
+        Arrays.fill(expected,TruthValues.TRUE);
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_slow", 60, 0,300,30));
+    }
+
+    @Test
+    void vehicleSlowThreeValuedCheckFifty() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(1);
+        spec.setM(50);
+        spec.setZ(1.96);
+        TruthValues[] expected = new TruthValues[10];
+        Arrays.fill(expected,TruthValues.TRUE);
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_slow", 60, 0,500,50));
+    }
+    @Test
+    void vehicleCombThreeValuedCheckTen() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(1);
+        spec.setM(50);
+        spec.setZ(1.96);
+        TruthValues[] expected = new TruthValues[10];
+        Arrays.fill(expected,TruthValues.TRUE);
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_comb", 60, 0,100,10));
+    }
+
+    @Test
+    void vehicleCombThreeValuedCheckThirty() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(1);
+        spec.setM(50);
+        spec.setZ(1.96);
+        TruthValues[] expected = new TruthValues[10];
+        Arrays.fill(expected,TruthValues.TRUE);
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_comb", 60, 0,300,30));
+    }
+
+    @Test
+    void vehicleCombThreeValuedCheckFifty() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(1);
+        spec.setM(50);
+        spec.setZ(1.96);
+        TruthValues[] expected = new TruthValues[10];
+        Arrays.fill(expected,TruthValues.TRUE);
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_comb", 60, 0,500,50));
+    }
+
+    @Test
+    void vehicleCrashThreeValuedCheckTen() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(1);
+        spec.setM(50);
+        spec.setZ(1.96);
+        TruthValues[] expected = new TruthValues[10];
+        Arrays.fill(expected,TruthValues.UNKNOWN);
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_crash_speed", 60, 0,100,10));
+    }
+
+    @Test
+    void vehicleCrashThreeValuedCheckFifty() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(1);
+        spec.setM(50);
+        spec.setZ(1.96);
+        TruthValues[] expected = {TruthValues.UNKNOWN,TruthValues.UNKNOWN,TruthValues.UNKNOWN,TruthValues.UNKNOWN,TruthValues.UNKNOWN,TruthValues.UNKNOWN,TruthValues.UNKNOWN,TruthValues.UNKNOWN,TruthValues.TRUE,TruthValues.TRUE};
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_crash_speed", 60, 0,500,50));
     }
 
 }
