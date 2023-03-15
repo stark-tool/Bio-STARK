@@ -96,4 +96,22 @@ class SpecificationLoaderTest {
         assertEquals(TruthValues.FALSE, spec.evalThreeValuedSemantic("phi_crash_speed", 10, 5));
     }
 
+
+    @Test
+    void loadSlowProperty() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        RobustnessFormula formula = spec.getFormula("phi_slow");
+        assertNotNull(formula);
+    }
+    @Test
+    void vehicleSlowThreeValuedCheck() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(50);
+        spec.setM(50);
+        spec.setZ(1.96);
+        assertEquals(TruthValues.TRUE, spec.evalThreeValuedSemantic("phi_slow", 60, 0));
+    }
+
 }
