@@ -62,18 +62,12 @@ public class Main {
     public final static double INIT_DISTANCE_OBS_V1 = 10000.0;
     public final static double INIT_DISTANCE_V1_V2 = 5000.0;
     private static final double SAFETY_DISTANCE = 200.0;
-    //private static final int ETA_SpeedLB = 0;
-    //private static final int ETA_SpeedUB = 50;
-    private static final double ETA_CRASH = 0.5;
     private static final double ETA_comb = 0.1;
     private static final double ETA_fast = 0.05;
-    //private static final double ETA_distance_slower = 0.9;
     private static final double ETA_slow = 0.1;
     private static final int H = 450;
-    //private static final int ATTACK_INIT = 0;
-    //private static final int ATTACK_LENGTH = 550;
     private static final double MAX_DISTANCE_OFFSET = 1.0;
-    private static final double ETA_CRASH_SPEED = 0.003;
+    private static final double ETA_CRASH_SPEED = 0.01;
 
     private static final int p_speed_V1 = 0;//variableRegistry.getVariable("p_speed");
     private static final int s_speed_V1 = 1;//variableRegistry.getVariable("s_speed");
@@ -129,6 +123,8 @@ public class Main {
                             ETA_fast),
                     0,
                     H);
+
+            // FORMULA THAT SHOULD EVALUATE TO TRUE ACCORDING TO THE CURRENT PARAMETERS
 
             RobustnessFormula Phi_slow = new AlwaysRobustnessFormula(
                     new AtomicRobustnessFormula(getIteratedSlowerPerturbation(),
