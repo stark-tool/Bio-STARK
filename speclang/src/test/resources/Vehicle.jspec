@@ -17,6 +17,62 @@ param ETA_slow = 0.1;
 param ETA_comb = 0.1;
 param ETA_crash_speed = 0.1;
 
+
+function new_timer (int timer){
+  return timer - 1;
+}
+
+function new_distance (real dist, real travel){
+ return dist - travel;
+}
+
+function eval_bd (real speed){
+  return (speed^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * speed * TIMER_INIT)) / (2 * BRAKE);
+}
+
+function eval_rd (real speed){
+  return eval_bd(speed) + SAFETY_DISTANCE;
+}
+
+
+function effectOf(accel_type v) {
+    if (v == ACCELERATION) {
+        return 1.0;
+    } else {
+        if (v == NEUTRAL) {
+            return 0.0;
+        } else {
+            return -1.0;
+        }
+    }
+}
+
+function crash_probability (real dist){
+  if (dist > 0){
+    return 0.0;
+  } else {
+    return 1.0;
+  }
+}
+
+function crash_speed(int collision, real dist_object, real dist_vehicles, real speed){
+  if (collision == 0 && (dist_object <=0 || dist_vehicles <=0)){
+    return speed/MAX_SPEED;
+  } else {
+    return 0.0;
+  }
+}
+
+function slow_speed(real speed, real offs){
+  return max(0, speed - offs);
+}
+
+function fast_speed(real speed, real offs){
+  return max(0, speed + offs);
+}
+
+
+
 global variables{
   real p_speed_V1 range [0,MAX_SPEED] = INIT_SPEED_V1;
   real p_distance_V1 range [0,INIT_DISTANCE_OBS_V1] = INIT_DISTANCE_OBS_V1;
@@ -183,14 +239,14 @@ component Vehicle2 {
 
 environment {
   let
-    travel_V1 = accel_V1/2 + p_speed_V1
+    travel_V1 = effectOf(accel_V1)/2 + p_speed_V1
   and
-    travel_V2 = accel_V2/2 + p_speed_V2
+    travel_V2 = effectOf(accel_V2)/2 + p_speed_V2
   and
     new_p_speed_V1 = min(MAX_SPEED, max(0, p_speed_V1 + accel_V1))
   and
     new_p_speed_V2 = min(MAX_SPEED, max(0, p_speed_V2 + accel_V2))
-  in
+  in {
     timer_V1' = new_timer(timer_V1);
     p_speed_V1' = new_p_speed_V1;
     p_distance_V1' = new_distance(p_distance_V1,travel_V1);
@@ -218,45 +274,14 @@ environment {
       crashed_V1' = 1;
     when (p_distance_V2 <= 0 || p_distance_V1_V2 <=0)
       crashed_V2' = 1;
-}
-
-function new_timer (int timer){
-  return timer - 1;
-}
-
-function new_distance (real dist, real travel){
- return dist - travel;
-}
-
-function eval_bd (real speed){
-  return (speed^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * speed * TIMER_INIT)) / (2 * BRAKE);
-}
-
-function eval_rd (real speed){
-  return eval_bd(speed) + SAFETY_DISTANCE;
+  }
 }
 
 penalty rho_crash = crash_probability(p_distance_V1_V2)
 
-function crash_probability (real dist){
-  if (dist > 0){
-    return 0.0;
-  } else {
-    return 1.0;
-  }
-}
-
 penalty rho_crash_speed = crash_speed(crashed_V2, p_distance_V2, p_distance_V1_V2, p_speed_V2)
 
 penalty rho_speed = p_speed_V2
-
-function crash_speed(int collision, real dist_object, real dist_vehicles, real speed){
-  if (collision == 0 && (dist_object <=0 || dist_vehicles <=0)){
-    return speed/MAX_SPEED;
-  } else {
-    return 0.0;
-  }
-}
 
 distance exp_crash = \G[350,450] < rho_crash;
 
@@ -279,14 +304,6 @@ perturbation p_fast = [offset_speed_V1 <- p_speed_V1 * MAX_SPEED_OFFSET * R[0,1]
 perturbation p_comb = ([offset_speed_V1 <- p_speed_V1 * MAX_SPEED_OFFSET * R[0,1],
                         offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@0);
                       ((p_fast)^3;(p_slow)^3)^50;
-
-function slow_speed(real speed, real offs){
-  return max(0, speed - offs);
-}
-
-function fast_speed(real speed, real offs){
-  return max(0, speed + offs);
-}
 
 perturbation p_ItDistSens = ([offset_distance <- R[0,1] * MAX_DISTANCE_OFFSET]@0); (p_distSens)^300;
 

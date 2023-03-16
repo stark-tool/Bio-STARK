@@ -53,7 +53,7 @@ public class JSpearEnvironmentGenerator extends JSpearSpecificationLanguageBaseV
 
     @Override
     public JSpearEnvironmentUpdateFunction visitEnvironmentAssignment(JSpearSpecificationLanguageParser.EnvironmentAssignmentContext ctx) {
-        return new JSpearEnvironmentAssignmentFunction(this.allocation, List.of(getEnvironmentAssignmentFunction(ctx.variableAssignment())));
+        return new JSpearEnvironmentAssignmentFunction(this.allocation, getEnvironmentAssignmentFunction(ctx.variableAssignment()));
     }
 
     private BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>> getEnvironmentAssignmentFunction(JSpearSpecificationLanguageParser.VariableAssignmentContext variableAssignmentContext) {

@@ -216,7 +216,7 @@ public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor
     }
 
     public SystemSpecification getSystemSpecification() {
-        return new SystemSpecification(getControlledSystem(), this.penalties, this.formulaMap);
+        return new SystemSpecification(getControlledSystem(), this.penalties, this.formulaMap, this.perturbationMap, this.distanceExpressionMap);
     }
 
     private ControlledSystem getControlledSystem() {

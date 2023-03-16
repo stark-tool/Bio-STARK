@@ -74,7 +74,7 @@ class SpecificationLoaderTest {
 
     @Test
     void simulateVehicleSystem() throws IOException {
-        SpecificationLoader loader = new SpecificationLoader();
+            SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
         spec.setSize(1);
         assertNotNull(spec.getSamplesAt(50));
@@ -153,6 +153,22 @@ class SpecificationLoaderTest {
         TruthValues[] expected = new TruthValues[10];
         Arrays.fill(expected,TruthValues.TRUE);
         assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_slow", 60, 0,100,10));
+    }
+
+    @Test
+    void testApplyPerturbation() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(1);
+        assertNotNull(spec.applyPerturbation("p_ItSlow", 10, 5, 100));
+    }
+
+    @Test
+    void testEvalDistance() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(1);
+        assertTrue(spec.evalDistanceExpression("exp_crash", "p_ItSlow", 10, 5)>0);
     }
 
     @Test

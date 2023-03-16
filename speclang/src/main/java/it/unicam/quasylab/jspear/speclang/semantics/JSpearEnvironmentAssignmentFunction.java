@@ -33,15 +33,16 @@ import java.util.function.BiFunction;
 
 public class JSpearEnvironmentAssignmentFunction extends JSpearAbstractEnvironmentFunction {
 
-    private final List<BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>>> assignments;
+    private final BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>> assignments;
 
-    public JSpearEnvironmentAssignmentFunction(JSpearVariableAllocation allocation, List<BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>>> assignments) {
+    public JSpearEnvironmentAssignmentFunction(JSpearVariableAllocation allocation, BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>> assignments) {
         super(allocation);
         this.assignments = assignments;
     }
 
     @Override
     public List<DataStateUpdate> apply(RandomGenerator randomGenerator, JSpearStore jSpearStore) {
-        return assignments.stream().map(a -> a.apply(randomGenerator, jSpearStore)).filter(Optional::isPresent).map(Optional::get).toList();
+        Optional<DataStateUpdate> optionalUpdate = assignments.apply(randomGenerator, jSpearStore);
+        return optionalUpdate.map(List::of).orElseGet(List::of);
     }
 }

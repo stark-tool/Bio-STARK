@@ -22,7 +22,9 @@
 
 package it.unicam.quasylab.jspear;
 
+import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
+import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
 import it.unicam.quasylab.jspear.robtl.RobustnessFunction;
 import it.unicam.quasylab.jspear.robtl.TruthValues;
@@ -41,14 +43,19 @@ public class SystemSpecification {
     private EvolutionSequence sequence;
     private int size = DEFAULT_SIZE;
 
+    private final Map<String, Perturbation> perturbations;
+
+    private final Map<String, DistanceExpression> expressions;
 
     private int m = 50;
     private double z = 1.96;
 
-    public SystemSpecification(ControlledSystem system, Map<String, DataStateExpression> penalties, Map<String, RobustnessFormula> formulas) {
+    public SystemSpecification(ControlledSystem system, Map<String, DataStateExpression> penalties, Map<String, RobustnessFormula> formulas, Map<String, Perturbation> perturbations, Map<String, DistanceExpression> expressions) {
         this.system = system;
         this.penalties = penalties;
         this.formulas = formulas;
+        this.perturbations = perturbations;
+        this.expressions = expressions;
     }
 
     public String[] getPenalties() {
@@ -67,6 +74,22 @@ public class SystemSpecification {
 
     public RobustnessFormula getFormula(String name) {
         return formulas.get(name);
+    }
+
+    public Perturbation getPerturbation(String name) {
+        return perturbations.get(name);
+    }
+
+    public String[] getPerturbations() {
+        return perturbations.keySet().toArray(new String[0]);
+    }
+
+    public DistanceExpression getDistanceExpression(String name) {
+        return expressions.get(name);
+    }
+
+    public String[] getDistanceExpressions() {
+        return expressions.keySet().toArray(new String[0]);
     }
 
     public void generateSequence() {
@@ -154,5 +177,17 @@ public class SystemSpecification {
 
     public SampleSet<SystemState> getSamplesAt(int step) {
         return getSequence().get(step);
+    }
+
+    public EvolutionSequence applyPerturbation(String name, int step, int scale, int deadline) {
+        EvolutionSequence perturbed = getSequence().apply(getPerturbation(name), step, scale);
+        perturbed.generateUpTo(deadline);
+        return perturbed;
+    }
+
+    public double evalDistanceExpression(String expressionName, String perturbationName, int step, int scale) {
+        EvolutionSequence perturbed = getSequence().apply(getPerturbation(perturbationName), step, scale);
+        DistanceExpression expr = getDistanceExpression(expressionName);
+        return expr.compute(step, getSequence(), perturbed);
     }
 }
