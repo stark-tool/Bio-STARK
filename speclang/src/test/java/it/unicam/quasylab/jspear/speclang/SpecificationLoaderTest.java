@@ -22,8 +22,9 @@
 
 package it.unicam.quasylab.jspear.speclang;
 
-import it.unicam.quasylab.jspear.ControlledSystem;
-import it.unicam.quasylab.jspear.SystemSpecification;
+import it.unicam.quasylab.jspear.*;
+import it.unicam.quasylab.jspear.ds.DataState;
+import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
 import it.unicam.quasylab.jspear.robtl.TruthValues;
 import org.junit.jupiter.api.Disabled;
@@ -116,6 +117,33 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    void loadSample() throws IOException{
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        ControlledSystem system = spec.getSystem();
+        EvolutionSequence sequence = spec.getSequence();
+        DataStateExpression f = spec.getPenalty("rho_crash_speed");
+        SampleSet sample = spec.getSamplesAt(10);
+        double[] gino = sample.evalPenaltyFunction(f);
+        for (int i = 0; i<gino.length; i++){
+            System.out.println(gino[i]);
+        }
+        double[] data = SystemState.sample(new DefaultRandomGenerator(), f, system, 10, 1);
+        for (int i = 0; i < data.length; i++) {
+            System.out.printf("%d> %f\n", i, data[i]);
+        }
+    }
+
+    @Test
+    void vehicleSlowThreeValuedCheck() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        spec.setSize(1);
+        spec.setM(5);
+        spec.setZ(1.96);
+        assertEquals(TruthValues.TRUE, spec.evalThreeValuedSemantic("phi_slow", 60, 0));
+    }
+    @Test
     void vehicleSlowThreeValuedCheckTen() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -124,7 +152,7 @@ class SpecificationLoaderTest {
         spec.setZ(1.96);
         TruthValues[] expected = new TruthValues[10];
         Arrays.fill(expected,TruthValues.TRUE);
-        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_comb", 60, 0,100,10));
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_slow", 60, 0,100,10));
     }
 
     @Test

@@ -248,6 +248,8 @@ function crash_probability (real dist){
 
 penalty rho_crash_speed = crash_speed(crashed_V2, p_distance_V2, p_distance_V1_V2, p_speed_V2)
 
+penalty rho_speed = p_speed_V2
+
 function crash_speed(int collision, real dist_object, real dist_vehicles, real speed){
   if (collision == 0 && (dist_object <=0 || dist_vehicles <=0)){
     return speed/MAX_SPEED;
