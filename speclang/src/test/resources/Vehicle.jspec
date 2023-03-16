@@ -186,7 +186,7 @@ component Vehicle2 {
   controller {
     state Ctrl_V2 {
       if (s_speed_V2 > 0) {
-        if (safety_gap_V1_V2 > 0 && (brake_light_V1 == 0 || (s_distance_V1_V2 >= 300 && safety_gap_V2 > 0))) {
+        if (safety_gap_V1_V2 > 0 && (brake_light_V1 == 0 || s_distance_V1_V2 >= 300) && safety_gap_V2 > 0) {
           accel_V2' = ACCELERATION;
           timer_V2' = TIMER_INIT;
           brake_light_V2' = 0;
