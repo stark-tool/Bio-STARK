@@ -17,8 +17,6 @@ param ETA_slow = 0.1;
 param ETA_comb = 0.1;
 param ETA_crash_speed = 0.1;
 
-type accel_type = ACCELERATION|NEUTRAL|BRAKE;
-
 global variables{
   real p_speed_V1 range [0,MAX_SPEED] = INIT_SPEED_V1;
   real p_distance_V1 range [0,INIT_DISTANCE_OBS_V1] = INIT_DISTANCE_OBS_V1;
@@ -44,7 +42,7 @@ component Vehicle1 {
   variables{
     real s_speed_V1 range [0,MAX_SPEED] = 25.0;
     real s_distance_V1 range [0,INIT_DISTANCE_OBS_V1] = INIT_DISTANCE_OBS_V1;
-    accel_type accel_V1 = NEUTRAL;
+    real accel_V1 range [-BRAKE,ACCELERATION]= NEUTRAL;
     int warning_V1 range [0,1] = 0;
     int brake_light_V1 range [0,1] = 0;
     int crashed_V1 range [0,1] = 0;
@@ -116,7 +114,7 @@ component Vehicle2 {
     real s_speed_V2 range [0,MAX_SPEED] = 25.0;
     real s_distance_V2 range [0,INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2] = INIT_DISTANCE_OBS_V1 + INIT_DISTANCE_V1_V2;
     real s_distance_V1_V2 range [0,INIT_DISTANCE_V1_V2] = INIT_DISTANCE_V1_V2;
-    accel_type accel_V2 = NEUTRAL;
+    real accel_V2 range [-BRAKE,ACCELERATION] = NEUTRAL;
     int warning_V2 range [0,1] = 0;
     int brake_light_V2 range [0,1] = 0;
     int crashed_V2 range [0,1] = 0;
