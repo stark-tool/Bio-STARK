@@ -90,7 +90,7 @@ public class JSpearEnvironmentGenerator extends JSpearSpecificationLanguageBaseV
         JSpearVariable[] variables = new JSpearVariable[ctx.localVariables.size()];
         JSpearExpressionEvaluationFunction[] localVariablesValues = new JSpearExpressionEvaluationFunction[variables.length];
         for(int i=0; i<variables.length; i++) {
-            variables[i] = registry.getOrRegister(ctx.localVariables.get(i).getText());
+            variables[i] = registry.getOrRegister(ctx.localVariables.get(i).name.getText());
             localVariablesValues[i] = JSpearExpressionEvaluator.eval(context, registry, ctx.localVariables.get(i).expression());
         }
         return new JSpearEnvironmentLetUpdateFunction(allocation, variables, localVariablesValues, ctx.body.accept(this));

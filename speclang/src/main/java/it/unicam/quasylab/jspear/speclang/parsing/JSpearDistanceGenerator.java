@@ -41,24 +41,26 @@ public class JSpearDistanceGenerator extends JSpearSpecificationLanguageBaseVisi
     private final JSpearExpressionEvaluationContext context;
     private final JSpearVariableRegistry registry;
     private final Map<String, DistanceExpression> distanceMap;
+    private final Map<String, DataStateExpression> penalties;
 
-    public JSpearDistanceGenerator(JSpearVariableAllocation allocation, JSpearExpressionEvaluationContext context, JSpearVariableRegistry registry, Map<String, DistanceExpression> distanceExpressionMap) {
+    public JSpearDistanceGenerator(JSpearVariableAllocation allocation, JSpearExpressionEvaluationContext context, JSpearVariableRegistry registry, Map<String, DistanceExpression> distanceExpressionMap, Map<String, DataStateExpression> penalties) {
         this.allocation = allocation;
         this.context = context;
         this.registry = registry;
         this.distanceMap = distanceExpressionMap;
+        this.penalties = penalties;
     }
 
 
     @Override
     public DistanceExpression visitDistanceExpressionAtomicLeft(JSpearSpecificationLanguageParser.DistanceExpressionAtomicLeftContext ctx) {
-        DataStateExpression expression = JSpearExpressionEvaluator.evalToDataStateExpression(this.allocation, this.context, this.registry, ctx.expression());
+        DataStateExpression expression =  this.penalties.getOrDefault(ctx.panaltyName.getText(), ds -> Double.NaN); //JSpearExpressionEvaluator.evalToDataStateExpression(this.allocation, this.context, this.registry, ctx.expression());
         return new AtomicDistanceExpressionLeq(expression);
     }
 
     @Override
     public DistanceExpression visitDistanceExpressionAtomicRight(JSpearSpecificationLanguageParser.DistanceExpressionAtomicRightContext ctx) {
-        DataStateExpression expression = JSpearExpressionEvaluator.evalToDataStateExpression(this.allocation, this.context, this.registry, ctx.expression());
+        DataStateExpression expression =  this.penalties.getOrDefault(ctx.panaltyName.getText(), ds -> Double.NaN); //JSpearExpressionEvaluator.evalToDataStateExpression(this.allocation, this.context, this.registry, ctx.expression());
         return new AtomicDistanceExpressionGeq(expression);
     }
 

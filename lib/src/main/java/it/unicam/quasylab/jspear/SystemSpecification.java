@@ -190,4 +190,13 @@ public class SystemSpecification {
         DistanceExpression expr = getDistanceExpression(expressionName);
         return expr.compute(step, getSequence(), perturbed);
     }
+
+    public double[] evalPenalty(String name, int step) {
+        DataStateExpression f = penalties.get(name);
+        if (f == null) {
+            return new double[0];
+        } else {
+            return getSequence().get(step).evalPenaltyFunction(f);
+        }
+    }
 }

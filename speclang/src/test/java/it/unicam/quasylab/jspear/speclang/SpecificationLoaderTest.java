@@ -80,6 +80,14 @@ class SpecificationLoaderTest {
         assertNotNull(spec.getSamplesAt(50));
     }
 
+    @Test
+    void stepVehicleSystem() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        ControlledSystem system = spec.getSystem();
+        assertNotNull(system.sampleNext(new DefaultRandomGenerator()));
+    }
+
 
     @Test
     void loadVehicleProperty() throws IOException {
@@ -94,7 +102,7 @@ class SpecificationLoaderTest {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
         spec.setSize(50);
-        assertFalse(spec.evalBooleanSemantic("phi_crash_speed", 10, 5));
+        assertFalse(spec.evalBooleanSemantic("phi_crash_speed", 1, 5));
     }
 
     @Test
@@ -104,7 +112,7 @@ class SpecificationLoaderTest {
         spec.setSize(50);
         spec.setM(50);
         spec.setZ(1.96);
-        assertEquals(TruthValues.FALSE, spec.evalThreeValuedSemantic("phi_crash_speed", 10, 5));
+        assertEquals(TruthValues.FALSE, spec.evalThreeValuedSemantic("phi_crash_speed", 1, 5));
     }
 
 
@@ -143,6 +151,15 @@ class SpecificationLoaderTest {
         spec.setZ(1.96);
         assertEquals(TruthValues.TRUE, spec.evalThreeValuedSemantic("phi_slow", 60, 0));
     }
+
+    @Test
+    void vehicleEvalPenaltyFunction() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
+        DataStateExpression f = spec.getPenalty("rho_crash");
+        assertEquals(0, f.eval(spec.getSystem().getDataState()));
+    }
+
     @Test
     void vehicleSlowThreeValuedCheckTen() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();

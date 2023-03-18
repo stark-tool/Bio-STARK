@@ -280,8 +280,8 @@ perturbationAssignment:
 ;
 
 distanceExpression:
-    '<' value=expression # distanceExpressionAtomicLeft
-    | '>' value=expression # distanceExpressionAtomicRight
+    '<' panaltyName=ID # distanceExpressionAtomicLeft
+    | '>' panaltyName=ID # distanceExpressionAtomicRight
     | '\\F' '[' from=expression ',' to=expression ']' argument=distanceExpression # distanceExpressionFinally
     | '\\G' '[' from=expression ',' to=expression ']' argument=distanceExpression # distanceExpressionGlobally
     | left=distanceExpression '\\U' '[' from=expression ',' to=expression ']' right=distanceExpression # distanceExpressionUntil

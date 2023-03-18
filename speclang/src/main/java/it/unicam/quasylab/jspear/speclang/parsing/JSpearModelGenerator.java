@@ -239,7 +239,7 @@ public class JSpearModelGenerator extends JSpearSpecificationLanguageBaseVisitor
 
     @Override
     public Boolean visitDeclarationDistance(JSpearSpecificationLanguageParser.DeclarationDistanceContext ctx) {
-        this.distanceExpressionMap.put(ctx.name.getText(), ctx.value.accept(new JSpearDistanceGenerator(allocation, context, registry, distanceExpressionMap)));
+        this.distanceExpressionMap.put(ctx.name.getText(), ctx.value.accept(new JSpearDistanceGenerator(allocation, context, registry, distanceExpressionMap, penalties)));
         return true;
     }
 
