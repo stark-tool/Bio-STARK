@@ -229,7 +229,7 @@ public class SampleSet<T extends SystemState> {
         double[] otherData = other.evalPenaltyFunction(f);
         for (int i = 0; i<m; i++){
             double[] thisBootstrapData = IntStream.range(0, thisData.length).mapToDouble(j -> thisData[rand.nextInt(thisData.length)]).toArray();
-            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> thisData[rand.nextInt(thisData.length)]).toArray();
+            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> otherData[rand.nextInt(otherData.length)]).toArray();
             W[i] = computeDistanceLeq(thisBootstrapData, otherBootstrapData);
             WSum += W[i];
         }
