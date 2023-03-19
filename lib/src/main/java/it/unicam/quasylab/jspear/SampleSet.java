@@ -144,6 +144,14 @@ public class SampleSet<T extends SystemState> {
                 .sum() / otherData.length;
     }
 
+
+    private double computeDistanceLeq(double[] thisData, double[] otherData) {
+        int k = otherData.length / thisData.length;
+        return IntStream.range(0, thisData.length).parallel()
+                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, otherData[i * k + j] - thisData[i])).sum())
+                .sum() / otherData.length;
+    }
+
     /**
      * Returns the asymmetric distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>.
@@ -217,12 +225,20 @@ public class SampleSet<T extends SystemState> {
         }
         double[] W = new double[m];
         double WSum = 0.0;
+        double[] thisData = this.evalPenaltyFunction(f);
+        double[] otherData = other.evalPenaltyFunction(f);
         for (int i = 0; i<m; i++){
-            SampleSet<T> thisSampleSet = new SampleSet<>(this.stream().parallel().map(j -> this.states.get(rand.nextInt(this.size()))).toList());
-            SampleSet<T> otherSampleSet = new SampleSet<>(other.stream().parallel().map(j -> other.states.get(rand.nextInt(other.size()))).toList());
-            W[i] = thisSampleSet.distanceLeq(f,otherSampleSet);
+            double[] thisBootstrapData = IntStream.range(0, thisData.length).mapToDouble(j -> thisData[rand.nextInt(thisData.length)]).toArray();
+            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> thisData[rand.nextInt(thisData.length)]).toArray();
+            W[i] = computeDistanceLeq(thisBootstrapData, otherBootstrapData);
             WSum += W[i];
         }
+//        for (int i = 0; i<m; i++){
+//            SampleSet<T> thisSampleSet = new SampleSet<>(this.stream().parallel().map(j -> this.states.get(rand.nextInt(this.size()))).toList());
+//            SampleSet<T> otherSampleSet = new SampleSet<>(other.stream().parallel().map(j -> other.states.get(rand.nextInt(other.size()))).toList());
+//            W[i] = thisSampleSet.distanceLeq(f,otherSampleSet);
+//            WSum += W[i];
+//        }
         double BootMean = WSum/m;
         double StandardError = Math.sqrt(IntStream.range(0,m).mapToDouble(j->Math.pow(W[j]-BootMean,2)).sum()/(m-1));
         double[] CI = new double[2];

@@ -24,6 +24,7 @@ package it.unicam.quasylab.jspear.distance;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
@@ -82,9 +83,13 @@ public final class MaxIntervalDistanceExpression implements DistanceExpression {
         }
 
          */
-        res[0] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[0]).max().orElse(Double.NaN);
-        res[1] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[1]).max().orElse(Double.NaN);
-        res[2] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[2]).max().orElse(Double.NaN);
+        List<double[]> resList = IntStream.range(from + step, to + step).parallel().mapToObj(i -> argument.evalCI(i, seq1, seq2, m, z)).toList();
+        res[0] = resList.stream().parallel().mapToDouble(r -> r[0]).max().orElse(Double.NaN);
+        res[1] = resList.stream().parallel().mapToDouble(r -> r[1]).max().orElse(Double.NaN);
+        res[2] = resList.stream().parallel().mapToDouble(r -> r[2]).max().orElse(Double.NaN);
+//        res[0] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[0]).max().orElse(Double.NaN);
+//        res[1] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[1]).max().orElse(Double.NaN);
+//        res[2] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[2]).max().orElse(Double.NaN);
         return res;
     }
 
