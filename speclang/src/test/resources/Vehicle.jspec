@@ -170,7 +170,7 @@ component Vehicle1 {
       }
     }
     state IDS_V1 {
-      if IDS_guard(p_distance_V1 <= 2*TIMER_INIT*SAFETY_DISTANCE, accel_V1 == ACCELERATION, accel_V1 == NEUTRAL, p_speed_V1 > 0.0) {
+      if (IDS_guard(p_distance_V1 <= 2*TIMER_INIT*SAFETY_DISTANCE, accel_V1 == ACCELERATION, accel_V1 == NEUTRAL, p_speed_V1 > 0.0)) {
         warning_V1' = DANGER;
         step IDS_V1;
       } else {
@@ -242,7 +242,7 @@ component Vehicle2 {
       }
     }
     state IDS_V2 {
-      if IDS_guard(p_distance_V2 <= 2*TIMER_INIT*SAFETY_DISTANCE, accel_V2 == ACCELERATION, accel_V2 == NEUTRAL, p_speed_V2 > 0.0) {
+      if (IDS_guard(p_distance_V2 <= 2*TIMER_INIT*SAFETY_DISTANCE, accel_V2 == ACCELERATION, accel_V2 == NEUTRAL, p_speed_V2 > 0.0)) {
         warning_V2' = DANGER;
         step IDS_V2;
       } else {
