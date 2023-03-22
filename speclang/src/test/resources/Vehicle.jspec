@@ -292,31 +292,35 @@ distance exp_crash = \G[350,450] < rho_crash;
 
 distance exp_crash_speed = \G[10,400] < rho_crash_speed;
 
-perturbation p_ItSlow = ([offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@0); (p_slow)^150;
-
 perturbation p_slow = [s_speed_V2 <- slow_speed(p_speed_V2,offset_speed_V2),
                        required_distance_V2 <- eval_rd(slow_speed(p_speed_V2,offset_speed_V2)),
                        safety_gap_V1_V2 <- p_distance_V1_V2 - eval_rd(slow_speed(p_speed_V2,offset_speed_V2)),
-                       offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@4;
+                       offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@(TIMER-1);
 
-perturbation p_ItFast = ([offset_speed_V1 <- p_speed_V1 * MAX_SPEED_OFFSET * R[0,1]]@0);(p_fast)^150;
+perturbation p_ItSlow = ([offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@0); (p_slow)^150;
+
 
 perturbation p_fast = [s_speed_V1 <- fast_speed(p_speed_V1,offset_speed_V1),
                        required_distance_V1 <- eval_rd(fast_speed(p_speed_V1,offset_speed_V1)),
                        safety_gap_V1 <- p_distance_V1 - eval_rd(fast_speed(p_speed_V1,offset_speed_V1)),
                        offset_speed_V1 <- p_speed_V1 * MAX_SPEED_OFFSET * R[0,1]]@(TIMER-1);
 
+perturbation p_ItFast = ([offset_speed_V1 <- p_speed_V1 * MAX_SPEED_OFFSET * R[0,1]]@0);(p_fast)^150;
+
+
 perturbation p_comb = ([offset_speed_V1 <- p_speed_V1 * MAX_SPEED_OFFSET * R[0,1],
                         offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@0);
                       ((p_fast)^3;(p_slow)^3)^50;
 
-perturbation p_ItDistSens = ([offset_distance <- R[0,1] * MAX_DISTANCE_OFFSET]@0); (p_distSens)^300;
 
 perturbation p_distSens = [s_distance_V1_V2 <- p_distance_V1_V2 * (1 + offset_distance),
                            s_distance_V2 <- p_distance_V2 * (1 + offset_distance),
                            safety_gap_V1_V2 <- p_distance_V1_V2 * (1 + offset_distance) - eval_rd(p_speed_V2),
                            safety_gap_V2 <- p_distance_V2 * (1 + offset_distance) - eval_rd(p_speed_V2),
                            offset_distance <- R[0,1] * MAX_DISTANCE_OFFSET]@(TIMER-1);
+
+perturbation p_ItDistSens = ([offset_distance <- R[0,1] * MAX_DISTANCE_OFFSET]@0); (p_distSens)^300;
+
 
 formula atomic_slow = \D[exp_crash,p_ItSlow] <= ETA_slow;
 formula eventually_slow = true \U[0,450] !atomic_slow;
