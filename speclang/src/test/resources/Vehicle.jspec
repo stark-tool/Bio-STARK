@@ -292,12 +292,14 @@ distance exp_crash = \G[350,450] < rho_crash;
 
 distance exp_crash_speed = \G[10,400] < rho_crash_speed;
 
-perturbation p_ItSlow = ([offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@0); (p_slow)^150;
 
 perturbation p_slow = [s_speed_V2 <- slow_speed(p_speed_V2,offset_speed_V2),
                        required_distance_V2 <- eval_rd(slow_speed(p_speed_V2,offset_speed_V2)),
                        safety_gap_V1_V2 <- p_distance_V1_V2 - eval_rd(slow_speed(p_speed_V2,offset_speed_V2)),
                        offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@4;
+
+perturbation p_ItSlow = ([offset_speed_V2 <- p_speed_V2 * MAX_SPEED_OFFSET * R[0,1]]@0); (p_slow)^150;
+
 
 perturbation p_ItFast = ([offset_speed_V1 <- p_speed_V1 * MAX_SPEED_OFFSET * R[0,1]]@0);(p_fast)^150;
 
