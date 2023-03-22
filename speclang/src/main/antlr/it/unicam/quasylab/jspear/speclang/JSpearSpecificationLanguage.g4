@@ -268,9 +268,9 @@ unaryMathFunction: 'abs'
 
 perturbationExpression:
         'nil' # perturbationExpressionNil
+     | argument=perturbationExpression '^' iterationValue=expression # perturbationExpressionIteration
      |  first=perturbationExpression ';' second=perturbationExpression # perturbationExpressionSequence
      | '(' perturbationExpression ')' # perturbationExpressionBrackets
-     | argument=perturbationExpression '^' iterationValue=expression # perturbationExpressionIteration
      | '[' assignments += perturbationAssignment (',' assignments += perturbationAssignment)* ']' '@' time=expression # perturbationExpressionAtomic
      | name=ID # perturbationExpressionReference
 ;
