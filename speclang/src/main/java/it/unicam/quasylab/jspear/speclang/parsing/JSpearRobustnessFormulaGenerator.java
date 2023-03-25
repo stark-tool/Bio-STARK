@@ -95,4 +95,18 @@ public class JSpearRobustnessFormulaGenerator extends JSpearSpecificationLanguag
     public RobustnessFormula visitRobtlFormulaFalse(JSpearSpecificationLanguageParser.RobtlFormulaFalseContext ctx) {
         return new FalseRobustnessFormula();
     }
+
+    @Override
+    public RobustnessFormula visitRobtlFormulaAlways(JSpearSpecificationLanguageParser.RobtlFormulaAlwaysContext ctx) {
+        int from = JSpearValue.intValue(JSpearExpressionEvaluator.evalToValue(context, registry, ctx.from));
+        int to = JSpearValue.intValue(JSpearExpressionEvaluator.evalToValue(context, registry, ctx.to));
+        return new AlwaysRobustnessFormula(ctx.argument.accept(this), from, to);
+    }
+
+    @Override
+    public RobustnessFormula visitRobtlFormulaEventually(JSpearSpecificationLanguageParser.RobtlFormulaEventuallyContext ctx) {
+        int from = JSpearValue.intValue(JSpearExpressionEvaluator.evalToValue(context, registry, ctx.from));
+        int to = JSpearValue.intValue(JSpearExpressionEvaluator.evalToValue(context, registry, ctx.to));
+        return new EventuallyRobustnessFormula(ctx.argument.accept(this), from, to);
+    }
 }

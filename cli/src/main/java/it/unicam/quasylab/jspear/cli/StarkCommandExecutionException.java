@@ -22,12 +22,19 @@
 
 package it.unicam.quasylab.jspear.cli;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 public class StarkCommandExecutionException extends Exception {
 
+    public static final String ILLEGAL_COMMAND = "ERROR: Illegal command!";
+    private static final String FILE_DOES_NOT_EXIST = "ERROR: %s does not exist!";
+
+    private static final String FILE_IS_NOT_A_DIRECTORY = "ERROR: %s is not a directory!";
+
     private final List<String> reasons;
+
 
 
     public StarkCommandExecutionException(String message, List<String> reasons) {
@@ -42,6 +49,15 @@ public class StarkCommandExecutionException extends Exception {
 
     public StarkCommandExecutionException(String message) {
         this(message, List.of());
+    }
+
+    public static String fileDoesNotExists(File file) {
+        return String.format(FILE_DOES_NOT_EXIST, file.getAbsolutePath());
+    }
+
+    public static String fileIsNotADirectory(File file) {
+        return String.format(FILE_IS_NOT_A_DIRECTORY, file.getAbsolutePath());
+
     }
 
 

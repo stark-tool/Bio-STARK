@@ -299,6 +299,8 @@ robtlFormula:
     | name=ID # robtlFormulaReference
     | '\\D' '[' expressionReference=ID ',' perturbationReference=ID ']' op=('<'|'<='|'=='|'>='|'>') value=expression # robtlFormulaDistance
     | '!' argument=robtlFormula # robtlFormulaNegation
+    | '\\G' '[' from=expression ',' to=expression ']'  argument=robtlFormula # robtlFormulaAlways
+    | '\\F' '[' from=expression ',' to=expression ']'  argument=robtlFormula # robtlFormulaEventually
     | left=robtlFormula '&&' right=robtlFormula  # robtlFormulaConjunction
     | left=robtlFormula '||' right=robtlFormula # robtlFormulaDisjunction
     | left=robtlFormula '\\U' '[' from=expression ',' to=expression ']'  right=robtlFormula # robtlFormulaUntil

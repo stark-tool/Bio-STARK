@@ -30,6 +30,7 @@ import it.unicam.quasylab.jspear.robtl.RobustnessFunction;
 import it.unicam.quasylab.jspear.robtl.TruthValues;
 
 import java.util.Map;
+import java.util.stream.IntStream;
 
 public class SystemSpecification {
 
@@ -101,13 +102,13 @@ public class SystemSpecification {
     }
 
 
-    private <T> T eval(RobustnessFunction<T> evaluationFunciton, int sampleSize, int step) {
-        return evaluationFunciton.eval(sampleSize, step, getSequence());
+    private <T> T eval(RobustnessFunction<T> evaluationFunction, int sampleSize, int step) {
+        return evaluationFunction.eval(sampleSize, step, getSequence());
     }
 
-    private <T> void eval(RobustnessFunction<T> evaluationFunciton, int sampleSize, int from, int by, T[] data) {
+    private <T> void eval(RobustnessFunction<T> evaluationFunction, int sampleSize, int from, int by, T[] data) {
         for(int i=0; i<data.length; i++) {
-            data[i] = eval(evaluationFunciton, sampleSize, from+by*i);
+            data[i] = eval(evaluationFunction, sampleSize, from+by*i);
         }
     }
 
@@ -191,7 +192,13 @@ public class SystemSpecification {
         return expr.compute(step, getSequence(), perturbed);
     }
 
-    public double[] evalPenalty(String name, int step) {
+    public double[] evalDistanceExpression(String expressionName, String perturbationName, int perturbationStep, int scale, int[] steps) {
+        EvolutionSequence perturbed = getSequence().apply(getPerturbation(perturbationName), perturbationStep, scale);
+        DistanceExpression expr = getDistanceExpression(expressionName);
+        return IntStream.of(steps).mapToDouble(i -> expr.compute(i, getSequence(), perturbed)).toArray();
+    }
+
+    public double[] evalPenalty(int step, String name) {
         DataStateExpression f = penalties.get(name);
         if (f == null) {
             return new double[0];
@@ -199,4 +206,14 @@ public class SystemSpecification {
             return getSequence().get(step).evalPenaltyFunction(f);
         }
     }
+
+    public double[][] evalPenalties(int[] steps, String name) {
+        DataStateExpression f = penalties.get(name);
+        if (f == null) {
+            return new double[0][0];
+        } else {
+            return IntStream.of(steps).sequential().mapToObj(i -> getSequence().get(i).evalPenaltyFunction(f)).toArray(double[][]::new);
+        }
+    }
+
 }

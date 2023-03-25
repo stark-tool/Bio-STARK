@@ -20,55 +20,157 @@
  * limitations under the License.
  */
 
-/**
- * Instances of this class acts as an interpreter of Stark commands.
- */
 package it.unicam.quasylab.jspear.cli;
 
-import it.unicam.quasylab.jspear.SystemSpecification;
-import it.unicam.quasylab.jspear.speclang.SpecificationLoader;
+import it.unicam.quasylab.jspear.speclang.parsing.ParseErrorCollector;
+import it.unicam.quasylab.jspear.speclang.parsing.ParseErrorListener;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 
 import java.io.File;
-import java.io.IOException;
+import java.util.List;
 
 public class StarkInterpreter {
 
-    private static final String LOAD_ERROR_MESSAGE = "An error occurred while loading specification.";
-    private static final String NOSPECIFICATION_IS_LOADED = "No STARTK specification has been loaded";
-    private SystemSpecification specification;
+    private final StarkEnvironment starkEnvironment;
 
-    public boolean loadSpecification(File fileName) throws StarkCommandExecutionException {
-        SpecificationLoader loader = new SpecificationLoader();
+    private File workingDirectory;
+
+
+    public StarkInterpreter() throws StarkCommandExecutionException {
+        this(System.getProperty("user.dir"));
+    }
+
+
+    public StarkInterpreter(String workingDirectory) throws StarkCommandExecutionException {
+        this(new File(workingDirectory));
+    }
+
+
+    public StarkInterpreter(File workingDirectory) throws StarkCommandExecutionException {
+        setWorkingDirectory(workingDirectory);
+        this.starkEnvironment = new StarkEnvironment();
+    }
+
+    private void setWorkingDirectory(File workingDirectory) throws StarkCommandExecutionException {
+        if (!workingDirectory.exists()) {
+            throw new StarkCommandExecutionException(StarkCommandExecutionException.fileDoesNotExists(workingDirectory));
+        }
+        if (!workingDirectory.isDirectory()) {
+            throw new StarkCommandExecutionException(StarkCommandExecutionException.fileIsNotADirectory(workingDirectory));
+        }
+        this.workingDirectory = workingDirectory;
+    }
+
+    public StarkCommandExecutionResult executeCommand(String cmd) throws StarkCommandExecutionException {
+        return executeCommand(parseCommand(CharStreams.fromString(cmd)));
+    }
+
+    private StarkCommandExecutionResult executeCommand(StarkScriptParser.ScriptCommandContext cmd) {
+        return cmd.accept(new StarkCommandVisitor());
+    }
+
+
+    private StarkScriptParser.ScriptCommandContext parseCommand(CharStream source) throws StarkCommandExecutionException {
+        ParseErrorCollector errors = new ParseErrorCollector();
+        StarkScriptParser.ScriptCommandContext result = getParser(errors, source).scriptCommand();
+        if (errors.withErrors()) {
+            throw new StarkCommandExecutionException(StarkCommandExecutionException.ILLEGAL_COMMAND, errors.getSyntaxErrorList().stream().map(Object::toString).toList());
+        } else {
+            return result;
+        }
+    }
+
+    private StarkScriptParser.StarkScriptContext parseScript(CharStream source) throws StarkCommandExecutionException {
+        ParseErrorCollector errors = new ParseErrorCollector();
+        StarkScriptParser.StarkScriptContext result = getParser(errors, source).starkScript();
+        if (errors.withErrors()) {
+            throw new StarkCommandExecutionException(StarkCommandExecutionException.ILLEGAL_COMMAND, errors.getSyntaxErrorList().stream().map(Object::toString).toList());
+        } else {
+            return result;
+        }
+    }
+
+    private StarkScriptParser getParser(ParseErrorCollector errors, CharStream source) {
+        StarkScriptLexer lexer = new StarkScriptLexer(source);
+        CommonTokenStream tokens =  new CommonTokenStream(lexer);
+        StarkScriptParser parser = new StarkScriptParser(tokens);
+        ParseErrorListener errorListener = new ParseErrorListener(errors);
+        parser.addErrorListener(errorListener);
+        return parser;
+    }
+
+    public class StarkCommandVisitor extends StarkScriptBaseVisitor<StarkCommandExecutionResult> {
+
+        @Override
+        public StarkCommandExecutionResult visitChangeDirectoryCommand(StarkScriptParser.ChangeDirectoryCommandContext ctx) {
+            return changeDirectory(getFileName(ctx.target.getText()));
+        }
+
+        @Override
+        public StarkCommandExecutionResult visitListCommand(StarkScriptParser.ListCommandContext ctx) {
+            return list();
+        }
+
+        @Override
+        public StarkCommandExecutionResult visitCwdCommand(StarkScriptParser.CwdCommandContext ctx) {
+            return cwd();
+        }
+
+        @Override
+        public StarkCommandExecutionResult visitLoadCommand(StarkScriptParser.LoadCommandContext ctx) {
+            return load(getFileName(ctx.target.getText()));
+        }
+
+        @Override
+        public StarkCommandExecutionResult visitQuitCommand(StarkScriptParser.QuitCommandContext ctx) {
+            return quit();
+        }
+    }
+
+    private StarkCommandExecutionResult quit() {
+        return new StarkCommandExecutionResult(StarkMessages.quitMessage(), true, true);
+    }
+
+    private StarkCommandExecutionResult load(String fileName) {
+        return load(new File(workingDirectory, fileName));
+    }
+
+    private StarkCommandExecutionResult load(File file) {
         try {
-            SystemSpecification loadedSpecification = loader.loadSpecification(fileName);
-            if (loadedSpecification == null) {
-                throw new StarkCommandExecutionException(LOAD_ERROR_MESSAGE, loader.getErrorMessage());
-            } else {
-                this.specification = loadedSpecification;
-                return true;
-            }
-        } catch (IOException e) {
-            throw new StarkCommandExecutionException(e);
+            this.starkEnvironment.loadSpecification(file);
+            return new StarkCommandExecutionResult(StarkMessages.loadMessage(file.getAbsolutePath()),true);
+        } catch (StarkCommandExecutionException e) {
+            return new StarkCommandExecutionResult(e.getMessage(),e.getReasons());
         }
     }
 
-    public String[] getFormulas() throws StarkCommandExecutionException {
-        if (specification != null) {
-            return specification.getFormulas();
+    private String getFileName(String target) {
+        return target.substring(1,target.length()-1);
+    }
+
+    private StarkCommandExecutionResult cwd() {
+        return new StarkCommandExecutionResult(StarkMessages.currentWorkingDirectory(workingDirectory), true);
+    }
+
+    private StarkCommandExecutionResult list() {
+        String[] content = workingDirectory.list();
+        if (content == null) {
+            return new StarkCommandExecutionResult(StarkMessages.illegalAccess(workingDirectory), false);
         } else {
-            throw new StarkCommandExecutionException(NOSPECIFICATION_IS_LOADED);
+            return new StarkCommandExecutionResult(StarkMessages.listMessage(), List.of(content), true);
         }
     }
 
-    public String[] getPenalties() throws StarkCommandExecutionException {
-        if (specification != null) {
-            return specification.getPenalties();
-        } else {
-            throw new StarkCommandExecutionException(NOSPECIFICATION_IS_LOADED);
+    private StarkCommandExecutionResult changeDirectory(String dir) {
+        try {
+            File newDirectory = new File(workingDirectory, dir);
+            setWorkingDirectory(newDirectory);
+            return cwd();
+        } catch (StarkCommandExecutionException e) {
+            return new StarkCommandExecutionResult(e.getMessage(),e.getReasons());
         }
-    }
-
-    public double[][] simulate(int size, int deadline, String selected) {
-        return null;
     }
 }
