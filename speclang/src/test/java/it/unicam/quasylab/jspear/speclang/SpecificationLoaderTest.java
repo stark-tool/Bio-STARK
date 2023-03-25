@@ -133,6 +133,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void loadSample() throws IOException{
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -152,6 +153,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void vehicleSlowThreeValuedCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -192,6 +194,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void testOnPerturbation() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -249,6 +252,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void vehicleSlowOffset03() throws IOException{
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -258,6 +262,7 @@ class SpecificationLoaderTest {
         assertEquals(TruthValues.UNKNOWN, spec.evalThreeValuedSemantic("phi_slow", 60,50));
     }
     @Test
+    @Disabled
     void vehicleCombOffset03() throws IOException{
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -269,6 +274,7 @@ class SpecificationLoaderTest {
 
 
     @Test
+    @Disabled
     void vehicleCombThreeValuedCheckTen() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());

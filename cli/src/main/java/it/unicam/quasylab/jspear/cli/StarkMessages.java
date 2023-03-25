@@ -32,6 +32,22 @@ public class StarkMessages {
     private static final String ILLEGAL_ACCESS = "An error occurred while accessing to %s";
     private static final String LOAD_MESSAGE = "Specification %s has been successfully loaded.";
     private static final String QUIT_MESSAGE = "See you next time!";
+    private static final String FORMULAS_MESSAGE = "Formulas:";
+    private static final String PENALTIES_MESSAGE = "Penalties:";
+    private static final String DISTANCES_MESSAGE = "Distance expressions:";
+    private static final String DONE_MESSAGE = "Done";
+    private static final String PRINT_MESSAGE = "Values:";
+    private static final String NO_DATA_TO_PRINT = "Error: No data to print!";
+    private static final String NO_DATA_TO_SAVE = "Error: No data to save!";
+    private static final String UNKNOWN_PERTURBATION_MESSAGE = "Error: perturbation %s is unknown!";
+    private static final String UNKNOWN_DISTANCE_MESSAGE = "Error: distance %s is unknown!";
+    private static final String UNKNOWN_FORMULA_MESSAGE = "Error: formula %s is unknown!";
+    private static final String UNKNOWN_PENALTY_MESSAGE = "Error: penalty %s is unknown!";;
+    private static final String INFO_MESSAGE = "Info: ";
+    private static final String SIZE_MESSAGE = "size = %d";
+    private static final String SCALE_MESSAGE = "scale = %d";
+    private static final String M_MESSAGE = "m = %d";
+    private static final String Z_MESSAGE = "z = %f";
 
     public static String currentWorkingDirectory(File newDirectory) {
         return String.format(WORKING_DIRECTORY_MESSAGE, newDirectory.getAbsolutePath());
@@ -52,4 +68,69 @@ public class StarkMessages {
     public static String quitMessage() {
         return QUIT_MESSAGE;
     }
+
+    public static String formulasMessage() {
+        return FORMULAS_MESSAGE;
+    }
+
+    public static String penaltiesMessage() {
+        return PENALTIES_MESSAGE;
+    }
+
+    public static String distancesMesage() {
+        return DISTANCES_MESSAGE;
+    }
+
+    public static String doneMessage() {
+        return DONE_MESSAGE;
+    }
+
+    public static String printMessage() {
+        return PRINT_MESSAGE;
+    }
+
+    public static String noDataToPrintMessage() {
+        return NO_DATA_TO_PRINT;
+    }
+
+    public static String noDataToSaveMessage() {
+        return NO_DATA_TO_SAVE;
+    }
+
+    public static String unknownPerturbation(String name) {
+        return String.format(UNKNOWN_PERTURBATION_MESSAGE, name);
+    }
+
+    public static String unknownDistance(String name) {
+        return String.format(UNKNOWN_DISTANCE_MESSAGE, name);
+    }
+    public static String unknownFormula(String name) {
+        return String.format(UNKNOWN_FORMULA_MESSAGE, name);
+    }
+
+
+    public static String unknownPenalty(String name) {
+        return String.format(UNKNOWN_PENALTY_MESSAGE, name);
+    }
+
+    public static String infoMessage() {
+        return INFO_MESSAGE;
+    }
+
+    public static String sizeValue(int size) {
+        return String.format(SIZE_MESSAGE, size);
+    }
+
+    public static String scaleValue(int scale) {
+        return String.format(SCALE_MESSAGE, scale);
+    }
+
+    public static String mValue(int m) {
+        return String.format(M_MESSAGE, m);
+    }
+
+    public static String zValue(double z) {
+        return String.format(Z_MESSAGE, z);
+    }
+
 }

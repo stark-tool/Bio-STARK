@@ -12,6 +12,54 @@ scriptCommand:
     | cwdCommand
     | loadCommand
     | quitCommand
+    | perturbationsCommand
+    | distancesCommand
+    | penaltiesCommand
+    | formulasCommand
+    | evalCommand
+    | checkCommand
+    | computeCommand
+    | saveCommand
+    | printCommand
+    | clearCommand
+    | setCommand
+    | infoCommand
+;
+
+infoCommand: 'info';
+
+setCommand:
+    'set' 'size' '=' value=INTEGER # setSizeCommand
+    | 'set' 'm' '=' value=INTEGER # setMCommand
+    | 'set' 'z' '=' value=REAL # setZCommand
+    | 'set' 'scale' '=' value=INTEGER # setScaleCommand
+    ;
+
+clearCommand: 'clear';
+
+saveCommand: 'save' 'in' target=STRING;
+
+printCommand: 'print';
+
+computeCommand: 'compute' distance=ID 'after' perturbation=ID 'at' when=INTEGER steps=stepExpression;
+
+checkCommand: 'check' semantic=('boolean'|'threevalued') formula=ID steps=stepExpression;
+
+evalCommand: 'eval' penalty=ID steps=stepExpression ;
+
+stepExpression:
+    'at' steps+=INTEGER (',' steps+=INTEGER) # stepExpressionTarget
+    | 'from' from=INTEGER 'to' to=INTEGER 'every' step=INTEGER # stepExpressionInterval
+;
+
+formulasCommand: 'formula';
+
+penaltiesCommand: 'penalties';
+
+distancesCommand: 'distances';
+
+perturbationsCommand:
+    'perturbations'
 ;
 
 quitCommand: 'quit';

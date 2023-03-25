@@ -49,4 +49,12 @@ public enum TruthValues {
     public static TruthValues imply(TruthValues value1, TruthValues value2) {
         return TruthValues.or(TruthValues.neg(value1), value2);
     }
+
+    public double valueOf() {
+        return switch (this) {
+            case TRUE -> 1.0;
+            case UNKNOWN -> 0.0;
+            case FALSE -> -1.0;
+        };
+    }
 }

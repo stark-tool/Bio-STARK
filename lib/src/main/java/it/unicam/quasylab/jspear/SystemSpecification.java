@@ -34,7 +34,11 @@ import java.util.stream.IntStream;
 
 public class SystemSpecification {
 
-    private final static int DEFAULT_SIZE = 50;
+    public final static int DEFAULT_SIZE = 50;
+
+    public final static int DEFAULT_M = 50;
+
+    public final static double DEFAULT_Z = 1.96;
 
     private final ControlledSystem system;
 
@@ -50,6 +54,8 @@ public class SystemSpecification {
 
     private int m = 50;
     private double z = 1.96;
+
+    private int scale = 10;
 
     public SystemSpecification(ControlledSystem system, Map<String, DataStateExpression> penalties, Map<String, RobustnessFormula> formulas, Map<String, Perturbation> perturbations, Map<String, DistanceExpression> expressions) {
         this.system = system;
@@ -112,6 +118,12 @@ public class SystemSpecification {
         }
     }
 
+    private <T> void eval(RobustnessFunction<T> evaluationFunction, int sampleSize, int[] steps, T[] data) {
+        for(int i=0; i<data.length; i++) {
+            data[i] = eval(evaluationFunction, sampleSize, steps[i]);
+        }
+    }
+
     public boolean evalBooleanSemantic(String name, int sampleSize, int step) {
         RobustnessFormula formula = getFormula(name);
         if (formula == null) {
@@ -127,6 +139,16 @@ public class SystemSpecification {
         }
         Boolean[] data = new Boolean[(to-from)/by];
         eval(RobustnessFormula.getBooleanEvaluationFunction(formula), sampleSize, from, by, data);
+        return data;
+    }
+
+    public Boolean[] evalBooleanSemantic(String name, int sampleSize, int[] steps) {
+        RobustnessFormula formula = getFormula(name);
+        if (formula == null) {
+            return null;
+        }
+        Boolean[] data = new Boolean[steps.length];
+        eval(RobustnessFormula.getBooleanEvaluationFunction(formula), sampleSize, steps, data);
         return data;
     }
 
@@ -146,6 +168,16 @@ public class SystemSpecification {
         }
         TruthValues[] data = new TruthValues[(to-from)/by];
         eval(RobustnessFormula.getThreeValuedEvaluationFunction(m, z, formula), sampleSize, from, by, data);
+        return data;
+    }
+
+    public TruthValues[] evalThreeValuedSemantic(String name, int sampleSize, int[] steps) {
+        RobustnessFormula formula = getFormula(name);
+        if (formula == null) {
+            return null;
+        }
+        TruthValues[] data = new TruthValues[steps.length];
+        eval(RobustnessFormula.getThreeValuedEvaluationFunction(m, z, formula), sampleSize, steps, data);
         return data;
     }
 
@@ -198,7 +230,7 @@ public class SystemSpecification {
         return IntStream.of(steps).mapToDouble(i -> expr.compute(i, getSequence(), perturbed)).toArray();
     }
 
-    public double[] evalPenalty(int step, String name) {
+    public double[] evalPenalty(String name, int step) {
         DataStateExpression f = penalties.get(name);
         if (f == null) {
             return new double[0];
@@ -207,7 +239,7 @@ public class SystemSpecification {
         }
     }
 
-    public double[][] evalPenalties(int[] steps, String name) {
+    public double[][] evalPenalty(String name, int[] steps) {
         DataStateExpression f = penalties.get(name);
         if (f == null) {
             return new double[0][0];
@@ -216,4 +248,10 @@ public class SystemSpecification {
         }
     }
 
+    public void clear() {
+        this.sequence = null;
+        this.size = DEFAULT_SIZE;
+        this.m = DEFAULT_M;
+        this.z = DEFAULT_Z;
+    }
 }
