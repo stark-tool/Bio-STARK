@@ -383,7 +383,7 @@ public class StarkInterpreter {
 
     private StarkCommandExecutionResult perturbations() {
         try {
-            return new StarkCommandExecutionResult(StarkMessages.distancesMesage(), List.of(starkEnvironment.getDistances()), true);
+            return new StarkCommandExecutionResult(StarkMessages.perturbationMessage(), List.of(starkEnvironment.getPerturbations()), true);
         } catch (StarkCommandExecutionException e) {
             return new StarkCommandExecutionResult(e.getMessage(), e.getReasons(), false);
         }
