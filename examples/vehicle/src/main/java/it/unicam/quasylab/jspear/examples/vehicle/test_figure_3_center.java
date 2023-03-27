@@ -75,6 +75,8 @@ public class test_figure_3_center {
     private static final int H = 450;
     private static final double MAX_DISTANCE_OFFSET = 1.0;
     private static double ETA_CRASH_SPEED = 0.05;
+    private static double ETA_CRASH_SPEED_BIS = 0.1;
+    private static double ETA_CRASH_SPEED_TER = 0.15;
 
     private static final int p_speed_V1 = 0;//variableRegistry.getVariable("p_speed");
     private static final int s_speed_V1 = 1;//variableRegistry.getVariable("s_speed");
@@ -121,9 +123,25 @@ public class test_figure_3_center {
 
             RobustnessFormula Phi_crash_speed = new AlwaysRobustnessFormula(
                     new AtomicRobustnessFormula(getIteratedDistanceSensorsPerturbation(),
-                            new MaxIntervalDistanceExpression(crash_speed, 250, 500),
+                            new MaxIntervalDistanceExpression(crash_speed, 10, 400),
                             RelationOperator.LESS_OR_EQUAL_THAN,
                             ETA_CRASH_SPEED),
+                    0,
+                    H);
+
+            RobustnessFormula Phi_crash_speed_bis = new AlwaysRobustnessFormula(
+                    new AtomicRobustnessFormula(getIteratedDistanceSensorsPerturbation(),
+                            new MaxIntervalDistanceExpression(crash_speed, 10, 400),
+                            RelationOperator.LESS_OR_EQUAL_THAN,
+                            ETA_CRASH_SPEED_BIS),
+                    0,
+                    H);
+
+            RobustnessFormula Phi_crash_speed_ter = new AlwaysRobustnessFormula(
+                    new AtomicRobustnessFormula(getIteratedDistanceSensorsPerturbation(),
+                            new MaxIntervalDistanceExpression(crash_speed, 10, 400),
+                            RelationOperator.LESS_OR_EQUAL_THAN,
+                            ETA_CRASH_SPEED_TER),
                     0,
                     H);
 
@@ -133,7 +151,7 @@ public class test_figure_3_center {
 
             for(int i = 0; i<10; i++) {
                 int step = i*30;
-                TruthValues value = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
+                TruthValues value = new ThreeValuedSemanticsVisitor(40,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
                 System.out.println("Phi_crash_speed evaluation at step "+step+"with threshold "+ETA_CRASH_SPEED+": " + value);
                 if (value == TruthValues.TRUE) {
                     val_crash_speed[i][0] = 1;
@@ -148,12 +166,12 @@ public class test_figure_3_center {
 
             Util.writeToCSV("./phi_crash_speed_test_005x30.csv",val_crash_speed);
 
-            ETA_CRASH_SPEED = 0.1;
+            // ETA_CRASH_SPEED = 0.5;
 
             for(int i = 0; i<10; i++) {
                 int step = i*30;
-                TruthValues value = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
-                System.out.println("Phi_crash_speed evaluation at step "+step+"with threshold "+ETA_CRASH_SPEED+": " + value);
+                TruthValues value = new ThreeValuedSemanticsVisitor(40,1.96).eval(Phi_crash_speed_bis).eval(60, step, sequence);
+                System.out.println("Phi_crash_speed evaluation at step "+step+"with threshold "+ETA_CRASH_SPEED_BIS+": " + value);
                 if (value == TruthValues.TRUE) {
                     val_crash_speed[i][0] = 1;
                 } else {
@@ -167,12 +185,12 @@ public class test_figure_3_center {
 
             Util.writeToCSV("./phi_crash_speed_test_01x30.csv",val_crash_speed);
 
-            ETA_CRASH_SPEED = 0.15;
+            // ETA_CRASH_SPEED = 0.15;
 
             for(int i = 0; i<10; i++) {
                 int step = i*30;
-                TruthValues value = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
-                System.out.println("Phi_crash_speed evaluation at step "+step+"with threshold "+ETA_CRASH_SPEED+": " + value);
+                TruthValues value = new ThreeValuedSemanticsVisitor(40,1.96).eval(Phi_crash_speed_ter).eval(60, step, sequence);
+                System.out.println("Phi_crash_speed evaluation at step "+step+"with threshold "+ETA_CRASH_SPEED_TER+": " + value);
                 if (value == TruthValues.TRUE) {
                     val_crash_speed[i][0] = 1;
                 } else {
@@ -412,7 +430,7 @@ public class test_figure_3_center {
     // PERTURBATIONS
 
     private static  Perturbation getIteratedDistanceSensorsPerturbation() {
-        return new AfterPerturbation(1, new IterativePerturbation(300, new AtomicPerturbation(TIMER_INIT - 1, test_figure_3_center::distanceSensorsPerturbation)));
+        return new AfterPerturbation(1, new IterativePerturbation(400, new AtomicPerturbation(TIMER_INIT - 1, test_figure_3_center::distanceSensorsPerturbation)));
     }
 
     private static DataState distanceSensorsPerturbation(RandomGenerator rg, DataState state) {
