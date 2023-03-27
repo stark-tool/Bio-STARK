@@ -24,7 +24,10 @@ scriptCommand:
     | clearCommand
     | setCommand
     | infoCommand
+//    | helpCommand
 ;
+
+//helpCommand: 'help';
 
 infoCommand: 'info';
 

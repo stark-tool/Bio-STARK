@@ -23,6 +23,7 @@
 package it.unicam.quasylab.jspear.cli;
 
 import java.io.File;
+import java.util.List;
 
 public class StarkMessages {
 
@@ -48,6 +49,11 @@ public class StarkMessages {
     private static final String SCALE_MESSAGE = "scale = %d";
     private static final String M_MESSAGE = "m = %d";
     private static final String Z_MESSAGE = "z = %f";
+
+    public static final String HELP_MESSAGE = "Stark Commands:";
+
+    public static final List<String> HELP_DETAILS = List.of(
+    );
 
     public static String currentWorkingDirectory(File newDirectory) {
         return String.format(WORKING_DIRECTORY_MESSAGE, newDirectory.getAbsolutePath());
