@@ -73,7 +73,7 @@ check boolean phi_crash at 300
 check threevalued phi_crash at 300
 ```
 
-## How to run experiments
+## How to run experiments with Java
 
 You will need
 * A text editor or IDE (we used [IntelliJ IDEA](https://www.jetbrains.com/idea/))
