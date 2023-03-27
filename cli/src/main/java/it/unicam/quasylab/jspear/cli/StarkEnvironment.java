@@ -120,7 +120,7 @@ public class StarkEnvironment {
     }
 
     private void checkPenalty(String name) throws StarkCommandExecutionException {
-        if (specification.getPerturbation(name) == null) {
+        if (specification.getPenalty(name) == null) {
             throw new StarkCommandExecutionException(StarkMessages.unknownPenalty(name));
         }
     }
