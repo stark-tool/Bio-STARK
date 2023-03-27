@@ -54,6 +54,7 @@ public class StarkMessages {
 
     public static final List<String> HELP_DETAILS = List.of(
     );
+    private static final String PERTURBATION_MESSAGE = "Perturbations: ";
 
     public static String currentWorkingDirectory(File newDirectory) {
         return String.format(WORKING_DIRECTORY_MESSAGE, newDirectory.getAbsolutePath());
@@ -139,4 +140,7 @@ public class StarkMessages {
         return String.format(Z_MESSAGE, z);
     }
 
+    public static String perturbationMessage() {
+        return PERTURBATION_MESSAGE;
+    }
 }

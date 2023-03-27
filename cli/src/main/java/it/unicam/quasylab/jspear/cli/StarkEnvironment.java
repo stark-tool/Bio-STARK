@@ -191,4 +191,8 @@ public class StarkEnvironment {
         this.specification.setZ(z);
     }
 
+    public String[] getPerturbations() throws StarkCommandExecutionException {
+        checkSpecification();
+        return this.specification.getPerturbations();
+    }
 }

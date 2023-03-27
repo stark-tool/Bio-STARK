@@ -55,7 +55,7 @@ stepExpression:
     | 'from' from=INTEGER 'to' to=INTEGER 'every' step=INTEGER # stepExpressionInterval
 ;
 
-formulasCommand: 'formula';
+formulasCommand: 'formulas';
 
 penaltiesCommand: 'penalties';
 
