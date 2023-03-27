@@ -24,7 +24,10 @@ scriptCommand:
     | clearCommand
     | setCommand
     | infoCommand
+//    | helpCommand
 ;
+
+//helpCommand: 'help';
 
 infoCommand: 'info';
 
@@ -52,7 +55,7 @@ stepExpression:
     | 'from' from=INTEGER 'to' to=INTEGER 'every' step=INTEGER # stepExpressionInterval
 ;
 
-formulasCommand: 'formula';
+formulasCommand: 'formulas';
 
 penaltiesCommand: 'penalties';
 
