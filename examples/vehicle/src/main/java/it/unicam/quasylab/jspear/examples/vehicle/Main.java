@@ -163,7 +163,7 @@ public class Main {
 
             RobustnessFormula Phi_crash_speed = new AlwaysRobustnessFormula(
                     new AtomicRobustnessFormula(getIteratedDistanceSensorsPerturbation(),
-                            new MaxIntervalDistanceExpression(crash_speed, 250, 500),
+                            new MaxIntervalDistanceExpression(crash_speed, 10, 400),
                             RelationOperator.LESS_OR_EQUAL_THAN,
                             ETA_CRASH_SPEED),
                     0,
