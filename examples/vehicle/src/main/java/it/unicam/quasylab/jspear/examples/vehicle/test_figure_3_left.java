@@ -22,22 +22,33 @@
 
 package it.unicam.quasylab.jspear.examples.vehicle;
 
-import it.unicam.quasylab.jspear.*;
+import it.unicam.quasylab.jspear.ControlledSystem;
+import it.unicam.quasylab.jspear.DefaultRandomGenerator;
+import it.unicam.quasylab.jspear.EvolutionSequence;
+import it.unicam.quasylab.jspear.Util;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.ControllerRegistry;
 import it.unicam.quasylab.jspear.controller.ParallelController;
 import it.unicam.quasylab.jspear.distance.AtomicDistanceExpressionLeq;
 import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.distance.MaxIntervalDistanceExpression;
-import it.unicam.quasylab.jspear.ds.*;
-import it.unicam.quasylab.jspear.perturbation.*;
+import it.unicam.quasylab.jspear.ds.DataState;
+import it.unicam.quasylab.jspear.ds.DataStateUpdate;
+import it.unicam.quasylab.jspear.ds.RelationOperator;
+import it.unicam.quasylab.jspear.perturbation.AfterPerturbation;
+import it.unicam.quasylab.jspear.perturbation.AtomicPerturbation;
+import it.unicam.quasylab.jspear.perturbation.IterativePerturbation;
+import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import it.unicam.quasylab.jspear.robtl.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
-public class Main {
+public class test_figure_3_left {
 
     public final static String[] VARIABLES =
             new String[]{"p_speed_V1", "s_speed_V1", "p_distance_V1", "s_distance_V1", "accel_V1", "timer_V1",
@@ -54,19 +65,16 @@ public class Main {
     public final static int TIMER_INIT = 5;
     public final static int DANGER = 1;
     public final static int OK = 0;
-    public final static double MAX_SPEED_OFFSET = 0.4;
     public final static double INIT_SPEED_V1 = 25.0;
     public final static double INIT_SPEED_V2 = 25.0;
     public final static double MAX_SPEED = 40.0;
     public final static double INIT_DISTANCE_OBS_V1 = 10000.0;
     public final static double INIT_DISTANCE_V1_V2 = 5000.0;
     private static final double SAFETY_DISTANCE = 200.0;
-    private static final double ETA_comb = 0.1;
-    private static final double ETA_fast = 0.05;
-    private static final double ETA_slow = 0.1;
+
     private static final int H = 450;
     private static final double MAX_DISTANCE_OFFSET = 1.0;
-    private static final double ETA_CRASH_SPEED = 0.01;
+    private static double ETA_CRASH_SPEED = 0.05;
 
     private static final int p_speed_V1 = 0;//variableRegistry.getVariable("p_speed");
     private static final int s_speed_V1 = 1;//variableRegistry.getVariable("s_speed");
@@ -108,58 +116,8 @@ public class Main {
             DataState state = getInitialState();
             ControlledSystem system = new ControlledSystem(new ParallelController(controller_V1, controller_V2), (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
             EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, 1);
-            EvolutionSequence sequence2 = sequence.apply(getIteratedCombinedPerturbation(),0, 60);
 
-            DistanceExpression crash_probability = new AtomicDistanceExpressionLeq(Main::rho_crash_probability);
-
-            DistanceExpression crash_dist = new MaxIntervalDistanceExpression(crash_probability, 350, 450);
-
-            DistanceExpression crash_speed = new AtomicDistanceExpressionLeq(Main::rho_crash_speed);
-
-            double[][] testLeft_50 = new double[100][1];
-            double[][] testRight_50 = new double[100][1];
-            double[] testDistance = new double[100];
-
-            System.out.println("Starting test on bootstrap");
-
-            for(int i=0; i<100; i++) {
-                double[] res_50 = crash_dist.evalCI(i,sequence,sequence2,50,1.96);
-                testLeft_50[i][0] = res_50[1];
-                testRight_50[i][0] = res_50[2];
-                testDistance[i] = res_50[0];
-                System.out.println("Distance at step "+i+" is "+testDistance[i]);
-                System.out.println("Confidence interval at step "+i+ " CI=["+testLeft_50[i][0]+","+testRight_50[i][0]+"]");
-            }
-            Util.writeToCSV("./testBootL_04.csv",testLeft_50);
-            Util.writeToCSV("./testBootR_04.csv",testRight_50);
-
-
-
-            RobustnessFormula Phi_fast = new AlwaysRobustnessFormula(
-                    new AtomicRobustnessFormula(getIteratedFasterPerturbation(),
-                            crash_dist,
-                            RelationOperator.LESS_OR_EQUAL_THAN,
-                            ETA_fast),
-                    0,
-                    H);
-
-            RobustnessFormula Phi_slow = new AlwaysRobustnessFormula(
-                    new AtomicRobustnessFormula(getIteratedSlowerPerturbation(),
-                            crash_dist,
-                            RelationOperator.LESS_OR_EQUAL_THAN,
-                            ETA_slow),
-                    0,
-                    H);
-
-            RobustnessFormula Phi_comb = new AlwaysRobustnessFormula(
-                    new AtomicRobustnessFormula(getIteratedCombinedPerturbation(),
-                        crash_dist,
-                        RelationOperator.LESS_OR_EQUAL_THAN,
-                        ETA_comb),
-                    0,
-                    H);
-
-            RobustnessFormula Phi_crash = new ImplicationRobustnessFormula(new ConjunctionRobustnessFormula(Phi_fast, Phi_slow), Phi_comb);
+            DistanceExpression crash_speed = new AtomicDistanceExpressionLeq(test_figure_3_left::rho_crash_speed);
 
             RobustnessFormula Phi_crash_speed = new AlwaysRobustnessFormula(
                     new AtomicRobustnessFormula(getIteratedDistanceSensorsPerturbation(),
@@ -171,43 +129,12 @@ public class Main {
 
             // Tests on the three-valued evaluation of formulae
 
-            double[][] val_slow = new double[10][1];
-            double[][] val_crash = new double[10][1];
+            double[][] val_crash_speed = new double[10][1];
 
             for(int i = 0; i<10; i++) {
                 int step = i*10;
-                TruthValues value1 = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_slow).eval(60, step, sequence);
-                System.out.println("Phi_slow evaluation at step "+step+": " + value1);
-                if (value1 == TruthValues.TRUE) {
-                    val_slow[i][0] = 1;
-                } else {
-                    if (value1 == TruthValues.UNKNOWN) {
-                        val_slow[i][0] = 0;
-                    } else {
-                        val_slow[i][0] = -1;
-                    }
-                }
-                TruthValues value2 = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_comb).eval(60, step, sequence);
-                System.out.println("Phi_comb evaluation at step "+step+": " + value2);
-                if (value2 == TruthValues.TRUE) {
-                    val_crash[i][0] = 1;
-                } else {
-                    if (value2 == TruthValues.UNKNOWN) {
-                        val_crash[i][0] = 0;
-                    } else {
-                        val_crash[i][0] = -1;
-                    }
-                }
-            }
-
-            Util.writeToCSV("./slow_novel_04.csv",val_slow);
-            Util.writeToCSV("./comb_novel_04.csv",val_crash);
-
-            double[][] val_crash_speed = new double[10][1];
-            for(int i = 0; i<10; i++) {
-                int step = i*50;
-                TruthValues value = new ThreeValuedSemanticsVisitor(40,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
-                System.out.println("Phi_crash_speed evaluation at step "+step+": " + value);
+                TruthValues value = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
+                System.out.println("Phi_crash_speed evaluation at step "+step+"with threshold "+ETA_CRASH_SPEED+": " + value);
                 if (value == TruthValues.TRUE) {
                     val_crash_speed[i][0] = 1;
                 } else {
@@ -219,33 +146,54 @@ public class Main {
                 }
             }
 
-            Util.writeToCSV("./crash50_0003.csv",val_crash_speed);
+            Util.writeToCSV("./phi_crash_speed_test_005x10.csv",val_crash_speed);
+
+            ETA_CRASH_SPEED = 0.1;
+
+            for(int i = 0; i<10; i++) {
+                int step = i*10;
+                TruthValues value = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
+                System.out.println("Phi_crash_speed evaluation at step "+step+"with threshold "+ETA_CRASH_SPEED+": " + value);
+                if (value == TruthValues.TRUE) {
+                    val_crash_speed[i][0] = 1;
+                } else {
+                    if (value == TruthValues.UNKNOWN) {
+                        val_crash_speed[i][0] = 0;
+                    } else {
+                        val_crash_speed[i][0] = -1;
+                    }
+                }
+            }
+
+            Util.writeToCSV("./phi_crash_speed_test_01x10.csv",val_crash_speed);
+
+            ETA_CRASH_SPEED = 0.15;
+
+            for(int i = 0; i<10; i++) {
+                int step = i*10;
+                TruthValues value = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
+                System.out.println("Phi_crash_speed evaluation at step "+step+"with threshold "+ETA_CRASH_SPEED+": " + value);
+                if (value == TruthValues.TRUE) {
+                    val_crash_speed[i][0] = 1;
+                } else {
+                    if (value == TruthValues.UNKNOWN) {
+                        val_crash_speed[i][0] = 0;
+                    } else {
+                        val_crash_speed[i][0] = -1;
+                    }
+                }
+            }
+
+            Util.writeToCSV("./phi_crash_speed_test_015x10.csv",val_crash_speed);
 
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
     }
 
+
+
     // PENALTY FUNCTIONS
-
-    public static double rho_crash(DataState state) {
-        double value = Math.min(SAFETY_DISTANCE,state.get(p_distance_V1_V2))/SAFETY_DISTANCE;
-        if (value > 0){
-            return 0.0;
-        }
-        else{
-            return Math.abs(Math.min(SAFETY_DISTANCE,state.get(p_distance_V1_V2))/SAFETY_DISTANCE);
-        }
-    }
-
-    public static double rho_crash_probability(DataState state) {
-        if (state.get(p_distance_V1_V2) > 0){
-            return 0.0;
-        }
-        else{
-            return 1.0;
-        }
-    }
 
     public static double rho_crash_speed(DataState state) {
         if (state.get(crashed_V2) == 0 && (state.get(p_distance_V2) <=0 || state.get(p_distance_V1_V2) <=0)){
@@ -256,75 +204,10 @@ public class Main {
         }
     }
 
-    // UTILITY METHODS TO EXTRACT DATA FROM EVOLUTION SEQUENCES
-
-    private static void printData(RandomGenerator rg, String label, DataStateExpression f, SystemState s, int steps, int size) {
-        System.out.println(label);
-        double[] data = SystemState.sample(rg, f, s, steps, size);
-        for (int i = 0; i < data.length; i++) {
-            System.out.printf("%d> %f\n", i, data[i]);
-        }
-    }
-
-    private static void printData(RandomGenerator rg, String label, DataStateExpression f, Perturbation p, SystemState s, int steps, int size) {
-        System.out.println(label);
-        double[] data = SystemState.sample(rg, f, p, s, steps, size);
-        for (int i = 0; i < data.length; i++) {
-            System.out.printf("%d> %f\n", i, data[i]);
-        }
-    }
-
-    private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size) {
-        System.out.println(label);
-        double[][] data = SystemState.sample(rg, F, s, steps, size);
-        for (int i = 0; i < data.length; i++) {
-            System.out.printf("%d>   ", i);
-            for (int j = 0; j < data[i].length -1; j++) {
-                System.out.printf("%f   ", data[i][j]);
-            }
-            System.out.printf("%f\n", data[i][data[i].length -1]);
-        }
-    }
-
-    private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, Perturbation p, SystemState s, int steps, int size) {
-        System.out.println(label);
-        double[][] data = SystemState.sample(rg, F, p, s, steps, size);
-        for (int i = 0; i < data.length; i++) {
-        System.out.printf("%d>   ", i);
-        for (int j = 0; j < data[i].length -1; j++) {
-                System.out.printf("%f   ", data[i][j]);
-        }
-        System.out.printf("%f\n", data[i][data[i].length -1]);
-        }
-    }
-
-    private static void printLData_min(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, Perturbation p, SystemState s, int steps, int size) {
-        System.out.println(label);
-        double[][] data = SystemState.sample_min(rg, F, p, s, steps, size);
-        for (int i = 0; i < data.length; i++) {
-            System.out.printf("%d>   ", i);
-            for (int j = 0; j < data[i].length -1; j++) {
-                System.out.printf("%f   ", data[i][j]);
-            }
-            System.out.printf("%f\n", data[i][data[i].length -1]);
-        }
-    }
-
-    private static void printLData_max(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, Perturbation p, SystemState s, int steps, int size) {
-        System.out.println(label);
-        double[][] data = SystemState.sample_max(rg, F, p, s, steps, size);
-        for (int i = 0; i < data.length; i++) {
-            System.out.printf("%d>   ", i);
-            for (int j = 0; j < data[i].length -1; j++) {
-                System.out.printf("%f   ", data[i][j]);
-            }
-            System.out.printf("%f\n", data[i][data[i].length -1]);
-        }
-    }
-
     // CONTROLLER OF VEHICLE 1
 
     public static Controller getController_V1() {
+
 
         ControllerRegistry registry = new ControllerRegistry();
 
@@ -393,7 +276,6 @@ public class Main {
                         Controller.doAction(DataStateUpdate.set(warning_V1, OK),registry.reference("IDS_V1"))
                 )
         );
-
         return new ParallelController(registry.reference("Ctrl_V1"), registry.reference("IDS_V1"));
 
     }
@@ -468,7 +350,6 @@ public class Main {
                         Controller.doAction(DataStateUpdate.set(warning_V2, OK),registry.reference("IDS_V2"))
                 )
         );
-
         return new ParallelController(registry.reference("Ctrl_V2"), registry.reference("IDS_V2"));
     }
 
@@ -526,58 +407,12 @@ public class Main {
         return updates;
     }
 
+
+
     // PERTURBATIONS
 
-    private static  Perturbation getFasterPerturbation() {
-        return new IterativePerturbation(3, new AtomicPerturbation(TIMER_INIT - 1, Main::fasterPerturbation));
-    }
-
-    private static  Perturbation getSlowerPerturbation() {
-        return new IterativePerturbation(3, new AtomicPerturbation(TIMER_INIT - 1, Main::slowerPerturbation));
-    }
-
-    private static  Perturbation getIteratedFasterPerturbation() {
-        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(TIMER_INIT - 1, Main::fasterPerturbation)));
-    }
-
-    private static  Perturbation getIteratedSlowerPerturbation() {
-        return new AfterPerturbation(1, new IterativePerturbation(150, new AtomicPerturbation(TIMER_INIT - 1, Main::slowerPerturbation)));
-    }
-
-    private static  Perturbation getIteratedCombinedPerturbation() {
-        return new AfterPerturbation(1, new IterativePerturbation(50, new SequentialPerturbation(getFasterPerturbation(),getSlowerPerturbation())));
-    }
-
-    private static DataState fasterPerturbation(RandomGenerator rg, DataState state) {
-        List<DataStateUpdate> updates = new LinkedList<>();
-        double offset = state.get(p_speed_V1) * rg.nextDouble() * MAX_SPEED_OFFSET;
-        double fake_speed = Math.min(MAX_SPEED,state.get(p_speed_V1) + offset);
-        double fake_bd = (fake_speed * fake_speed + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
-                2 * fake_speed * TIMER_INIT)) / (2 * BRAKE);
-        double fake_rd = fake_bd + SAFETY_DISTANCE;
-        double fake_sg = state.get(p_distance_V1) - fake_rd;
-        updates.add(new DataStateUpdate(s_speed_V1, fake_speed));
-        updates.add(new DataStateUpdate(required_distance_V1, fake_rd));
-        updates.add(new DataStateUpdate(safety_gap_V1, fake_sg));
-        return state.apply(updates);
-    }
-
-    private static DataState slowerPerturbation(RandomGenerator rg, DataState state) {
-        List<DataStateUpdate> updates = new LinkedList<>();
-        double offset = state.get(p_speed_V2) * rg.nextDouble() * MAX_SPEED_OFFSET;
-        double fake_speed = Math.max(0, state.get(p_speed_V2) - offset);
-        double fake_bd = (fake_speed * fake_speed + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
-                2 * fake_speed * TIMER_INIT)) / (2 * BRAKE);
-        double fake_rd = fake_bd + SAFETY_DISTANCE;
-        double fake_sg = state.get(p_distance_V1_V2) - fake_rd;
-        updates.add(new DataStateUpdate(s_speed_V2, fake_speed));
-        updates.add(new DataStateUpdate(required_distance_V2, fake_rd));
-        updates.add(new DataStateUpdate(safety_gap_V1_V2, fake_sg));
-        return state.apply(updates);
-    }
-
     private static  Perturbation getIteratedDistanceSensorsPerturbation() {
-        return new AfterPerturbation(1, new IterativePerturbation(300, new AtomicPerturbation(TIMER_INIT - 1, Main::distanceSensorsPerturbation)));
+        return new AfterPerturbation(1, new IterativePerturbation(300, new AtomicPerturbation(TIMER_INIT - 1, test_figure_3_left::distanceSensorsPerturbation)));
     }
 
     private static DataState distanceSensorsPerturbation(RandomGenerator rg, DataState state) {
@@ -603,6 +438,7 @@ public class Main {
         updates.add(new DataStateUpdate(s_distance_V2,noisy_distance_V2));
         return state.apply(updates);
     }
+
 
    // INITIALISATION OF DATA STATE
 
