@@ -51,7 +51,7 @@ checkCommand: 'check' semantic=('boolean'|'threevalued') formula=ID steps=stepEx
 evalCommand: 'eval' penalty=ID steps=stepExpression ;
 
 stepExpression:
-    'at' steps+=INTEGER (',' steps+=INTEGER) # stepExpressionTarget
+    'at' steps+=INTEGER (',' steps+=INTEGER)* # stepExpressionTarget
     | 'from' from=INTEGER 'to' to=INTEGER 'every' step=INTEGER # stepExpressionInterval
 ;
 
