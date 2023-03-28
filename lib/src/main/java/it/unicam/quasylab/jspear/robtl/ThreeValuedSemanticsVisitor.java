@@ -126,12 +126,12 @@ public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<Tru
             TruthValues value = TruthValues.FALSE;
             TruthValues leftValue = TruthValues.TRUE;
             for(int i=from+step; (i<to+step)&&(value!=TruthValues.TRUE)&&(leftValue!=TruthValues.FALSE); i++){
-                double start = System.currentTimeMillis();
+                //double start = System.currentTimeMillis();
                 value = TruthValues.and(leftValue, rightFunction.eval(sampleSize, i, sequence));
                 if (value != TruthValues.TRUE) {
                     leftValue = TruthValues.and(leftValue, leftFunction.eval(sampleSize, i, sequence));
                 }
-                System.out.println(i+"> "+(System.currentTimeMillis()-start));
+                //System.out.println(i+"> "+(System.currentTimeMillis()-start));
             }
             return value;
 //

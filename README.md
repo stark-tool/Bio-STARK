@@ -35,7 +35,45 @@ git clone https://github.com/quasylab/jspear.git
 
 Run this command in the folder where you want to download the tool.
 
-## How to run experiments
+## Building STARK
+
+To build STARK you have to execute the following commands from the shell:
+
+```
+./gradlew build
+
+./gradlew install
+```
+
+## Execute Command Line Interpreter
+
+To run che STARK CLI you have to execute:
+
+```
+cd ./cli/build/install/stark 
+
+./bin/stark
+```
+
+An example, based on the vehicles' scenario, is available in the folder ```examples\vahicle```. 
+The ```Vehicle.jspear``` model can be loaded by using the following command:
+
+```
+cd "examples/vehicle"
+
+load "Vehicle.jspec"
+```
+
+After that, the command ```formulas``` can be used to view the list of formulas defined in the model. 
+Their satisfaction of a formula at a given time step can be checked as follows:
+
+```
+check boolean phi_crash at 300
+
+check threevalued phi_crash at 300
+```
+
+## How to run experiments with Java
 
 You will need
 * A text editor or IDE (we used [IntelliJ IDEA](https://www.jetbrains.com/idea/))

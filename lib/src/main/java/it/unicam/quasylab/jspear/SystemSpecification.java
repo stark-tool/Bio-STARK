@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
 
 public class SystemSpecification {
 
-    public final static int DEFAULT_SIZE = 50;
+    public final static int DEFAULT_SIZE = 1;
 
     public final static int DEFAULT_M = 50;
 
