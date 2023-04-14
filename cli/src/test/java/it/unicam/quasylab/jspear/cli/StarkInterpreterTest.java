@@ -24,6 +24,8 @@ package it.unicam.quasylab.jspear.cli;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Objects;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class StarkInterpreterTest {
@@ -79,6 +81,12 @@ class StarkInterpreterTest {
         assertTrue(result.result());
         assertTrue(result.quit());
         assertEquals(StarkMessages.quitMessage(), result.message());
+    }
+
+    @Test
+    void testScriptRun() throws StarkCommandExecutionException {
+        StarkShell shell = new StarkShell();
+        shell.executeScript(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("vehicle.stark")).getFile());
     }
 
 }

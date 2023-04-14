@@ -1,0 +1,13 @@
+load "Vehicle.jspec"
+
+set m = 50
+set z = 1.96
+set size = 1
+set scale = 2
+
+check threevalued phi_slow_02 from 0 to 50 every 10
+save in "phi_slow_02x10"
+
+
+
+

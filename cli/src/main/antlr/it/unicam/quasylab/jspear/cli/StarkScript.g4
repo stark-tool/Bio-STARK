@@ -36,7 +36,17 @@ setCommand:
     | 'set' 'm' '=' value=INTEGER # setMCommand
     | 'set' 'z' '=' value=REAL # setZCommand
     | 'set' 'scale' '=' value=INTEGER # setScaleCommand
+//    | 'set' 'param' param=ID '=' value=parameterValue # setParameterCommand
     ;
+
+/*
+parameterValue:
+    INTEGER # integerValue
+   | REAL # realValue
+   | 'true' # trueValue
+   | 'false' # falseValue
+   ;
+*/
 
 clearCommand: 'clear';
 

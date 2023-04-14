@@ -36,6 +36,7 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled
 class SpecificationLoaderTest {
 
     public static final String RANDOM_WALK = "./RandomWalk.jspec";

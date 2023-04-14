@@ -22,9 +22,14 @@
 
 package it.unicam.quasylab.jspear.cli;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Scanner;
+import java.util.function.Predicate;
 
 public class StarkShell implements Runnable {
 
@@ -71,15 +76,37 @@ public class StarkShell implements Runnable {
     }
 
     private boolean execute(String cmd) {
-        return showCommandResult(interpreter.executeCommand(cmd));
+        long start = System.currentTimeMillis();
+        return showCommandResult(interpreter.executeCommand(cmd), start);
     }
 
-    private boolean showCommandResult(StarkCommandExecutionResult commandResult) {
+    public void executeScript(String script) throws StarkCommandExecutionException {
+        Path path = Path.of(script);
+        interpreter.setWorkingDirectory(path.getParent().toFile());
+        String[] scriptCommands = getScriptCommands(path);
+        for (String cmd: scriptCommands) {
+            this.output.println("> "+cmd);
+            execute(cmd);
+        }
+    }
+
+    private String[] getScriptCommands(Path path) throws StarkCommandExecutionException {
+        try {
+            return Files.lines(path).filter(Predicate.not(String::isBlank)).toArray(String[]::new);
+        } catch (IOException e) {
+            throw new StarkCommandExecutionException(e.getMessage());
+        }
+    }
+
+
+    private boolean showCommandResult(StarkCommandExecutionResult commandResult, long start) {
+        long end = System.currentTimeMillis();
         PrintStream stream = (commandResult.result()?this.output:this.error);
         stream.println(commandResult.message());
         for (String str: commandResult.details()) {
             stream.println(str);
         }
+        stream.println("Execution Time: "+(end-start)/1000);
         return !commandResult.quit();
     }
 
@@ -93,10 +120,27 @@ public class StarkShell implements Runnable {
     }
 
     public static void main(String[] args) {
-        StarkShell shell = null;
+        if (args.length == 0) {
+            startInteractive();
+        } else {
+            startBatch(args);
+        }
+    }
+
+    private static void startBatch(String[] scriptFiles) {
         try {
-            shell = new StarkShell();
-            shell.run();
+            StarkShell shell = new StarkShell();
+            for (String script: scriptFiles) {
+                shell.executeScript(script);
+            }
+        } catch (StarkCommandExecutionException e) {
+            System.err.println(e.getMessage());
+        }
+    }
+
+    private static void startInteractive() {
+        try {
+            new StarkShell().run();
         } catch (StarkCommandExecutionException e) {
             System.err.println(e.getMessage());
         }

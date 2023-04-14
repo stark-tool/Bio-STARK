@@ -63,7 +63,7 @@ public class StarkInterpreter {
         this.starkEnvironment = new StarkEnvironment();
     }
 
-    private void setWorkingDirectory(File workingDirectory) throws StarkCommandExecutionException {
+    public void setWorkingDirectory(File workingDirectory) throws StarkCommandExecutionException {
         if (!workingDirectory.exists()) {
             throw new StarkCommandExecutionException(StarkCommandExecutionException.fileDoesNotExists(workingDirectory));
         }
@@ -322,10 +322,15 @@ public class StarkInterpreter {
     private StarkCommandExecutionResult save(String fileName) {
         if (this.lastResults != null) {
             try {
-                PrintWriter pw = new PrintWriter(fileName);
+                if (!fileName.endsWith(".csv")) {
+                    fileName = fileName + ".csv";
+                }
+                PrintWriter pw = new PrintWriter(new File(this.workingDirectory, fileName));
                 for (String line: getResultList()) {
                     pw.println(line);
                 }
+                pw.flush();
+                pw.close();
                 return new StarkCommandExecutionResult(StarkMessages.doneMessage(),true);
             } catch (FileNotFoundException e) {
                 return new StarkCommandExecutionResult(e.getMessage(),false);
