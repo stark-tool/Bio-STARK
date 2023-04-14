@@ -17,7 +17,7 @@ save in "phi_slow_test_02x50"
 check threevalued phi_slow_03 from 0 to 100 every 10
 save in "phi_slow_test_03x10"
 
-check threevalued phi_slow_03 from 0 to 300 every 50
+check threevalued phi_slow_03 from 0 to 300 every 30
 save in "phi_slow_test_03x30"
 
 check threevalued phi_slow_03 from 0 to 500 every 50
@@ -44,7 +44,7 @@ save in "phi_comb_test_02x50"
 check threevalued phi_comb_03 from 0 to 100 every 10
 save in "phi_comb_test_03x10"
 
-check threevalued phi_comb_03 from 0 to 300 every 50
+check threevalued phi_comb_03 from 0 to 300 every 30
 save in "phi_comb_test_03x30"
 
 check threevalued phi_comb_03 from 0 to 500 every 50
