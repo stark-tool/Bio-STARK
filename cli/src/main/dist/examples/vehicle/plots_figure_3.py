@@ -6,11 +6,11 @@ import numpy
 from statistics import mean
 
 
-speed_005 = numpy.genfromtxt("phi_crash_speed_test_005x10.csv", names=["cs005"])
+speed_005 = numpy.genfromtxt("phi_crash_speed_test_005x10.csv", names=["cs005t", "cs005"])
 
-speed_01 = numpy.genfromtxt("phi_crash_speed_test_01x10.csv", names=["cs01"])
+speed_01 = numpy.genfromtxt("phi_crash_speed_test_01x10.csv", names=["cs01t", "cs01"])
 
-speed_015 = numpy.genfromtxt("phi_crash_speed_test_015x10.csv", names=["cs015"])
+speed_015 = numpy.genfromtxt("phi_crash_speed_test_015x10.csv", names=["cs015t", "cs015"])
 
 
 fix, ax = plt.subplots()

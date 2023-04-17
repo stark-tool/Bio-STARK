@@ -6,11 +6,11 @@ import numpy
 from statistics import mean
 
 
-comb_02 = numpy.genfromtxt("phi_comb_test_02x10.csv", names=["c02"])
+comb_02 = numpy.genfromtxt("phi_comb_test_02x10.csv", names=["c02t", "c02"])
 
-comb_03 = numpy.genfromtxt("phi_comb_test_03x10.csv", names=["c03"])
+comb_03 = numpy.genfromtxt("phi_comb_test_03x10.csv", names=["c03t", "c03"])
 
-comb_04 = numpy.genfromtxt("phi_comb_test_04x10.csv", names=["c04"])
+comb_04 = numpy.genfromtxt("phi_comb_test_04x10.csv", names=["c04t", "c04"])
 
 
 fix, ax = plt.subplots()

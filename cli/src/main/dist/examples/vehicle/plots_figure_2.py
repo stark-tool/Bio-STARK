@@ -6,30 +6,30 @@ import numpy
 from statistics import mean
 
 
-slow_02 = numpy.genfromtxt("phi_slow_test_02x10.csv", names=["s02"])
-slow_02_30 = numpy.genfromtxt("phi_slow_test_02x30.csv", names=["s0230"])
-slow_02_50 = numpy.genfromtxt("phi_slow_test_02x50.csv", names=["s0250"])
+slow_02 = numpy.genfromtxt("phi_slow_test_02x10.csv", names=["s02t", "s02"])
+slow_02_30 = numpy.genfromtxt("phi_slow_test_02x30.csv", names=["s0230t", "s0230"])
+slow_02_50 = numpy.genfromtxt("phi_slow_test_02x50.csv", names=["s0250t", "s0250"])
 
-slow_03 = numpy.genfromtxt("phi_slow_test_03x10.csv", names=["s03"])
-slow_03_30 = numpy.genfromtxt("phi_slow_test_03x30.csv", names=["s0330"])
-slow_03_50 = numpy.genfromtxt("phi_slow_test_03x50.csv", names=["s0350"])
+slow_03 = numpy.genfromtxt("phi_slow_test_03x10.csv", names=["s03t", "s03"])
+slow_03_30 = numpy.genfromtxt("phi_slow_test_03x30.csv", names=["s0330t", "s0330"])
+slow_03_50 = numpy.genfromtxt("phi_slow_test_03x50.csv", names=["s0350t", "s0350"])
 
-slow_04 = numpy.genfromtxt("phi_slow_test_04x10.csv", names=["s04"])
-slow_04_30 = numpy.genfromtxt("phi_slow_test_04x30.csv", names=["s0430"])
-slow_04_50 = numpy.genfromtxt("phi_slow_test_04x50.csv", names=["s0450"])
+slow_04 = numpy.genfromtxt("phi_slow_test_04x10.csv", names=["s04t", "s04"])
+slow_04_30 = numpy.genfromtxt("phi_slow_test_04x30.csv", names=["s0430t", "s0430"])
+slow_04_50 = numpy.genfromtxt("phi_slow_test_04x50.csv", names=["s0450t", "s0450"])
 
 
-comb_02 = numpy.genfromtxt("phi_comb_test_02x10.csv", names=["c02"])
-comb_02_30 = numpy.genfromtxt("phi_comb_test_02x30.csv", names=["c0230"])
-comb_02_50 = numpy.genfromtxt("phi_comb_test_02x50.csv", names=["c0250"])
+comb_02 = numpy.genfromtxt("phi_comb_test_02x10.csv", names=["c02t", "c02"])
+comb_02_30 = numpy.genfromtxt("phi_comb_test_02x30.csv", names=["c0230t", "c0230"])
+comb_02_50 = numpy.genfromtxt("phi_comb_test_02x50.csv", names=["c0250t", "c0250"])
 
-comb_03 = numpy.genfromtxt("phi_comb_test_03x10.csv", names=["c03"])
-comb_03_30 = numpy.genfromtxt("phi_comb_test_03x30.csv", names=["c0330"])
-comb_03_50 = numpy.genfromtxt("phi_comb_test_03x50.csv", names=["c0350"])
+comb_03 = numpy.genfromtxt("phi_comb_test_03x10.csv", names=["c03t", "c03"])
+comb_03_30 = numpy.genfromtxt("phi_comb_test_03x30.csv", names=["c0330t", "c0330"])
+comb_03_50 = numpy.genfromtxt("phi_comb_test_03x50.csv", names=["c0350t", "c0350"])
 
-comb_04 = numpy.genfromtxt("phi_comb_test_04x10.csv", names=["c04"])
-comb_04_30 = numpy.genfromtxt("phi_comb_test_04x30.csv", names=["c0430"])
-comb_04_50 = numpy.genfromtxt("phi_comb_test_04x50.csv", names=["c0450"])
+comb_04 = numpy.genfromtxt("phi_comb_test_04x10.csv", names=["c04t", "c04"])
+comb_04_30 = numpy.genfromtxt("phi_comb_test_04x30.csv", names=["c0430t", "c0430"])
+comb_04_50 = numpy.genfromtxt("phi_comb_test_04x50.csv", names=["c0450t", "c0450"])
 
 
 fix, ax = plt.subplots()
