@@ -25,6 +25,7 @@ package it.unicam.quasylab.jspear;
 import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import it.unicam.quasylab.jspear.ds.DataStateFunction;
+import it.unicam.quasylab.jspear.ds.DataStateBooleanExpression;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -167,6 +168,21 @@ public class EvolutionSequence {
         }
     }
 
+    /**
+     * This method is used to generate the evolution sequence up to certain conditions.
+     *
+     * @param conditions list of conditions to be checked.
+     */
+    public synchronized void generateUpToCond(ArrayList<DataStateBooleanExpression> conditions) {
+        while (!conditions.isEmpty()) {
+            int lastGeneratedStep = getLastGeneratedStep();
+            startSamplingsOfStep(lastGeneratedStep);
+            doAdd(generateNextStepCond(conditions.get(0)));
+            conditions.remove(0);
+            endSamplingsOfStep(lastGeneratedStep);
+        }
+    }
+
     protected void doAdd(SampleSet<SystemState> sampling) {
         lastGenerated = sampling;
         sequence.add(lastGenerated);
@@ -174,6 +190,10 @@ public class EvolutionSequence {
 
     protected SampleSet<SystemState> generateNextStep() {
         return lastGenerated.apply(s -> s.sampleNext(rg));
+    }
+
+    public SampleSet<SystemState> generateNextStepCond(DataStateBooleanExpression condition) {
+        return lastGenerated.apply(s -> s.sampleNextCond(rg,condition));
     }
 
     /**
@@ -234,6 +254,7 @@ public class EvolutionSequence {
         }
         return new PerturbedEvolutionSequence(this.monitor, this.rg, this.select(perturbedStep-1), this.get(perturbedStep), perturbation, scale);
     }
+
 
 
 

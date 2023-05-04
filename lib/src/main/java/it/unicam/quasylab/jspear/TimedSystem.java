@@ -33,11 +33,12 @@ import org.apache.commons.math3.random.RandomGenerator;
 /**
  * Represents a system controlled by controller.
  */
-public class ControlledSystem implements SystemState {
+public class TimedSystem implements SystemState {
 
     private final Controller controller;
     private final DataStateFunction environment;
     private final DataState state;
+    private final DataStateExpression generateNextTime;
 
     /**
      * Creates a system with the given controller and the given state.
@@ -45,10 +46,11 @@ public class ControlledSystem implements SystemState {
      * @param environment
      * @param state current data state.
      */
-    public ControlledSystem(Controller controller, DataStateFunction environment, DataState state) {
+    public TimedSystem(Controller controller, DataStateFunction environment, DataState state, DataStateExpression generateNextTime) {
         this.controller = controller;
         this.environment = environment;
         this.state = state;
+        this.generateNextTime = generateNextTime;
     }
 
     @Override
@@ -56,10 +58,33 @@ public class ControlledSystem implements SystemState {
         return state;
     }
 
+
+
+    public TimedSystem sampleNextMicro(RandomGenerator rg){
+        EffectStep<Controller> step = controller.next(rg, state);
+        return new TimedSystem(step.next(), environment, environment.apply(rg, state.apply(step.effect())),generateNextTime);
+    }
+
     @Override
     public SystemState sampleNext(RandomGenerator rg) {
-        EffectStep<Controller> step = controller.next(rg, state);
-        return new ControlledSystem(step.next(), environment, environment.apply(rg, state.apply(step.effect())));
+        TimedSystem next = this;
+        DataState ds = this.state;
+        double t = this.generateNextTime.eval(ds);
+        double sum_t = t + ds.getTimeReal();
+        while(sum_t < ds.getTimeStep() + ds.getGranularity()){
+            ds.setTimeDelta(t);
+            ds.setTimeReal(t + ds.getTimeReal());
+            next = next.sampleNextMicro(rg);
+            ds = next.getDataState();
+            t = next.generateNextTime.eval(ds);
+            sum_t = sum_t + t;
+        }
+        ds.setTimeDelta(t);
+        ds.setTimeReal(t + ds.getTimeReal());
+        next = next.sampleNextMicro(rg);
+        ds = next.getDataState();
+        ds.setTimeStep(ds.getTimeStep() + ds.getGranularity());
+        return next;
     }
 
     @Override
@@ -75,7 +100,8 @@ public class ControlledSystem implements SystemState {
 
     @Override
     public SystemState setDataState(DataState dataState) {
-        return new ControlledSystem(controller, environment, dataState);
+        return new TimedSystem(controller, environment, dataState, generateNextTime);
     }
+
 
 }
