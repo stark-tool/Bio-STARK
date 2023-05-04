@@ -27,6 +27,7 @@ import it.unicam.quasylab.jspear.EvolutionSequence;
 import java.util.stream.IntStream;
 
 public sealed interface DistanceExpression permits
+        AtomicDistanceExpression,
         AtomicDistanceExpressionLeq,
         AtomicDistanceExpressionGeq,
         LinearCombinationDistanceExpression,

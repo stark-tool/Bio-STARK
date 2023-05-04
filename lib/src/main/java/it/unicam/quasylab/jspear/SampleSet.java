@@ -97,28 +97,15 @@ public class SampleSet<T extends SystemState> {
      * the function <code>f</code>.
      */
     public synchronized double distance(DataStateExpression f, SampleSet<T> other) {
-        if (other.size() >= this.size()) {//NOTE:
-            if (other.size() % this.size() != 0) {
-                throw new IllegalArgumentException("Incompatible size of data sets!");
-            }
-            double[] thisData = this.evalPenaltyFunction(f);
-            double[] otherData = other.evalPenaltyFunction(f);
-            int k = otherData.length / thisData.length;
-            return IntStream.range(0, thisData.length).parallel()
-                    .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, otherData[i * k + j] - thisData[i])).sum())
-                    .sum() / otherData.length;
-          }
-          else{
-              if (this.size() % other.size() != 0) {
-                  throw new IllegalArgumentException("Incompatible size of data sets!");
-              }
-              double[] thisData = this.evalPenaltyFunction(f);
-              double[] otherData = other.evalPenaltyFunction(f);
-              int k = thisData.length / otherData.length;
-              return IntStream.range(0, otherData.length).parallel()
-                      .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, otherData[i] - thisData[i*k+j])).sum())
-                      .sum() / otherData.length;
-          }
+        if (other.size() % this.size() != 0) {
+            throw new IllegalArgumentException("Incompatible size of data sets!");
+        }
+        double[] thisData = this.evalPenaltyFunction(f);
+        double[] otherData = other.evalPenaltyFunction(f);
+        int k = otherData.length / thisData.length;
+        return IntStream.range(0, thisData.length).parallel()
+                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.abs(otherData[i * k + j] - thisData[i])).sum())
+                .sum() / otherData.length;
     }
 
 
@@ -140,7 +127,7 @@ public class SampleSet<T extends SystemState> {
         double[] otherData = other.evalPenaltyFunction(f);
         int k = otherData.length / thisData.length;
         return IntStream.range(0, thisData.length).parallel()
-                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.abs(otherData[i * k + j] - thisData[i])).sum())
+                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0,otherData[i * k + j] - thisData[i])).sum())
                 .sum() / otherData.length;
     }
 
@@ -148,7 +135,7 @@ public class SampleSet<T extends SystemState> {
     private double computeDistanceLeq(double[] thisData, double[] otherData) {
         int k = otherData.length / thisData.length;
         return IntStream.range(0, thisData.length).parallel()
-                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.abs(otherData[i * k + j] - thisData[i])).sum())
+                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0,otherData[i * k + j] - thisData[i])).sum())
                 .sum() / otherData.length;
     }
 
@@ -195,7 +182,7 @@ public class SampleSet<T extends SystemState> {
 
     public synchronized double[] bootstrapDistance(DataStateExpression f, SampleSet<T> other, int m, double z) {
         Random rand = new Random();
-        if (this.size()%other.size()!=0 && other.size()%this.size()!=0) {
+        if (other.size()%this.size()!=0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
         double[] W = new double[m];

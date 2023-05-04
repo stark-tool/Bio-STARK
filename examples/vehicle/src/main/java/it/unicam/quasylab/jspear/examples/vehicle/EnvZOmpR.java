@@ -25,8 +25,7 @@ package it.unicam.quasylab.jspear.examples.vehicle;
 import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.NilController;
-import it.unicam.quasylab.jspear.distance.AtomicDistanceExpressionLeq;
-import it.unicam.quasylab.jspear.distance.AtomicDistanceExpressionGeq;
+import it.unicam.quasylab.jspear.distance.AtomicDistanceExpression;
 import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.distance.MaxIntervalDistanceExpression;
 import it.unicam.quasylab.jspear.ds.*;
@@ -139,7 +138,7 @@ public class EnvZOmpR {
             EvolutionSequence sequence2 = sequence.apply(addXY(),10,10);
 
             DistanceExpression distance = new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpressionLeq(ds->ds.get(YP)/40),
+                    new AtomicDistanceExpression(ds->ds.get(YP)/40),
                     200,
                     300);
 
