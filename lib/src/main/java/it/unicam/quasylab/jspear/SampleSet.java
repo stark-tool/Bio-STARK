@@ -23,6 +23,7 @@
 package it.unicam.quasylab.jspear;
 
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
+import it.unicam.quasylab.jspear.ds.DataStateFunction;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.LinkedList;
@@ -384,5 +385,9 @@ public class SampleSet<T extends SystemState> {
         return new SampleSet<>(
                 this.stream().flatMap(e -> IntStream.range(0, k).mapToObj(i -> e)).toList()
         );
+    }
+
+    public SampleSet<SystemState> applyDistribution(RandomGenerator rg, DataStateFunction function){
+        return new SampleSet<>(this.stream().parallel().map(s -> s.apply(rg, function)).toList());
     }
 }

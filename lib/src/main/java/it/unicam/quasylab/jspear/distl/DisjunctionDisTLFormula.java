@@ -20,26 +20,36 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.robtl.old;
+package it.unicam.quasylab.jspear.distl;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
-import it.unicam.quasylab.jspear.robtl.TruthValues;
 
-public final class ConjunctionThreeValuedFormula implements ThreeValuedFormula {
+public final class DisjunctionDisTLFormula implements DisTLFormula {
 
-    private final ThreeValuedFormula leftFormula;
-    private final ThreeValuedFormula rightFormula;
+    private final DisTLFormula leftFormula;
+    private final DisTLFormula rightFormula;
 
-    public ConjunctionThreeValuedFormula(ThreeValuedFormula leftFormula, ThreeValuedFormula rightFormula) {
+    public DisjunctionDisTLFormula(DisTLFormula leftFormula, DisTLFormula rightFormula) {
         this.leftFormula = leftFormula;
         this.rightFormula = rightFormula;
     }
 
     @Override
-    public TruthValues eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return TruthValues.and(leftFormula.eval(sampleSize, step, sequence),rightFormula.eval(sampleSize, step, sequence));
-        //if(leftFormula.eval(sampleSize, step, sequence)==TruthValues.FALSE || rightFormula.eval(sampleSize, step, sequence)==TruthValues.FALSE) return TruthValues.FALSE;
-        //if(leftFormula.eval(sampleSize, step, sequence)==TruthValues.TRUE && rightFormula.eval(sampleSize, step, sequence)==TruthValues.TRUE) return TruthValues.TRUE;
-        //return TruthValues.UNKNOWN;
+    public double eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
+        return Math.max(leftFormula.eval(sampleSize, step, sequence, parallel),rightFormula.eval(sampleSize, step, sequence, parallel));
     }
+
+    @Override
+    public <Double> DisTLFunction<Double> eval(DisTLFormulaVisitor<Double> evaluator) {
+        return evaluator.evalDisjunction(this);
+    }
+
+    public DisTLFormula getLeftFormula() {
+        return leftFormula;
+    }
+
+    public DisTLFormula getRightFormula() {
+        return rightFormula;
+    }
+
 }
