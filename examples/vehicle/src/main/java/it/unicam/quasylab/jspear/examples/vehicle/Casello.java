@@ -42,10 +42,10 @@ public class Casello {
                     "crashed_V1"
             };
 
-    public final static double ACCELERATION = 1.0;
+    public final static double ACCELERATION = 0.25;
     public final static double BRAKE = 2.0;
     public final static double NEUTRAL = 0.0;
-    public final static int TIMER_INIT = 5;
+    public final static int TIMER_INIT = 1;
     public final static int DANGER = 1;
     public final static int OK = 0;
     public final static double INIT_SPEED_V1 = 25.0;
@@ -81,7 +81,7 @@ public class Casello {
 
             DataStateFunction mu = (rg, ds) -> ds.apply(getTargetDistribution(rg, ds));
 
-            DisTLFormula phi = new TargetDisTLFormula(mu, ds -> Math.abs(ds.get(p_distance_V1)-200)/50, 0.5);
+            DisTLFormula phi = new TargetDisTLFormula(mu, ds -> ds.get(p_distance_V1)/50, 0.5);
 
             double value = new DoubleSemanticsVisitor().eval(phi).eval(10, 295, sequence);
 
@@ -98,17 +98,34 @@ public class Casello {
 
             L.add("speed");
 
+            //L.add("sensed_speed");
+
+            L.add("Distance");
+
+            L.add("gap");
+
+            L.add("accel");
+
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
 
             F.add(ds->ds.get(p_speed_V1));
 
+            //F.add(ds->ds.get(s_speed_V1));
 
-            //printLData(new DefaultRandomGenerator(), L, F, system, 400, 100);
+            F.add(ds->ds.get(p_distance_V1));
 
-            //printLData_min(new DefaultRandomGenerator(), L, F, system, 400, 100);
+            F.add(ds->ds.get(safety_gap_V1));
 
-            //printLData_max(new DefaultRandomGenerator(), L, F, system, 400, 100);
+            F.add(ds->ds.get(accel_V1));
+
+
+
+            //printLData(new DefaultRandomGenerator(), L, F, system, 300, 100);
+
+            //printLData_min(new DefaultRandomGenerator(), L, F, system, 300, 100);
+
+            //printLData_max(new DefaultRandomGenerator(), L, F, system, 300, 100);
 
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -191,16 +208,27 @@ public class Casello {
                         Controller.ifThenElse(
                                    DataState.greaterThan(safety_gap_V1, 0 ),
                                    Controller.doAction(
-                                           (rg, ds) -> List.of(new DataStateUpdate(accel_V1, ACCELERATION), new DataStateUpdate(timer_V1, TIMER_INIT)),
+                                           (rg, ds) -> List.of(new DataStateUpdate(accel_V1, ACCELERATION),
+                                                   new DataStateUpdate(timer_V1, TIMER_INIT)),
                                            registry.reference("Accelerate_V1")
                                    ),
                                    Controller.doAction(
-                                           (rg, ds) -> List.of( new DataStateUpdate(accel_V1, - BRAKE), new DataStateUpdate(timer_V1, TIMER_INIT)),
+                                           (rg, ds) -> List.of( new DataStateUpdate(accel_V1, - BRAKE),
+                                                   new DataStateUpdate(timer_V1, TIMER_INIT)),
                                            registry.reference("Decelerate_V1"))
                         ),
-                        Controller.doAction(
-                                (rg,ds)-> List.of(new DataStateUpdate(accel_V1,NEUTRAL), new DataStateUpdate(timer_V1,TIMER_INIT)),
-                                registry.reference("Stop_V1")
+                        Controller.ifThenElse(
+                                DataState.greaterThan(safety_gap_V1,0),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(accel_V1, ACCELERATION),
+                                                new DataStateUpdate(timer_V1, TIMER_INIT)),
+                                        registry.reference("Accelerate_V1")
+                                ),
+                                Controller.doAction(
+                                        (rg,ds)-> List.of(new DataStateUpdate(accel_V1,NEUTRAL),
+                                                new DataStateUpdate(timer_V1,TIMER_INIT)),
+                                        registry.reference("Stop_V1")
+                                )
                         )
                 )
         );
@@ -225,37 +253,22 @@ public class Casello {
                 Controller.ifThenElse(
                         DataState.greaterThan(timer_V1, 0),
                         Controller.doTick(registry.reference("Stop_V1")),
-                        Controller.ifThenElse(
-                                DataState.equalsTo(warning_V1,DANGER),
-                                Controller.doAction(
-                                        (rg, ds) -> List.of(new DataStateUpdate(accel_V1, -BRAKE),
-                                                new DataStateUpdate(timer_V1, TIMER_INIT)),
-                                        registry.reference("Decelerate_V1")
-                                ),
-                                Controller.doAction(
-                                        DataStateUpdate.set(timer_V1,TIMER_INIT),
-                                        registry.reference("Stop_V1")
-                                )
+                        Controller.doAction((rg,ds)-> List.of(new DataStateUpdate(timer_V1,TIMER_INIT)),
+                                registry.reference("Stop_V1")
                         )
                 )
         );
 
-        registry.set("IDS_V1",
-                Controller.ifThenElse(
-                        DataState.lessOrEqualThan(p_distance_V1, 2*TIMER_INIT*SAFETY_DISTANCE).and(DataState.equalsTo(accel_V1, ACCELERATION).or(DataState.equalsTo(accel_V1, NEUTRAL).and(DataState.greaterThan(p_speed_V1,0.0)))),
-                        Controller.doAction(DataStateUpdate.set(warning_V1, DANGER),registry.reference("IDS_V1")),
-                        Controller.doAction(DataStateUpdate.set(warning_V1, OK),registry.reference("IDS_V1"))
-                )
-        );
 
-        return new ParallelController(registry.reference("Ctrl_V1"), registry.reference("IDS_V1"));
+
+        return registry.reference("Ctrl_V1");
 
     }
 
     public static List<DataStateUpdate> getTargetDistribution(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         Random r = new Random();
-        updates.add(new DataStateUpdate(p_distance_V1, 200 + r.nextGaussian()));
+        updates.add(new DataStateUpdate(p_distance_V1, r.nextGaussian()));
         return updates;
     }
 
@@ -264,10 +277,16 @@ public class Casello {
 
     public static List<DataStateUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
-        double travel_V1 = state.get(accel_V1)/2 + state.get(p_speed_V1);
+        double travel_V1 = Math.max(state.get(accel_V1)/2 + state.get(p_speed_V1),0);
         double new_timer_V1 = state.get(timer_V1) - 1;
         double new_p_speed_V1 = Math.min(MAX_SPEED,Math.max(0,state.get(p_speed_V1) + state.get(accel_V1)));
-        double new_s_speed_V1 = new_p_speed_V1 + rg.nextDouble()*2 - 1;
+        double token = rg.nextDouble();
+        double new_s_speed_V1;
+        if (token < 0.5){
+            new_s_speed_V1 = new_p_speed_V1 + rg.nextDouble()*0.3;
+        } else {
+            new_s_speed_V1 = new_p_speed_V1 - rg.nextDouble()*0.3;
+        }
         double new_p_distance_V1 = state.get(p_distance_V1) - travel_V1;
         updates.add(new DataStateUpdate(timer_V1, new_timer_V1));
         updates.add(new DataStateUpdate(p_speed_V1, new_p_speed_V1));
@@ -276,17 +295,17 @@ public class Casello {
             double new_bd_V1 = (new_s_speed_V1 * new_s_speed_V1 +
                     (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT * TIMER_INIT +
                     2 * new_s_speed_V1 * TIMER_INIT)) / (2 * BRAKE);
-            double new_rd_V1 = new_bd_V1 + SAFETY_DISTANCE;
-            double new_sg_V1 = new_p_distance_V1 - new_rd_V1;
+            //double new_rd_V1 = new_bd_V1 + SAFETY_DISTANCE;
+            double new_sg_V1 = new_p_distance_V1 - new_bd_V1;
             updates.add(new DataStateUpdate(s_speed_V1, new_s_speed_V1));
             updates.add(new DataStateUpdate(braking_distance_V1, new_bd_V1));
-            updates.add(new DataStateUpdate(required_distance_V1, new_rd_V1));
+            //updates.add(new DataStateUpdate(required_distance_V1, new_rd_V1));
             updates.add(new DataStateUpdate(safety_gap_V1, new_sg_V1));
             updates.add(new DataStateUpdate(s_distance_V1,new_p_distance_V1));
         }
-        if(state.get(p_distance_V1) <=0){
-            updates.add(new DataStateUpdate(crashed_V1, 1));
-        }
+        //if(state.get(p_distance_V1) <=0){
+        //    updates.add(new DataStateUpdate(crashed_V1, 1));
+        //}
         return updates;
     }
 
