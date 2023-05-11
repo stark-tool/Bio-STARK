@@ -77,11 +77,17 @@ public class Casello {
 
             DisTLFormula phi_sp = new TargetDisTLFormula(mu_sp, ds -> ds.get(p_speed)/MAX_SPEED, 0.0);
 
-            DisTLFormula phi = new EventuallyDisTLFormula(new ConjunctionDisTLFormula(phi_sp,phi_pos),0,H);
+            DisTLFormula phi_1 = new AlwaysDisTLFormula(phi_pos,290,310);
 
-            double value = new DoubleSemanticsVisitor().eval(phi).eval(10, 0, sequence);
+            DisTLFormula phi_2 = new EventuallyDisTLFormula(new ConjunctionDisTLFormula(phi_sp,phi_pos),0,H);
 
-            System.out.println(value);
+            double value_1 = new DoubleSemanticsVisitor().eval(phi_1).eval(10, 0, sequence);
+
+            System.out.println("Robustness of the vehicle, in 0, wrt phi_1: "+value_1);
+
+            double value_2 = new DoubleSemanticsVisitor().eval(phi_2).eval(10, 0, sequence);
+
+            System.out.println("Robustness of the vehicle, in 0, wrt phi_2: "+value_2);
 
             //double[][] distance = new double[100][1];
             //for(int i = 0; i<100;i++) {
