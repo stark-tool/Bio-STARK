@@ -22,32 +22,47 @@
 
 package it.unicam.quasylab.jspear.distl;
 
-import it.unicam.quasylab.jspear.DefaultRandomGenerator;
-import it.unicam.quasylab.jspear.EvolutionSequence;
-import it.unicam.quasylab.jspear.SampleSet;
-import it.unicam.quasylab.jspear.SystemState;
+import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.ds.*;
+import it.unicam.quasylab.jspear.penalty.*;
+
+import java.util.Optional;
 
 
 public final class TargetDisTLFormula implements DisTLFormula {
 
     private final DataStateFunction mu;
 
-    private final DataStateExpression rho;
+    private final Optional<DataStateExpression> rho;
+
+    private final Penalty P;
 
     private final double q;
 
     public TargetDisTLFormula(DataStateFunction distribution, DataStateExpression penalty, double threshold) {
         this.mu = distribution;
-        this.rho = penalty;
+        this.rho = Optional.of(penalty);
         this.q = threshold;
+        this.P = new NonePenalty();
+    }
+
+    public TargetDisTLFormula(DataStateFunction distribution, Penalty penalty, double threshold) {
+        this.mu = distribution;
+        this.rho = Optional.empty();
+        this.q = threshold;
+        this.P = penalty;
     }
 
     @Override
     public double eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
         SampleSet<SystemState> state = sequence.get(step);
         SampleSet<SystemState> state2 = state.replica(sampleSize).applyDistribution(new DefaultRandomGenerator(),this.mu);
-        double distance = state.distanceGeq(this.rho,state2);
+        double distance;
+        if (this.rho.isPresent()) {
+            distance = state.distanceGeq(this.rho.get(), state2);
+        } else {
+            distance = state.distanceGeq(this.P,state2,step);
+        }
         return this.q - distance;
     }
 
@@ -60,8 +75,12 @@ public final class TargetDisTLFormula implements DisTLFormula {
         return this.mu;
     }
 
-    public DataStateExpression getPenalty() {
+    public Optional<DataStateExpression> getRho() {
         return this.rho;
+    }
+
+    public Penalty getP(){
+        return this.P;
     }
 
     public double getThreshold() { return this.q; }

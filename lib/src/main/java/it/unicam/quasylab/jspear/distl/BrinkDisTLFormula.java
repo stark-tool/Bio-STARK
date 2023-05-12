@@ -28,27 +28,44 @@ import it.unicam.quasylab.jspear.SampleSet;
 import it.unicam.quasylab.jspear.SystemState;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import it.unicam.quasylab.jspear.ds.DataStateFunction;
+import it.unicam.quasylab.jspear.penalty.*;
+import java.util.Optional;
 
 
 public final class BrinkDisTLFormula implements DisTLFormula {
 
     private final DataStateFunction mu;
 
-    private final DataStateExpression rho;
+    private final Optional<DataStateExpression> rho;
+
+    private final Penalty P;
 
     private final double q;
 
     public BrinkDisTLFormula(DataStateFunction distribution, DataStateExpression penalty, double threshold) {
         this.mu = distribution;
-        this.rho = penalty;
+        this.rho = Optional.of(penalty);
         this.q = threshold;
+        this.P = new NonePenalty();
+    }
+
+    public BrinkDisTLFormula(DataStateFunction distribution, Penalty penalty, double threshold) {
+        this.mu = distribution;
+        this.rho = Optional.empty();
+        this.q = threshold;
+        this.P = penalty;
     }
 
     @Override
     public double eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
         SampleSet<SystemState> state = sequence.get(step);
         SampleSet<SystemState> state2 = state.replica(sampleSize).applyDistribution(new DefaultRandomGenerator(),this.mu);
-        double distance = state.distanceLeq(this.rho,state2);
+        double distance;
+        if (this.rho.isPresent()) {
+            distance = state.distanceLeq(this.rho.get(), state2);
+        } else {
+            distance = state.distanceLeq(this.P,state2,step);
+        }
         return distance - this.q;
     }
 
@@ -61,8 +78,12 @@ public final class BrinkDisTLFormula implements DisTLFormula {
         return this.mu;
     }
 
-    public DataStateExpression getPenalty() {
+    public Optional<DataStateExpression> getRho() {
         return this.rho;
+    }
+
+    public Penalty getP() {
+        return this.P;
     }
 
     public double getThreshold() { return this.q; }

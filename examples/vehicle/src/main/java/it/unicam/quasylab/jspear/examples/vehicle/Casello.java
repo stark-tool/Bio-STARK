@@ -28,6 +28,7 @@ import it.unicam.quasylab.jspear.controller.ControllerRegistry;
 import it.unicam.quasylab.jspear.ds.*;
 import it.unicam.quasylab.jspear.perturbation.*;
 import it.unicam.quasylab.jspear.distl.*;
+import it.unicam.quasylab.jspear.penalty.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.IOException;
@@ -48,7 +49,7 @@ public class Casello {
     public final static double INIT_SPEED = 25.0;
     public final static double MAX_SPEED = 40.0;
     public final static double INIT_DISTANCE = 10000.0;
-    private static final int H = 450;
+    private static final int H = 350;
 
     private static final int p_speed = 0;//variableRegistry.getVariable("p_speed");
     private static final int s_speed = 1;//variableRegistry.getVariable("s_speed");
@@ -71,15 +72,31 @@ public class Casello {
 
             DataStateFunction mu_pos = (rg, ds) -> ds.apply(getTargetPosDistribution(rg, ds));
 
-            DisTLFormula phi_pos = new TargetDisTLFormula(mu_pos, ds -> ds.get(p_distance)/10, 0.3);
+            Penalty till_100 = new IterativePenalty(100,new AtomicPenalty(0,Casello::rho_100));
+
+            Penalty till_200 = new IterativePenalty(100,new AtomicPenalty(0,Casello::rho_200));
+
+            Penalty till_275 = new IterativePenalty(75,new AtomicPenalty(0,Casello::rho_275));
+
+            Penalty till_350 = new IterativePenalty(76,new AtomicPenalty(0,Casello::rho_350));
+
+            Penalty rho_pos = new SequentialPenalty(till_100, new SequentialPenalty(till_200, new SequentialPenalty(till_275, till_350)));
+
+            //Penalty rho_pos = new SequentialPenalty(till_275, till_350);
+
+            DisTLFormula phi_pos = new TargetDisTLFormula(mu_pos, ds -> ds.get(p_distance), 0.3);
+
+            DisTLFormula phi_pos2 = new TargetDisTLFormula(mu_pos, rho_pos, 0.3);
 
             DataStateFunction mu_sp = (rg,ds) -> ds.apply(getTargetSpDistribution(rg, ds));
 
             DisTLFormula phi_sp = new TargetDisTLFormula(mu_sp, ds -> ds.get(p_speed)/MAX_SPEED, 0.0);
 
-            DisTLFormula phi_1 = new AlwaysDisTLFormula(phi_pos,290,310);
+            DisTLFormula phi_1 = new AlwaysDisTLFormula(phi_pos,290,H);
 
             DisTLFormula phi_2 = new EventuallyDisTLFormula(new ConjunctionDisTLFormula(phi_sp,phi_pos),0,H);
+
+            DisTLFormula phi_3 = new AlwaysDisTLFormula(phi_pos2,260,H);
 
             double value_1 = new DoubleSemanticsVisitor().eval(phi_1).eval(10, 0, sequence);
 
@@ -89,12 +106,17 @@ public class Casello {
 
             System.out.println("Robustness of the vehicle, in 0, wrt phi_2: "+value_2);
 
+            double value_3 = new DoubleSemanticsVisitor().eval(phi_3).eval(10, 0, sequence);
+
+            System.out.println("Robustness of the vehicle, in 0, wrt phi_3: "+value_3);
+
             //double[][] distance = new double[100][1];
             //for(int i = 0; i<100;i++) {
             //    distance[i][0] = sequence.get(295).evalPenaltyFunction(ds -> Math.abs(ds.get(p_distance))/10)[i];
             //}
 
             //Util.writeToCSV("./stopping_distance.csv",distance);
+
 
             /*
             ArrayList<String> L = new ArrayList<>();
@@ -103,9 +125,9 @@ public class Casello {
 
             L.add("Distance");
 
-            L.add("gap");
+            //L.add("gap");
 
-            L.add("accel");
+            //L.add("accel");
 
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
@@ -114,16 +136,18 @@ public class Casello {
 
             F.add(ds->ds.get(p_distance));
 
-            F.add(ds->ds.get(gap));
+            //F.add(ds->ds.get(gap));
 
-            F.add(ds->ds.get(accel));
+            //F.add(ds->ds.get(accel));
 
             printLData(new DefaultRandomGenerator(), L, F, system, 350, 100);
 
             printLData_min(new DefaultRandomGenerator(), L, F, system, 350, 100);
 
             printLData_max(new DefaultRandomGenerator(), L, F, system, 350, 100);
-            */
+
+
+             */
 
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -192,6 +216,24 @@ public class Casello {
             }
             System.out.printf("%f\n", data[i][data[i].length -1]);
         }
+    }
+
+    // PENALTIES
+
+    public static double rho_100(DataState state){
+        return state.get(p_distance)/INIT_DISTANCE;
+    }
+
+    public static double rho_200(DataState state){
+        return state.get(p_distance)/2500;
+    }
+
+    public static double rho_275(DataState state){
+        return state.get(p_distance)/500;
+    }
+
+    public static double rho_350(DataState state){
+        return state.get(p_distance);
     }
 
     // DISTRIBUTIONS

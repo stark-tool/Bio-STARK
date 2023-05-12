@@ -24,6 +24,7 @@ package it.unicam.quasylab.jspear;
 
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import it.unicam.quasylab.jspear.ds.DataStateFunction;
+import it.unicam.quasylab.jspear.penalty.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.LinkedList;
@@ -132,6 +133,19 @@ public class SampleSet<T extends SystemState> {
                 .sum() / otherData.length;
     }
 
+    public synchronized double distanceLeq(Penalty rho, SampleSet<T> other, int step) {
+        if (other.size() % this.size() != 0) {
+            throw new IllegalArgumentException("Incompatible size of data sets!");
+        }
+        DataStateExpression f = rho.totalEffect().get(step);
+        double[] thisData = this.evalPenaltyFunction(f);
+        double[] otherData = other.evalPenaltyFunction(f);
+        int k = otherData.length / thisData.length;
+        return IntStream.range(0, thisData.length).parallel()
+                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0,otherData[i * k + j] - thisData[i])).sum())
+                .sum() / otherData.length;
+    }
+
 
     private double computeDistanceLeq(double[] thisData, double[] otherData) {
         int k = otherData.length / thisData.length;
@@ -153,6 +167,19 @@ public class SampleSet<T extends SystemState> {
         if (other.size() % this.size() != 0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
+        double[] thisData = this.evalPenaltyFunction(f);
+        double[] otherData = other.evalPenaltyFunction(f);
+        int k = otherData.length / thisData.length;
+        return IntStream.range(0, thisData.length).parallel()
+                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, thisData[i] - otherData[i * k + j])).sum())
+                .sum() / otherData.length;
+    }
+
+    public synchronized double distanceGeq(Penalty rho, SampleSet<T> other, int step) {
+        if (other.size() % this.size() != 0) {
+            throw new IllegalArgumentException("Incompatible size of data sets!");
+        }
+        DataStateExpression f = rho.totalEffect().get(step);
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
         int k = otherData.length / thisData.length;
