@@ -44,8 +44,6 @@ public class Casello {
     public final static double BRAKE = 2.0;
     public final static double NEUTRAL = 0.0;
     public final static int TIMER = 1;
-    public final static int DANGER = 1;
-    public final static int OK = 0;
     public final static double INIT_SPEED = 25.0;
     public final static double MAX_SPEED = 40.0;
     public final static double INIT_DISTANCE = 10000.0;
@@ -82,11 +80,15 @@ public class Casello {
 
             Penalty rho_pos = new SequentialPenalty(till_100, new SequentialPenalty(till_200, new SequentialPenalty(till_275, till_350)));
 
-            //Penalty rho_pos = new SequentialPenalty(till_275, till_350);
-
             DisTLFormula phi_pos = new TargetDisTLFormula(mu_pos, ds -> ds.get(p_distance), 0.3);
 
             DisTLFormula phi_pos2 = new TargetDisTLFormula(mu_pos, rho_pos, 0.3);
+
+            DisTLFormula phi_pos_01 = new TargetDisTLFormula(mu_pos, rho_pos, 0.1);
+
+            DisTLFormula phi_pos_03 = new TargetDisTLFormula(mu_pos, rho_pos, 0.3);
+
+            DisTLFormula phi_pos_05 = new TargetDisTLFormula(mu_pos, rho_pos, 0.5);
 
             DataStateFunction mu_sp = (rg,ds) -> ds.apply(getTargetSpDistribution(rg, ds));
 
@@ -94,9 +96,11 @@ public class Casello {
 
             DisTLFormula phi_1 = new AlwaysDisTLFormula(phi_pos,290,H);
 
-            DisTLFormula phi_2 = new EventuallyDisTLFormula(new ConjunctionDisTLFormula(phi_sp,phi_pos),0,H);
+            DisTLFormula phi_2 = new EventuallyDisTLFormula(new ConjunctionDisTLFormula(phi_sp,phi_pos2),0,H);
 
-            DisTLFormula phi_3 = new AlwaysDisTLFormula(phi_pos2,260,H);
+            //DisTLFormula phi_3 = new AlwaysDisTLFormula(phi_pos2,250,H);
+
+            //DisTLFormula phi_4 = new EventuallyDisTLFormula(phi_pos2,0,H);
 
             double value_1 = new DoubleSemanticsVisitor().eval(phi_1).eval(10, 0, sequence);
 
@@ -106,16 +110,37 @@ public class Casello {
 
             System.out.println("Robustness of the vehicle, in 0, wrt phi_2: "+value_2);
 
-            double value_3 = new DoubleSemanticsVisitor().eval(phi_3).eval(10, 0, sequence);
+            //double value_3 = new DoubleSemanticsVisitor().eval(phi_3).eval(10, 0, sequence);
 
-            System.out.println("Robustness of the vehicle, in 0, wrt phi_3: "+value_3);
+            //System.out.println("Robustness of the vehicle, in 0, wrt phi_3: "+value_3);
 
-            //double[][] distance = new double[100][1];
-            //for(int i = 0; i<100;i++) {
-            //    distance[i][0] = sequence.get(295).evalPenaltyFunction(ds -> Math.abs(ds.get(p_distance))/10)[i];
-            //}
+            //double value_4 = new DoubleSemanticsVisitor().eval(phi_4).eval(10, 0, sequence);
 
-            //Util.writeToCSV("./stopping_distance.csv",distance);
+            //System.out.println("Robustness of the vehicle, in 0, wrt phi_4: "+value_4);
+
+            double[][] value_01 = new double[31][1];
+            double[][] value_03 = new double[31][1];
+            double[][] value_05 = new double[31][1];
+
+            for(int i = 0; i<31; i++) {
+                DisTLFormula phi_01 = new AlwaysDisTLFormula(phi_pos_01,i+250,H);
+                value_01[i][0] = new DoubleSemanticsVisitor().eval(phi_01).eval(10, 0, sequence);
+                DisTLFormula phi_03 = new AlwaysDisTLFormula(phi_pos_03,i+250,H);
+                value_03[i][0] = new DoubleSemanticsVisitor().eval(phi_03).eval(10, 0, sequence);
+                DisTLFormula phi_05 = new AlwaysDisTLFormula(phi_pos_05,i+250,H);
+                value_05[i][0] = new DoubleSemanticsVisitor().eval(phi_05).eval(10, 0, sequence);
+            }
+
+            Util.writeToCSV("./always_evaluation_01.csv",value_01);
+            Util.writeToCSV("./always_evaluation_03.csv",value_03);
+            Util.writeToCSV("./always_evaluation_05.csv",value_05);
+
+            double[][] value = new double[351][1];
+            for(int i = 0; i<351; i++) {
+                value[i][0] = new DoubleSemanticsVisitor().eval(phi_2).eval(10, i, sequence);
+            }
+
+            Util.writeToCSV("./eventually_evaluation.csv",value);
 
 
             /*
@@ -132,7 +157,7 @@ public class Casello {
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
 
-            F.add(ds->ds.get(p_speed));
+            F.add(ds->ds.get(s_speed));
 
             F.add(ds->ds.get(p_distance));
 
@@ -145,7 +170,6 @@ public class Casello {
             printLData_min(new DefaultRandomGenerator(), L, F, system, 350, 100);
 
             printLData_max(new DefaultRandomGenerator(), L, F, system, 350, 100);
-
 
              */
 
@@ -225,15 +249,15 @@ public class Casello {
     }
 
     public static double rho_200(DataState state){
-        return state.get(p_distance)/2500;
+        return state.get(p_distance)/7000;
     }
 
     public static double rho_275(DataState state){
-        return state.get(p_distance)/500;
+        return state.get(p_distance)/2500;
     }
 
     public static double rho_350(DataState state){
-        return state.get(p_distance);
+        return state.get(p_distance)/10;
     }
 
     // DISTRIBUTIONS
@@ -336,9 +360,9 @@ public class Casello {
         double token = rg.nextDouble();
         double new_s_speed;
         if (token < 0.5){
-            new_s_speed = new_p_speed + rg.nextDouble()*0.3;
+            new_s_speed = new_p_speed + rg.nextDouble()*0.5;
         } else {
-            new_s_speed = new_p_speed - rg.nextDouble()*0.3;
+            new_s_speed = new_p_speed - rg.nextDouble()*0.5;
         }
         double new_p_distance = state.get(p_distance) - travel;
         updates.add(new DataStateUpdate(timer_V, new_timer_V));

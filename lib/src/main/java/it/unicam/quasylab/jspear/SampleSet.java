@@ -137,7 +137,7 @@ public class SampleSet<T extends SystemState> {
         if (other.size() % this.size() != 0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
-        DataStateExpression f = rho.totalEffect().get(step);
+        DataStateExpression f = rho.effectUpTo(step).get(step);
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
         int k = otherData.length / thisData.length;
@@ -179,7 +179,7 @@ public class SampleSet<T extends SystemState> {
         if (other.size() % this.size() != 0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
-        DataStateExpression f = rho.totalEffect().get(step);
+        DataStateExpression f = rho.effectUpTo(step).get(step);
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
         int k = otherData.length / thisData.length;

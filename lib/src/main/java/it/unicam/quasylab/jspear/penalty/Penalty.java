@@ -78,6 +78,16 @@ public sealed interface Penalty permits
         return effects;
     }
 
+    default List<DataStateExpression> effectUpTo(int step){
+        List<DataStateExpression> effects = new ArrayList<>();
+        Penalty f = this;
+        for (int i=0; i<step+1; i++){
+            effects.add(f.effect());
+            f = f.next();
+        }
+        return effects;
+    }
+
 
     default double apply(DataState state, int step) {
         DataStateExpression effect = totalEffect().get(step);
