@@ -12,7 +12,7 @@ function eval_bd(real speed) {
 }
 
 function new_speed (real speed, real acc) {
-  if (accel == NEUTRAL) {
+  if (accel == N) {
       return max(0.0, speed - A);
     } else {
       return min(MAX_SPEED, max(0.0, speed + acc));
@@ -37,7 +37,7 @@ global variables {
 component vehicle {
   variables{
     real s_speed range [0,MAX_SPEED] = 25.0;
-    real accel range [-BRAKE,ACCELERATION]= NEUTRAL;
+    real accel range [-B,A]= N;
     int timer_V range [0,TIMER] = 0;
   }
   controller {
@@ -58,7 +58,7 @@ component vehicle {
           timer_V' = TIMER;
           step Accelerate;
         } else {
-          accel' = NEUTRAL;
+          accel' = N;
           timer_V' = TIMER;
           step Stop_V1;
         }
