@@ -62,7 +62,7 @@ public class Idhkp {
     public static final int[] r2_output = {0,0,0,0,0,1};
     public static final double r2_k = 10;
 
-    public static final int[] r3_input = {0,2,0,0,0,0};
+    public static final int[] r3_input = {0,1,0,0,0,0};
     public static final int[] r3_output = {1,0,0,0,0,0};
     public static final double r3_k = 0.5;
 
@@ -102,10 +102,10 @@ public class Idhkp {
     public static final int C = 4;
     public static final int W = 5;
 
-    //public static final int TIME = 6;
+    public static final int TIME = 6;
 
 
-    private static final int NUMBER_OF_VARIABLES = 6;
+    private static final int NUMBER_OF_VARIABLES = 7;
 
     //public static final ArrayList<Double> tempi = new ArrayList<>();
 
@@ -116,7 +116,7 @@ public class Idhkp {
     public static void main(String[] args) throws IOException {
         try {
 
-            int size = 1;
+            int size = 50;
 
             Controller controller = new NilController();
 
@@ -138,6 +138,7 @@ public class Idhkp {
             L.add("W");
             L.add("time step");
             L.add("real time");
+            L.add("time delta");
 
             //L.add("TIME");
 
@@ -165,7 +166,7 @@ public class Idhkp {
 
 //F.add(ds->ds.getGranularity());
 
-            printLData(new DefaultRandomGenerator(), L, F, system, 1, size);
+            printLData(new DefaultRandomGenerator(), L, F, system, 100, size*10);
 
 
 //            DistanceExpression distance = new MaxIntervalDistanceExpression(
@@ -505,7 +506,7 @@ public class Idhkp {
         values.put(P, 1.0);
         values.put(C, 0.0);
         values.put(W, 10.0);
-        //values.put(TIME, 0.0);
+        values.put(TIME, 0.0);
         return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN), gran, Tstep, Treal, Tdelta);
     }
 
