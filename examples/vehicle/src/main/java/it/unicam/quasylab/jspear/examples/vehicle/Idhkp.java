@@ -22,10 +22,7 @@
 
 package it.unicam.quasylab.jspear.examples.vehicle;
 
-import it.unicam.quasylab.jspear.DefaultRandomGenerator;
-import it.unicam.quasylab.jspear.EvolutionSequence;
-import it.unicam.quasylab.jspear.SystemState;
-import it.unicam.quasylab.jspear.TimedSystem;
+import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.NilController;
 import it.unicam.quasylab.jspear.distance.AtomicDistanceExpression;
@@ -37,6 +34,7 @@ import it.unicam.quasylab.jspear.ds.DataStateUpdate;
 import it.unicam.quasylab.jspear.ds.RelationOperator;
 import it.unicam.quasylab.jspear.perturbation.AtomicPerturbation;
 import it.unicam.quasylab.jspear.perturbation.IterativePerturbation;
+import it.unicam.quasylab.jspear.perturbation.NonePerturbation;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import it.unicam.quasylab.jspear.robtl.AtomicRobustnessFormula;
 import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
@@ -51,7 +49,7 @@ public class Idhkp {
 
     public final static String[] VARIABLES =
             new String[]{
-                    "R", "Z", "P", "X", "C", "W", "TIME"
+                    "R", "Z", "P", "X", "C", "W", "TIME", "REAC_RATE", "ESP", "IS_IT"
             };
 
     public static final int[] r1_input = {1,0,0,1,0,0};
@@ -104,8 +102,11 @@ public class Idhkp {
 
     public static final int TIME = 6;
 
+    public static final int REAC_RATE = 7;
 
-    private static final int NUMBER_OF_VARIABLES = 7;
+    public static final int ESP = 8;
+    public static final int IS_IT = 9;
+    private static final int NUMBER_OF_VARIABLES = 10;
 
     //public static final ArrayList<Double> tempi = new ArrayList<>();
 
@@ -121,26 +122,31 @@ public class Idhkp {
             Controller controller = new NilController();
 
             DataState state = getInitialState(1.0,0.0,0.0,0.0);
-            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)),state, ds->GillespieTime(new DefaultRandomGenerator(),ds));
 
-            EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, size);
+            //TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)),state, ds->GillespieTime(new DefaultRandomGenerator(),ds));
+            ControlledSystem system2 = new ControlledSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)),state);
 
-            EvolutionSequence sequence2 = sequence.apply(addXY(),10,10);
+            //EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, size);
+
+            //EvolutionSequence sequence2 = sequence.apply(addXY(),10,10);
 
             ArrayList<String> L = new ArrayList<>();
 
-            L.add("R");
-            L.add("Z");
-            L.add("P");
-            L.add("X");
-            L.add("C");
-
-            L.add("W");
-            L.add("time step");
-            L.add("real time");
+            //L.add("R");
+            //L.add("Z");
+            //L.add("P");
+            //L.add("X");
+            //L.add("C");
+            //L.add("W");
+            //L.add("time step");
+            //L.add("real time");
             L.add("time delta");
-
-            //L.add("TIME");
+            L.add("TIME");
+            L.add("IS_IT");
+            L.add("REAC_RATE");
+            L.add("reverse REAC_RATE");
+            //L.add("ESP");
+            L.add("manual");
 
 
 //L.add("Tempo step");
@@ -149,24 +155,31 @@ public class Idhkp {
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
 
-            F.add(ds->ds.get(R));
-            F.add(ds->ds.get(Z));
-            F.add(ds->ds.get(P));
-            F.add(ds->ds.get(X));
-            F.add(ds->ds.get(C));
-            F.add(ds->ds.get(W));
-            F.add(ds->ds.getTimeStep());
-            F.add(ds->ds.getTimeReal());
+            //F.add(ds->ds.get(R));
+            //F.add(ds->ds.get(Z));
+            //F.add(ds->ds.get(P));
+            //F.add(ds->ds.get(X));
+            //F.add(ds->ds.get(C));
+            //F.add(ds->ds.get(W));
+            //F.add(ds->ds.getTimeStep());
+            //F.add(ds->ds.getTimeReal());
             F.add(ds->ds.getTimeDelta());
-
-
-            //F.add(ds->ds.get(TIME));
+            F.add(ds->ds.get(TIME));
+            F.add(ds->ds.get(IS_IT));
+            F.add(ds->ds.get(REAC_RATE));
+            F.add(ds->1/ds.get(REAC_RATE));
+            //F.add(ds->ds.get(ESP));
+            F.add(ds->ds.get(IS_IT)/ds.get(REAC_RATE));
+            //F.add(ds->1.100512/2882.475500);
 
 //F.add(ds->ds.getTimeStep());
 
 //F.add(ds->ds.getGranularity());
 
-            printLData(new DefaultRandomGenerator(), L, F, system, 100, size*10);
+            //printLDataMin(new DefaultRandomGenerator(), L, F, system, 100, size*2);
+            //printLData(new DefaultRandomGenerator(), L, F, system, 100, size*2);
+            //printLDataMax(new DefaultRandomGenerator(), L, F, system, 100, size*2);
+            printLData(new DefaultRandomGenerator(), L, F, system2, 14500, size*2);
 
 
 //            DistanceExpression distance = new MaxIntervalDistanceExpression(
@@ -385,6 +398,30 @@ public class Idhkp {
         }
     }
 
+    private static void printLDataMin(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size) {
+        System.out.println(label);
+        double[][] data = SystemState.sample_min(rg, F, new NonePerturbation(), s, steps, size);
+        for (int i = 0; i < data.length; i++) {
+            System.out.printf("%d>   ", i);
+            for (int j = 0; j < data[i].length -1; j++) {
+                System.out.printf("%f   ", data[i][j]);
+            }
+            System.out.printf("%f\n", data[i][data[i].length -1]);
+        }
+    }
+
+    private static void printLDataMax(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size) {
+        System.out.println(label);
+        double[][] data = SystemState.sample_max(rg, F, new NonePerturbation(), s, steps, size);
+        for (int i = 0; i < data.length; i++) {
+            System.out.printf("%d>   ", i);
+            for (int j = 0; j < data[i].length -1; j++) {
+                System.out.printf("%f   ", data[i][j]);
+            }
+            System.out.printf("%f\n", data[i][data[i].length -1]);
+        }
+    }
+
     private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, Perturbation p, SystemState s, int steps, int size) {
         System.out.println(label);
         double[][] data = SystemState.sample(rg, F, p, s, steps, size);
@@ -431,8 +468,8 @@ public class Idhkp {
 
         Random random = new Random();
         double rand = random.nextDouble();
-        double t = (1/rate)*Math.log(1/rand);
-        return t;
+        return (1/rate)*Math.log(1/rand);
+        //return t;
     }
 
 
@@ -451,7 +488,20 @@ public class Idhkp {
             rate = rate + lambda[j];
         }
 
-        double e = Math.exp(-rate*state.getTimeDelta());
+        updates.add(new DataStateUpdate(REAC_RATE, rate));
+
+        Random random = new Random();
+        double rand = random.nextDouble();
+        updates.add(new DataStateUpdate(IS_IT,Math.log(1/rand)));
+        double t = (1/rate)*Math.log(1/rand);
+        state.setTimeDelta(t);
+        double newTime = state.get(TIME) + t;
+        updates.add(new DataStateUpdate(TIME, newTime));
+
+        double e = Math.exp(-rate*t);
+        //double e = Math.exp(-rate*state.getTimeDelta());
+
+        updates.add(new DataStateUpdate(ESP,e));
 
         Random r = new Random();
         double token = r.nextDouble();
@@ -503,10 +553,13 @@ public class Idhkp {
         values.put(R, 1000.0);
         values.put(X, 30.0);
         values.put(Z, 0.0);
-        values.put(P, 1.0);
+        values.put(P, 3000.0);
         values.put(C, 0.0);
         values.put(W, 10.0);
         values.put(TIME, 0.0);
+        values.put(REAC_RATE,0.0);
+        values.put(ESP,0.0);
+        values.put(IS_IT,0.0);
         return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN), gran, Tstep, Treal, Tdelta);
     }
 
