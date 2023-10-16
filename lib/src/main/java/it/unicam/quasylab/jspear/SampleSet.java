@@ -109,6 +109,13 @@ public class SampleSet<T extends SystemState> {
                 .sum() / otherData.length;
     }
 
+    private double computeDistance(double[] thisData, double[] otherData) {
+        int k = otherData.length / thisData.length;
+        return IntStream.range(0, thisData.length).parallel()
+                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.abs(otherData[i * k + j] - thisData[i])).sum())
+                .sum() / otherData.length;
+    }
+
 
     /**
      * Returns the asymmetric distance between <code>other</code> and this sample set computed according to
@@ -185,12 +192,14 @@ public class SampleSet<T extends SystemState> {
         if (this.size()%other.size()!=0 && other.size()%this.size()!=0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
+        double[] thisData = this.evalPenaltyFunction(f);
+        double[] otherData = other.evalPenaltyFunction(f);
         double[] W = new double[m];
         double WSum = 0.0;
         for (int i = 0; i<m; i++){
-            SampleSet<T> thisSampleSet = new SampleSet<>(this.stream().parallel().map(j -> this.states.get(rand.nextInt(this.size()))).toList());
-            SampleSet<T> otherSampleSet = new SampleSet<>(other.stream().parallel().map(j -> other.states.get(rand.nextInt(other.size()))).toList());
-            W[i] = thisSampleSet.distance(f,otherSampleSet);
+            double[] thisBootstrapData = IntStream.range(0, thisData.length).mapToDouble(j -> thisData[rand.nextInt(thisData.length)]).toArray();
+            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> otherData[rand.nextInt(otherData.length)]).toArray();
+            W[i] = computeDistance(thisBootstrapData,otherBootstrapData);
             WSum += W[i];
         }
         double BootMean = WSum/m;
@@ -228,12 +237,6 @@ public class SampleSet<T extends SystemState> {
             W[i] = computeDistanceLeq(thisBootstrapData, otherBootstrapData);
             WSum += W[i];
         }
-//        for (int i = 0; i<m; i++){
-//            SampleSet<T> thisSampleSet = new SampleSet<>(this.stream().parallel().map(j -> this.states.get(rand.nextInt(this.size()))).toList());
-//            SampleSet<T> otherSampleSet = new SampleSet<>(other.stream().parallel().map(j -> other.states.get(rand.nextInt(other.size()))).toList());
-//            W[i] = thisSampleSet.distanceLeq(f,otherSampleSet);
-//            WSum += W[i];
-//        }
         double BootMean = WSum/m;
         double StandardError = Math.sqrt(IntStream.range(0,m).mapToDouble(j->Math.pow(W[j]-BootMean,2)).sum()/(m-1));
         double[] CI = new double[2];
@@ -270,12 +273,6 @@ public class SampleSet<T extends SystemState> {
             W[i] = computeDistanceGeq(thisBootstrapData, otherBootstrapData);
             WSum += W[i];
         }
-        //for (int i = 0; i<m; i++){
-        //    SampleSet<T> thisSampleSet = new SampleSet<>(this.stream().parallel().map(j -> this.states.get(rand.nextInt(this.size()))).toList());
-        //    SampleSet<T> otherSampleSet = new SampleSet<>(other.stream().parallel().map(j -> other.states.get(rand.nextInt(other.size()))).toList());
-        //    W[i] = thisSampleSet.distanceGeq(f,otherSampleSet);
-        //    WSum += W[i];
-        //}
         double BootMean = WSum/m;
         double StandardError = Math.sqrt(IntStream.range(0,m).mapToDouble(j->Math.pow(W[j]-BootMean,2)).sum()/(m-1));
         double[] CI = new double[2];
