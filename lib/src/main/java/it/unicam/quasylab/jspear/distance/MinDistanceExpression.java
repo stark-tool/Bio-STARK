@@ -45,22 +45,6 @@ public final class MinDistanceExpression implements DistanceExpression {
     }
 
     @Override
-    public double computeLeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        if (step<0) {
-            throw new IllegalArgumentException();
-        }
-        return Math.min(expr1.computeLeq(step, seq1, seq2), expr2.computeLeq(step, seq1, seq2));
-    }
-
-    @Override
-    public double computeGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        if (step<0) {
-            throw new IllegalArgumentException();
-        }
-        return Math.min(expr1.computeGeq(step, seq1, seq2), expr2.computeGeq(step, seq1, seq2));
-    }
-
-    @Override
     public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
         if (step<0) {
             throw new IllegalArgumentException();
@@ -70,23 +54,4 @@ public final class MinDistanceExpression implements DistanceExpression {
                 .toArray();
     }
 
-    @Override
-    public double[] evalCILeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
-        if (step<0) {
-            throw new IllegalArgumentException();
-        }
-        return IntStream.range(0,3)
-                .mapToDouble(i -> Math.min(expr1.evalCILeq(step, seq1, seq2, m, z)[i], expr2.evalCILeq(step, seq1, seq2, m, z)[i]))
-                .toArray();
-    }
-
-    @Override
-    public double[] evalCIGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
-        if (step<0) {
-            throw new IllegalArgumentException();
-        }
-        return IntStream.range(0,3)
-                .mapToDouble(i -> Math.min(expr1.evalCIGeq(step, seq1, seq2, m, z)[i], expr2.evalCIGeq(step, seq1, seq2, m, z)[i]))
-                .toArray();
-    }
 }

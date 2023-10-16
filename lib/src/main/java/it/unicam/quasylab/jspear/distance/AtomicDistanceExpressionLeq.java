@@ -38,14 +38,6 @@ public final class AtomicDistanceExpressionLeq implements DistanceExpression {
         return seq1.get(step).distanceLeq(rho, seq2.get(step));
     }
 
-    public double computeLeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return seq1.get(step).distanceLeq(rho, seq2.get(step));
-    }
-
-    public double computeGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return seq1.get(step).distanceGeq(rho, seq2.get(step));
-    }
-
     @Override
     public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
         double[] res = new double[3];
@@ -53,28 +45,6 @@ public final class AtomicDistanceExpressionLeq implements DistanceExpression {
         double[] partial = seq1.get(step).bootstrapDistanceLeq(rho, seq2.get(step),m,z);
         res[1] = partial[0];
         res[2] = partial[1];
-        return res;
-    }
-
-    public double[] evalCILeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
-        double[] res = new double[3];
-        res[0] = seq1.get(step).distanceLeq(rho, seq2.get(step));
-        double[] partial = seq1.get(step).bootstrapDistanceLeq(rho, seq2.get(step),m,z);
-        res[1] = partial[0];
-        res[2] = partial[1];
-        //res[1] = seq1.get(step).bootstrapDistanceLeq(rho, seq2.get(step),m,z)[0];
-        //res[2] = seq1.get(step).bootstrapDistanceLeq(rho, seq2.get(step),m,z)[1];
-        return res;
-    }
-
-    public double[] evalCIGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
-        double[] res = new double[3];
-        res[0] = seq1.get(step).distanceGeq(rho, seq2.get(step));
-        double[] partial = seq1.get(step).bootstrapDistanceGeq(rho, seq2.get(step),m,z);
-        res[1] = partial[0];
-        res[2] = partial[1];
-        //res[1] = seq1.get(step).bootstrapDistanceGeq(rho, seq2.get(step),m,z)[0];
-        //res[2] = seq1.get(step).bootstrapDistanceGeq(rho, seq2.get(step),m,z)[1];
         return res;
     }
 
