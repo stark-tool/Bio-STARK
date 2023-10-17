@@ -46,6 +46,9 @@ public class ProbabilisticInterleavingController implements Controller {
      * @param rightController a controller.
      */
     public ProbabilisticInterleavingController(int p, Controller leftController, Controller rightController) {
+        if (p<0 || p>1) {
+            throw new IllegalArgumentException("Illegal probability weight!");
+        }
         this.p = p;
         this.leftController = leftController;
         this.rightController = rightController;

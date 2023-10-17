@@ -45,6 +45,9 @@ public class GenerativeChoiceController implements Controller{
      * @param rightController the controller chosen with probability <code>1-p</code>.
      */
     public GenerativeChoiceController(int p, Controller leftController, Controller rightController) {
+        if (p<0 || p>1) {
+            throw new IllegalArgumentException("Illegal probability weight!");
+        }
         this.p = p;
         this.leftController = leftController;
         this.rightController = rightController;
