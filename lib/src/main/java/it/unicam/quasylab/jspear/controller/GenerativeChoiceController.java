@@ -1,0 +1,64 @@
+/*
+ * JSpear: a SimPle Environment for statistical estimation of Adaptation and Reliability.
+ *
+ *              Copyright (C) 2020.
+ *
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *             http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package it.unicam.quasylab.jspear.controller;
+
+import it.unicam.quasylab.jspear.ds.DataState;
+import org.apache.commons.math3.random.RandomGenerator;
+
+import java.util.function.BiPredicate;
+
+/**
+ * A controller that implements a generative probabilistic choice between two controllers.
+ */
+public class GenerativeChoiceController implements Controller{
+
+    private final int p;
+    private final Controller leftController;
+    private final Controller rightController;
+
+    /**
+     * Creates a controller that behaves like <code>leftController</code> with probability <code>p</code>,
+     * and like <code>rightController</code> with probability <code>1-p</code>.
+     *
+     * @param p a probability weight.
+     * @param leftController the controller chosen with probability <code>p</code>.
+     * @param rightController the controller chosen with probability <code>1-p</code>.
+     */
+    public GenerativeChoiceController(int p, Controller leftController, Controller rightController) {
+        this.p = p;
+        this.leftController = leftController;
+        this.rightController = rightController;
+    }
+
+    @Override
+    public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
+        double p = rg.nextDouble();
+        if (p <= this.p) {
+            return leftController.next(rg,state);
+        }
+        else{
+            return rightController.next(rg,state);
+        }
+    }
+
+}
