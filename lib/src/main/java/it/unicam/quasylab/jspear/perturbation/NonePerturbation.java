@@ -27,20 +27,35 @@ import it.unicam.quasylab.jspear.ds.DataStateFunction;
 import java.util.Optional;
 
 /**
- * Represents a perturbation that has terminated its effects.
+ * Class NonePerturbation implements a perturbation that has no effects.
  */
 public final class NonePerturbation implements Perturbation {
 
+    /**
+     * The perturbation has no effects.
+     *
+     * @return the empty effect.
+     */
     @Override
     public Optional<DataStateFunction> effect() {
         return Optional.empty();
     }
 
+    /**
+     * The perturbation never changes its behaviour.
+     *
+     * @return the perturbation itself.
+     */
     @Override
     public Perturbation step() {
         return this;
     }
 
+    /**
+     * Since it has no effects at any time step, the perturbation has terminated.
+     *
+     * @return true
+     */
     @Override
     public boolean isDone() {
         return true;

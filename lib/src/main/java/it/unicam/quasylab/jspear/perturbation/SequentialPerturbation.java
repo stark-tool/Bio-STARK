@@ -27,14 +27,19 @@ import it.unicam.quasylab.jspear.ds.DataStateFunction;
 import java.util.Optional;
 
 /**
- * Aggregate a list of perturbations that must be performed one after the other.
+ * Defines the sequential composition of two perturbations that must be applied one after the other.
  *
- * @param first first perturbation in the sequence.
- * @param second second perturbation in the sequence.
+ * @param first first perturbation to be applied.
+ * @param second second perturbation to be applied.
  */
 public record SequentialPerturbation(Perturbation first, Perturbation second) implements Perturbation {
 
-
+    /**
+     * The second perturbation is applied only once the first one has terminated.
+     *
+     * @return the effect of <code>second</code> if <code>first</code> has terminated.
+     * The effect of <code>first</code> otherwise.
+     */
     @Override
     public Optional<DataStateFunction> effect() {
         if (first.isDone()) {
@@ -44,6 +49,13 @@ public record SequentialPerturbation(Perturbation first, Perturbation second) im
         }
     }
 
+    /**
+     * The perturbation follows the evolution of the first perturbation until it terminates.
+     * Afterward, it follows the evolution of the second perturbations.
+     *
+     * @return the evolution of <code>second</code> if <code>first</code> has terminated.
+     * The sequential composition of the evolution of <code>first</code> with <code>second</code> otherwise.
+     */
     @Override
     public Perturbation step() {
         if (first().isDone()) {
@@ -53,6 +65,12 @@ public record SequentialPerturbation(Perturbation first, Perturbation second) im
         }
     }
 
+    /**
+     * The perturbation terminates only once both perturbation terminate.
+     *
+     * @return <code>true</code> if both perturbations have terminated.
+     * <code>false</code> otherwise.
+     */
     @Override
     public boolean isDone() {
         return first().isDone()&&second.isDone();

@@ -31,37 +31,46 @@ import org.apache.commons.math3.random.RandomGenerator;
 import java.util.Optional;
 
 /**
- * This interface model a perturbation applied to a given sample set.
+ * This interface models a perturbation applied to a given sample set.
  */
-public sealed interface Perturbation permits AfterPerturbation, AtomicPerturbation, IterativePerturbation, NonePerturbation, SequentialPerturbation {
-
+public sealed interface Perturbation permits
+        AfterPerturbation,
+        AtomicPerturbation,
+        IterativePerturbation,
+        NonePerturbation,
+        SequentialPerturbation {
 
     Perturbation NONE = new NonePerturbation();
 
     /**
-     * Returns the effect of this perturbation at the current time.
+     * Returns the effect of this perturbation at the current time step.
      *
-     * @return the effect of this perturbation at the current time.
+     * @return the effect of this perturbation at the current time step.
      */
     Optional<DataStateFunction> effect();
 
-
     /**
-     * Returns the perturbation active after one computational step.
+     * Returns the perturbation that will be applied at the next step.
      *
-     * @return the perturbation active after one computational step.
+     * @return the perturbation that will be applied at the next step.
      */
     Perturbation step();
 
-
     /**
-     * Returns true if this perturbation has been terminated its effects.
+     * Returns true if this perturbation has terminated its effects.
      *
-     * @return true if this perturbation has been terminated its effects.
+     * @return true if this perturbation has terminated its effects.
      */
     boolean isDone();
 
-
+    /**
+     * Applies the effect of this perturbation, if present, to the current data state.
+     *
+     * @param rg random generator
+     * @param state the current data state
+     * @return <code>state</code> modified by the effect of the perturbation, if there is any.
+     * Returns <code>state</code>, otherwise.
+     */
     default DataState apply(RandomGenerator rg, DataState state) {
         Optional<DataStateFunction> effect = effect();
         if (effect.isPresent()) {
@@ -71,8 +80,17 @@ public sealed interface Perturbation permits AfterPerturbation, AtomicPerturbati
         }
     }
 
-    default SystemState apply(RandomGenerator rg, SystemState state) {
-        return new PerturbedSystem(state.setDataState(this.apply(rg, state.getDataState())), this);
+    /**
+     * Generates a perturbed system affected by this perturbation.
+     *
+     * @param rg random generator
+     * @param system the nominal system
+     * @return a <code>PerturbedSystem</code> in which <code>this</code> perturbation is active,
+     * and whose initial data state is obtained by applying the effect of <code>this</code> perturbation
+     * to the current data state of <code>system</code>.
+     */
+    default SystemState apply(RandomGenerator rg, SystemState system) {
+        return new PerturbedSystem(system.setDataState(this.apply(rg, system.getDataState())), this);
     }
 
 }

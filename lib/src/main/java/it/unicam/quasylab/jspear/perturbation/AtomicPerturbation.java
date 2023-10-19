@@ -28,12 +28,23 @@ import it.unicam.quasylab.jspear.ds.DataStateFunction;
 import java.util.Optional;
 
 /**
- * An atomic perturbation is used to apply a given function.
+ * An atomic perturbation is used to apply a given perturbation function to the system after a given number of time steps.
  *
+ * @param afterSteps counter for the number of time steps during which the perturbation has no effect.
+ *                   Note: since the perturbation is applied when the counter reaches 0,
+ *                   the actual length of the time-out is of <code>afterSteps+1</code> time steps.
  * @param perturbationFunction perturbation function to apply.
  */
 public record AtomicPerturbation(int afterSteps, DataStateFunction perturbationFunction) implements Perturbation {
 
+    /**
+     * If the initial time-out has passed, the perturbation function is applied.
+     * Note: since the perturbation is applied when the counter reaches 0,
+     * the actual length of the time-out is of <code>afterSteps+1</code> time steps.
+     *
+     * @return the <code>effect</code> of <code>perturbationFunction</code> is the counter <code>afterSteps</code> is 0,
+     * the empty effect otherwise.
+     */
     @Override
     public Optional<DataStateFunction> effect() {
         if (afterSteps <= 0) {
@@ -43,6 +54,18 @@ public record AtomicPerturbation(int afterSteps, DataStateFunction perturbationF
         }
     }
 
+    /**
+     * The perturbation at the next step is the same perturbation with the counter decreased by 1, if the initial time-put has not yet passed,
+     * or the perturbation with no effects, if it has passed.
+     * Note: since the perturbation is applied when the counter reaches 0,
+     * the actual length of the time-out is of <code>afterSteps+1</code> time steps.
+     *
+     * @return a <code>NonePerturbation</code> if the counter <code>afterStep</code> is 0,
+     * an <code>AtomicPerturbation</code> having as parameters
+     * the counter <code>afterStep</code> decreased by 1 and
+     * this <code>perturbationFunction</code>
+     * otherwise.
+     */
     @Override
     public Perturbation step() {
         if (afterSteps <= 0) {
@@ -52,6 +75,12 @@ public record AtomicPerturbation(int afterSteps, DataStateFunction perturbationF
         }
     }
 
+    /**
+     * This perturbation will terminate only once the perturbation function is applied,
+     * and this perturbation evolves into a perturbation with no effects.
+     *
+     * @return false
+     */
     @Override
     public boolean isDone() {
         return false;

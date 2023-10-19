@@ -34,7 +34,12 @@ import java.util.Optional;
  */
 public record IterativePerturbation(int replica, Perturbation body) implements Perturbation {
 
-
+    /**
+     * Returns the effect of the perturbation if the number of remaining iterations is positive.
+     *
+     * @return the effect of <code>body</code> if the counter <code>replica</code> is positive.
+     * Otherwise, it returns the empty effect.
+     */
     @Override
     public Optional<DataStateFunction> effect() {
         if (replica>0) {
@@ -44,6 +49,14 @@ public record IterativePerturbation(int replica, Perturbation body) implements P
         }
     }
 
+    /**
+     * Returns the sequential composition of the evolution of the perturbation with the remaining iterations, diminished by 1, if the counter is positive.
+     * Otherwise, the iteration has terminated and the perturbation with no effects is returned.
+     *
+     * @return the sequential composition of the evolution of <code>body</code> with the remaining iterations decreased by 1, if the counter
+     * <code>replica</code> is positive.
+     * Otherwise, it returns the <code>NonePerturbation</code>.
+     */
     @Override
     public Perturbation step() {
         if (replica > 0) {
@@ -53,6 +66,11 @@ public record IterativePerturbation(int replica, Perturbation body) implements P
         }
     }
 
+    /**
+     * The perturbation terminates when there are no iterations left.
+     *
+     * @return the boolean evaluation of <code>replica <= 0</code>.
+     */
     @Override
     public boolean isDone() {
         return replica<=0;
