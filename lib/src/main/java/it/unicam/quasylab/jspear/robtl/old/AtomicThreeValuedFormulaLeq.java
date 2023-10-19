@@ -54,7 +54,7 @@ public final class AtomicThreeValuedFormulaLeq implements ThreeValuedFormula {
 
     @Override
     public TruthValues eval(int sampleSize, int step, EvolutionSequence sequence) {
-        double[] res = expr.evalCILeq(step, sequence, sequence.apply(perturbation, step, sampleSize), m, z);
+        double[] res = expr.evalCI(step, sequence, sequence.apply(perturbation, step, sampleSize), m, z);
         if(res[1] < value && value < res[2]){return TruthValues.UNKNOWN;}
         if(relop.eval(res[0],value)){return TruthValues.TRUE;}
         return TruthValues.FALSE;
