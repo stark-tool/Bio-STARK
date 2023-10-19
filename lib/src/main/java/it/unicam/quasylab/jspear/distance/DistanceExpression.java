@@ -26,6 +26,10 @@ import it.unicam.quasylab.jspear.EvolutionSequence;
 
 import java.util.stream.IntStream;
 
+/**
+ * Distance expressions are used for the definition of distances between evolution sequences.
+ * The interface also offers the methods for their evaluation.
+ */
 public sealed interface DistanceExpression permits
         AtomicDistanceExpressionLeq,
         AtomicDistanceExpressionGeq,
@@ -38,32 +42,51 @@ public sealed interface DistanceExpression permits
         ThresholdDistanceExpression {
 
     /**
-     * Returns the evaluation of the distance expression among the two sequences at the given step.
+     * Returns the evaluation of the distance expression between the two sequences at the given step.
      *
-     * @param step step where the expression is evaluated
+     * @param step time step at which we start the evaluation of the expression
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
-     * @return the evaluation of the distance expression at the given step among the two sequences.
+     * @return the evaluation of the distance expression at the given step between the two sequences.
      */
     double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2);
 
+    /**
+     * Returns the evaluation of the distance expression between the two sequences at each time step in a given interval.
+     *
+     * @param from left bound of the time interval
+     * @param to right bound of the time interval
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @return the array containing the evaluations of the distance expression between <code>seq1</code> and <code>seq2</code>
+     * at each time step in <code>[from,to]</code>
+     */
     default double[] compute(int from, int to, EvolutionSequence seq1, EvolutionSequence seq2) {
         return compute(IntStream.range(from, to+1).toArray(), seq1, seq2);
     }
 
+    /**
+     * Returns the evaluation of the distance expression between the two sequences at each time step in a given interval.
+     *
+     * @param steps time interval
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @return the array containing the evaluations of the distance expression between <code>seq1</code> and <code>seq2</code>
+     * at each time step in <code>steps</code>
+     */
     default double[] compute(int[] steps, EvolutionSequence seq1, EvolutionSequence seq2) {
         return IntStream.of(steps).mapToDouble(i -> compute(i, seq1, seq2)).toArray();
     }
 
-
     /**
-     * Returns the evaluation of the distance expression among the two sequences at the given step and the related confidence interval.
+     * Returns the evaluation of the distance expression among the two sequences at the given step
+     * and the related confidence interval with respect to a desired coverage probability.
      *
-     * @param step step where the expression is evaluated
+     * @param step time step at which we start the evaluation of the expression
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
-     * @param m number of repetition for bootstrapping
-     * @param z the desired z-score
+     * @param m number of repetition for the bootstrap method
+     * @param z the quantile of the standard normal distribution corresponding to the desired coverage probability.
      * @return the evaluation of the distance expression at the given step among the two sequences and its confidence interval.
      */
     double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z);

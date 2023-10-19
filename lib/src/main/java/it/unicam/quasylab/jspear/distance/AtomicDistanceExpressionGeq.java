@@ -25,19 +25,49 @@ package it.unicam.quasylab.jspear.distance;
 import it.unicam.quasylab.jspear.EvolutionSequence;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 
+/**
+ * Class AtomicDistanceExpressionGeq implements the atomic distance expression
+ * evaluating the hemidistance between the second and the first evolution sequence at a given time step.
+ */
 public final class AtomicDistanceExpressionGeq implements DistanceExpression {
 
     private final DataStateExpression rho;
 
+    /**
+     * Generates the atomic distance expression that will use the given penalty function
+     * for the evaluation of the ground distance on data states
+     * @param rho the penalty function
+     */
     public AtomicDistanceExpressionGeq(DataStateExpression rho) {
         this.rho = rho;
     }
 
+    /**
+     * Evaluates the hemidistance between the second and first evolution sequence at the given time step.
+     *
+     * @param step time step at which the atomic is evaluated
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @return the hemidistance between the distribution reached by <code>seq2</code> and that reached by <code>seq1</code> at time <code>step</code>.
+     */
     @Override
     public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
         return seq1.get(step).distanceGeq(rho, seq2.get(step));
     }
 
+    /**
+     * In addition to the evaluation of the distance,
+     * it also computes, via empirical bootstrap, the confidence interval on the evaluation
+     * with respect to a desired coverage probability.
+     *
+     * @param step time step at which the atomic distance is evaluated
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @param m number of repetitions for the bootstrap method
+     * @param z the quantile of the normal distribution encoding the desired coverage probability
+     * @return the array containing the evaluation of the distance
+     * and the two bounds of the confidence interval evaluated via empirical bootstrap.
+     */
     @Override
     public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
         double[] res = new double[3];

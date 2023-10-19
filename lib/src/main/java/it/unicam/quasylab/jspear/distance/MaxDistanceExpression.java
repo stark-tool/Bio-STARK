@@ -26,16 +26,36 @@ import it.unicam.quasylab.jspear.EvolutionSequence;
 
 import java.util.stream.IntStream;
 
+/**
+ * Class MaxDistanceExpression implements the evaluation of the maximum between two given distance expressions.
+ */
 public final class MaxDistanceExpression implements DistanceExpression {
 
     private final DistanceExpression expr1;
     private final DistanceExpression expr2;
 
+    /**
+     * Generates the distance expression for the evaluation of the maximum of the two given distance expressions.
+     *
+     * @param expr1 a distance expression
+     * @param expr2 a distance expression.
+     */
     public MaxDistanceExpression(DistanceExpression expr1, DistanceExpression expr2) {
         this.expr1 = expr1;
         this.expr2 = expr2;
     }
 
+
+    /**
+     * Computes the two expressions between two given evolution sequences at a given time steps
+     * and then evaluates the maximum.
+     *
+     * @param step time step at which we start the evaluation of the expression
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @return the maximum between the evaluation of <code>expr1</code> between <code>seq1</code> and <code>seq2</code> at time <code>step</code>
+     * and the evaluation of <code>expr2</code> between <code>seq1</code> and <code>seq2</code> at time <code>step</code>.
+     */
     @Override
     public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
         if (step<0) {
@@ -44,7 +64,19 @@ public final class MaxDistanceExpression implements DistanceExpression {
         return Math.max(expr1.compute(step, seq1, seq2), expr2.compute(step, seq1, seq2));
     }
 
-
+    /**
+     * The confidence interval is obtained from the confidence intervals on the evaluations of the two expressions
+     * by taking the maxima for each bound.
+     *
+     * @param step time step at which we start the evaluation of the expression
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @param m number of repetition for the bootstrap method
+     * @param z the quantile of the standard normal distribution corresponding to the desired coverage probability.
+     * @return the evaluation of the maximum and the related confidence interval,
+     * whose bounds are obtained by taking the maximum of the respective bounds from the
+     * confidence intervals on the evaluations of the two expressions.
+     */
     @Override
     public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
         if (step<0) {
