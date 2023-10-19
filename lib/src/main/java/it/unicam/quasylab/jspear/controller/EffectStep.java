@@ -58,6 +58,12 @@ public record EffectStep<T>(List<DataStateUpdate> effect, T next) {
         return new EffectStep<>(newEffects, stepOperator.apply(this.next, other.next));
     }
 
+    /**
+     * Returns the concatenation of a customary list of updates with this step.
+     *
+     * @param updates the list of updates to be applied before this step.
+     * @return a step consisting of the concatenation of the given updates with the application of this step.
+     */
     public EffectStep<T> applyBefore(List<DataStateUpdate> updates) {
         if (updates.isEmpty()) {
             return this;

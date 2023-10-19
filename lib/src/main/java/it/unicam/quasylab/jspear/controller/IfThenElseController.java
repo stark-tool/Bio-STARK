@@ -28,7 +28,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 import java.util.function.BiPredicate;
 
 /**
- * A controller that implements an if-then-else behaviour.
+ * Class IfThenElseController implements a controller that
+ * implements an if-then-else behaviour.
  */
 public class IfThenElseController implements Controller{
 
@@ -37,7 +38,8 @@ public class IfThenElseController implements Controller{
     private final Controller elseController;
 
     /**
-     * Creates a controller that behaves like <code>thenController</code> when the <code>guard</code> is satisfied,
+     * Creates a controller that
+     * behaves like <code>thenController</code> when the <code>guard</code> is satisfied,
      * and like <code>elseController</code> when this is not satisfied.
      *
      * @param guard a predicate on data states.
@@ -50,6 +52,17 @@ public class IfThenElseController implements Controller{
         this.elseController = elseController;
     }
 
+    /**
+     * Defines the effect of an IfThenElseController:
+     * if the <code>guard</code> is satisfied,
+     * the effect of <code>thenController</code> is applied,
+     * otherwise, the effect of <code>elseController</code> is applied.
+     *
+     * @param rg random generator
+     * @param state the current data state
+     * @return the effect of <code>thenController</code> on <code>state</code> if the <code>guard</code> evaluates to <code>true</code>,
+     * the effect of <code>elseController</code> on <code>state</code> otherwise.
+     */
     @Override
     public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
         return (guard.test(rg, state)?thenController.next(rg, state):elseController.next(rg, state));

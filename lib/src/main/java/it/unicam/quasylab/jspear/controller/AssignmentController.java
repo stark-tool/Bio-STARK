@@ -29,15 +29,36 @@ import org.apache.commons.math3.random.RandomGenerator;
 import java.util.List;
 import java.util.function.BiFunction;
 
+/**
+ * Class AssignmentController implements a controller that
+ * applies a given list of updates (assignments) to the data state,
+ * and then behaves like a given controller in the current step.
+ */
 public class AssignmentController implements Controller {
     private final BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment;
     private final Controller nextController;
 
+    /**
+     * Generates a controller that
+     * applies a list of updates to the data state
+     * and then behaves like <code>nextController</code> in the current step
+     *
+     * @param assignment list of updates to be applied to the data state
+     * @param nextController controller enabled after the update
+     */
     public AssignmentController(BiFunction<RandomGenerator, DataState, List<DataStateUpdate>> assignment, Controller nextController) {
         this.assignment = assignment;
         this.nextController = nextController;
     }
 
+    /**
+     * The updates in the list are applied to the current data state
+     * and then the effect and transition of <code>nextController</code> are applied
+     *
+     * @param rg random generator
+     * @param state the current data state
+     * @return effect and transition of <code>nextController</code> starting its execution on the updated <code>state</code>
+     */
     @Override
     public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
         return nextController.next(rg, state).applyBefore(assignment.apply(rg, state));

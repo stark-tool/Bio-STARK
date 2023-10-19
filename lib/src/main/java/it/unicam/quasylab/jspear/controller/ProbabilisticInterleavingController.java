@@ -29,8 +29,10 @@ import org.apache.commons.math3.random.RandomGenerator;
 import java.util.List;
 
 /**
- * Represents a controller consisting of two controllers running in probabilistic interleaving. At each step the
- * effects and the transitions of the controller chosen probabilistically are applied.
+ * Class ProbabilisticInterleavingController implements a controller consisting of
+ * two controllers running in probabilistic interleaving.
+ * At each step the effects and the transitions of the controller are chosen probabilistically
+ * between the ones of the two controllers.
  */
 public class ProbabilisticInterleavingController implements Controller {
 
@@ -39,7 +41,7 @@ public class ProbabilisticInterleavingController implements Controller {
     private final Controller rightController;
 
     /**
-     * Creates a new controller consisting by the probabilistic interleaving of the two given controllers.
+     * Creates a new controller consisting of the probabilistic interleaving of the two given controllers.
      *
      * @param p a probability weight.
      * @param leftController a controller.
@@ -54,6 +56,20 @@ public class ProbabilisticInterleavingController implements Controller {
         this.rightController = rightController;
     }
 
+    /**
+     * With probability <code>p</code>, the effect of <code>leftController</code> is applied to the data state,
+     * and with probability <code>1-p</code>, the one of <code>rightController</code> is applied.
+     * The controller that takes a transition to the probabilistic interleaving
+     * of the next behaviour of the controller that applied the effect,
+     * and the current behaviour of the other controller.
+     *
+     * @param rg random generator
+     * @param state the current data state
+     * @return with probability <code>p</code>, the effect of <code>leftController</code> on <code>state</code>
+     * and the probabilistic interleaving of the target of the transition of <code>leftController</code> with <code>rightController</code>;
+     * with probability <code>1-p</code>, the effect of <code>rightController</code> on <code>state</code>
+     * and the probabilistic interleaving of <code>leftController</code> with the target of the transition of <code>rightController</code>.
+     */
     @Override
     public EffectStep<Controller> next(RandomGenerator rg, DataState state) {
         double p = rg.nextDouble();
