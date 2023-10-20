@@ -70,7 +70,7 @@ public final class LinearCombinationDistanceExpression implements DistanceExpres
      * @param step time step at which we start the evaluation of the expression
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
-     * @param m number of repetition for bootstrapping
+     * @param m number of repetitions for the bootstrap method
      * @param z the desired z-score
      * @return the evaluation of the convex combination and the related confidence interval,
      * whose bounds are obtained as the convex combinations of the respective bounds from the

@@ -24,6 +24,9 @@ package it.unicam.quasylab.jspear.robtl;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
 
+/**
+ * Defines the formula TRUE.
+ */
 public final class TrueRobustnessFormula implements RobustnessFormula {
 
     @Override

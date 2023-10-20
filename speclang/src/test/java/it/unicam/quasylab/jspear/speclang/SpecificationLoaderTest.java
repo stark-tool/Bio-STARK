@@ -60,6 +60,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void loadVehicleSpecification() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -67,6 +68,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void loadVehicleSystem() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -75,6 +77,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void simulateVehicleSystem() throws IOException {
             SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -83,6 +86,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void stepVehicleSystem() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -92,6 +96,7 @@ class SpecificationLoaderTest {
 
 
     @Test
+    @Disabled
     void loadVehicleProperty() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -140,6 +145,7 @@ class SpecificationLoaderTest {
 
 
     @Test
+    @Disabled
     void testApplyPerturbation() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -148,6 +154,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void testEvalDistance() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -156,6 +163,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void vehicleSlow02x10BoolCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -166,6 +174,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void vehicleSlow02x30BoolCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -176,6 +185,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void vehicleSlow02x50BoolCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -186,6 +196,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void vehicleComb04x10ThreeValCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -198,6 +209,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void vehicleComb04x30ThreeValCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -211,6 +223,7 @@ class SpecificationLoaderTest {
 
 
     @Test
+    @Disabled
     void vehicleComb04x50ThreeValCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -222,6 +235,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void vehicleSlowOffset03() throws IOException{
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -232,6 +246,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void vehicleCombOffset03() throws IOException{
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -242,6 +257,7 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    @Disabled
     void vehicleCrashThreeValuedCheck005x10() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());

@@ -75,7 +75,7 @@ public final class ThresholdDistanceExpression implements DistanceExpression {
      * @param step time step at which we start the evaluation of the expression
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
-     * @param m number of repetition for the bootstrap method
+     * @param m number of repetitions for the bootstrap method
      * @param z the quantile of the standard normal distribution corresponding to the desired coverage probability.
      * @return [0.0,1.0] if <code>threshold</code> belongs to the confidence interval on the evaluation of
      * <code>expression</code> between <code>seq1</code> and <code>seq2</code> at time <code>step</code>.

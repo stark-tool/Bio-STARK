@@ -26,13 +26,24 @@ import it.unicam.quasylab.jspear.EvolutionSequence;
 
 import java.util.stream.IntStream;
 
+/**
+ * We use the "eventually" operator to specify that
+ * given formula must be satisfied in at least one time step in a given interval.
+ */
 public final class EventuallyRobustnessFormula implements RobustnessFormula {
-    private final RobustnessFormula arg;
+    private final RobustnessFormula formula;
     private final int from;
     private final int to;
 
-    public EventuallyRobustnessFormula(RobustnessFormula arg, int from, int to) {
-        this.arg = arg;
+    /**
+     * The "eventually" formula takes three parameters:
+     *
+     * @param formula a RobTL formula
+     * @param from the left bound of the time interval
+     * @param to the right bound of the time interval.
+     */
+    public EventuallyRobustnessFormula(RobustnessFormula formula, int from, int to) {
+        this.formula = formula;
         this.from = from;
         this.to = to;
     }
@@ -40,25 +51,40 @@ public final class EventuallyRobustnessFormula implements RobustnessFormula {
     @Override
     public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean isParallel) {
         if (isParallel) {
-            return IntStream.of(from, to).parallel().anyMatch(i -> arg.eval(sampleSize, step+i, sequence));
+            return IntStream.of(from, to).parallel().anyMatch(i -> formula.eval(sampleSize, step+i, sequence));
         } else {
-            return IntStream.of(from, to).sequential().anyMatch(i -> arg.eval(sampleSize, step+i, sequence));
+            return IntStream.of(from, to).sequential().anyMatch(i -> formula.eval(sampleSize, step+i, sequence));
         }
     }
 
     @Override
     public <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator) {
-        return evaluator.evaEventually(this);
+        return evaluator.evalEventually(this);
     }
 
+    /**
+     * Returns the RobTL formula passed as argument to this formula.
+     *
+     * @return parameter <code>formula</code>.
+     */
     public RobustnessFormula getArgument() {
-        return arg;
+        return formula;
     }
 
+    /**
+     * Returns the left bound of the time interval in this formula.
+     *
+     * @return parameter <code>from</code>.
+     */
     public int getFrom() {
         return from;
     }
 
+    /**
+     * Returns the right bound of the time interval in this formula.
+     *
+     * @return parameter <code>to</code>.
+     */
     public int getTo() {
         return to;
     }

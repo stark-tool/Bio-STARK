@@ -83,7 +83,7 @@ public final class MinIntervalDistanceExpression implements DistanceExpression {
      * @param step time step at which we start the evaluation of the expression
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
-     * @param m number of repetition for the bootstrap method
+     * @param m number of repetitions for the bootstrap method
      * @param z the quantile of the standard normal distribution corresponding to the desired coverage probability.
      * @return the evaluation of the minimum evaluation and the related confidence interval,
      * whose bounds are obtained by taking the minimum of the respective bounds from the

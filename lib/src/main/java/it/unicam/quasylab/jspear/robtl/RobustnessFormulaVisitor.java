@@ -22,6 +22,12 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
+/**
+ * This interface offers the methods necessary for the evaluation of RobTL formulae
+ * in the given interpretation domain (Boolean, or three-valued).
+ *
+ * @param <T> interpretation domain.
+ */
 public interface RobustnessFormulaVisitor<T> {
 
     RobustnessFunction<T> eval(RobustnessFormula formula);
@@ -34,6 +40,8 @@ public interface RobustnessFormulaVisitor<T> {
 
     RobustnessFunction<T> evalDisjunction(DisjunctionRobustnessFormula disjunctionRobustnessFormula);
 
+    RobustnessFunction<T> evalEventually(EventuallyRobustnessFormula eventuallyRobustnessFormula);
+
     RobustnessFunction<T> evalFalse();
 
     RobustnessFunction<T> evalImplication(ImplicationRobustnessFormula implicationRobustnessFormula);
@@ -44,5 +52,4 @@ public interface RobustnessFormulaVisitor<T> {
 
     RobustnessFunction<T> evalUntil(UntilRobustnessFormula untilRobustnessFormula);
 
-    RobustnessFunction<T> evaEventually(EventuallyRobustnessFormula eventuallyRobustnessFormula);
 }

@@ -27,38 +27,41 @@ import it.unicam.quasylab.jspear.EvolutionSequence;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import it.unicam.quasylab.jspear.ds.RelationOperator;
 
+/**
+ * Assuming an evolution sequence and a time step,
+ * we use the atomic formula to evaluate the distance,
+ * specified by a given expression,
+ * between the evolution sequence and its perturbation,
+ * obtained by applying a given perturbation from the time step,
+ * and to compare it with a given threshold.
+ */
 public final class AtomicRobustnessFormula implements RobustnessFormula {
 
     private final Perturbation perturbation;
     private final DistanceExpression expr;
     private final RelationOperator relop;
-    private final double value;
-    private final int op;
+    private final double threshold;
 
-    public AtomicRobustnessFormula(Perturbation perturbation, DistanceExpression expr, RelationOperator relop, double value) {
-        this(perturbation, expr, relop, value, 0);
-    }
-
-    public AtomicRobustnessFormula(Perturbation perturbation, DistanceExpression expr, RelationOperator relop, double value, int op) {
+    /**
+     * An atomic formula takes four parameters:
+     *
+     * @param perturbation the perturbation that we want to apply to the evolution sequence
+     * @param expr the distance expression that we want to evaluate
+     * @param relop a relation operator to compare the distance with the given threshold
+     * @param threshold the threshold
+     */
+    public AtomicRobustnessFormula(Perturbation perturbation, DistanceExpression expr, RelationOperator relop, double threshold) {
         this.perturbation = perturbation;
         this.expr = expr;
         this.relop = relop;
-        this.value = value;
-        this.op = op;
+        this.threshold = threshold;
     }
 
     @Override
     public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        if (op==0){
-            return relop.eval(
-                    expr.compute(step, sequence, sequence.apply(perturbation, step, sampleSize)),
-                    value);
-        }
-        else{
-            return relop.eval(
-                    expr.compute(step, sequence.apply(perturbation, step, sampleSize), sequence),
-                    value);
-        }
+        return relop.eval(
+                expr.compute(step, sequence, sequence.apply(perturbation, step, sampleSize)),
+                threshold);
     }
 
     @Override
@@ -66,19 +69,40 @@ public final class AtomicRobustnessFormula implements RobustnessFormula {
         return evaluator.evalAtomic(this);
     }
 
+    /**
+     * Returns the distance expression specified in this formula.
+     *
+     * @return parameter <code>expr</code>.
+     */
     public DistanceExpression getDistanceExpression() {
         return this.expr;
     }
 
+    /**
+     * Returns the perturbation specified in this formula.
+     *
+     * @return parameter <code>perturbation</code>.
+     */
     public Perturbation getPerturbation() {
         return this.perturbation;
     }
 
+    /**
+     * Returns the relation operator specified in this formula.
+     *
+     * @return parameter <code>relop</code>.
+     */
     public RelationOperator getRelationOperator() {
         return this.relop;
     }
 
-    public double getValue() {
-        return this.value;
+    /**
+     * Returns the threshold specified in this formula.
+     *
+     * @return parameter <code>threshold</code>.
+     */
+    public double getThreshold() {
+        return this.threshold;
     }
+
 }

@@ -26,15 +26,25 @@ import it.unicam.quasylab.jspear.EvolutionSequence;
 
 import java.util.stream.IntStream;
 
+/**
+ * We use the "always" operator to specify that
+ * a given formula must be satisfied at each time step in a given interval.
+ */
 public final class AlwaysRobustnessFormula implements RobustnessFormula {
 
-    private final RobustnessFormula arg;
+    private final RobustnessFormula formula;
     private final int from;
     private final int to;
 
-
-    public AlwaysRobustnessFormula(RobustnessFormula arg, int from, int to) {
-        this.arg = arg;
+    /**
+     * The "always" formula takes three parameters:
+     *
+     * @param formula a RobTL formula
+     * @param from the left bound of the time interval
+     * @param to the right bound of the time interval.
+     */
+    public AlwaysRobustnessFormula(RobustnessFormula formula, int from, int to) {
+        this.formula = formula;
         this.from = from;
         this.to = to;
     }
@@ -42,9 +52,9 @@ public final class AlwaysRobustnessFormula implements RobustnessFormula {
     @Override
     public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
         if (parallel) {
-            return IntStream.of(from, to).parallel().allMatch(i -> arg.eval(sampleSize, step+i, sequence, true));
+            return IntStream.of(from, to).parallel().allMatch(i -> formula.eval(sampleSize, step+i, sequence, true));
         } else {
-            return IntStream.of(from, to).sequential().allMatch(i -> arg.eval(sampleSize, step+i, sequence, false));
+            return IntStream.of(from, to).sequential().allMatch(i -> formula.eval(sampleSize, step+i, sequence, false));
 
         }
     }
@@ -54,14 +64,29 @@ public final class AlwaysRobustnessFormula implements RobustnessFormula {
         return evaluator.evalAlways(this);
     }
 
+    /**
+     * Returns the RobTL formula passed as argument to this formula.
+     *
+     * @return parameter <code>formula</code>.
+     */
     public RobustnessFormula getArgument() {
-        return this.arg;
+        return this.formula;
     }
 
+    /**
+     * Returns the left bound of the time interval in this formula.
+     *
+     * @return parameter <code>from</code>.
+     */
     public int getFrom() {
         return from;
     }
 
+    /**
+     * Returns the right bound of the time interval in this formula.
+     *
+     * @return parameter <code>to</code>.
+     */
     public int getTo() {
         return to;
     }

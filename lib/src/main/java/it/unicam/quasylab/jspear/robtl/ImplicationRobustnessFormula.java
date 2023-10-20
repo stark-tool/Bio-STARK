@@ -24,11 +24,20 @@ package it.unicam.quasylab.jspear.robtl;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
 
+/**
+ * Defines the implication between two given RobTL formulae.
+ */
 public final class ImplicationRobustnessFormula implements RobustnessFormula {
 
     private final RobustnessFormula leftFormula;
     private final RobustnessFormula rightFormula;
 
+    /**
+     * It takes as parameters two RobTL formulae.
+     *
+     * @param leftFormula a RobTL formula.
+     * @param rightFormula a RobTL formula.
+     */
     public ImplicationRobustnessFormula(RobustnessFormula leftFormula, RobustnessFormula rightFormula) {
         this.leftFormula = leftFormula;
         this.rightFormula = rightFormula;
@@ -44,11 +53,20 @@ public final class ImplicationRobustnessFormula implements RobustnessFormula {
         return evaluator.evalImplication(this);
     }
 
-
+    /**
+     * Returns the RobTL formula passed as first parameter to this formula.
+     *
+     * @return parameter <code>leftFormula</code>.
+     */
     public RobustnessFormula getLeftFormula() {
         return leftFormula;
     }
 
+    /**
+     * Returns the RobTL formula passed as second parameter to this formula.
+     *
+     * @return parameter <code>rightFormula</code>.
+     */
     public RobustnessFormula getRightFormula() {
         return rightFormula;
     }

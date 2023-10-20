@@ -24,19 +24,25 @@ package it.unicam.quasylab.jspear.robtl;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
 
+/**
+ * Defines the negation of a given RobTL formula.
+ */
 public final class NegationRobustnessFormula implements RobustnessFormula {
 
-    private final RobustnessFormula argument;
+    private final RobustnessFormula formula;
 
-    public NegationRobustnessFormula(RobustnessFormula argument) {
-        this.argument = argument;
+    /**
+     * It takes as parameter the RobTL to be negated.
+     *
+     * @param formula a RobTL formula.
+     */
+    public NegationRobustnessFormula(RobustnessFormula formula) {
+        this.formula = formula;
     }
-
-
 
     @Override
     public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        return !argument.eval(sampleSize, step, sequence, parallel);
+        return !formula.eval(sampleSize, step, sequence, parallel);
     }
 
     @Override
@@ -44,7 +50,12 @@ public final class NegationRobustnessFormula implements RobustnessFormula {
         return evaluator.evalNegation(this);
     }
 
+    /**
+     * Returns the RobTL formula takes as parameter by this formula.
+     *
+     * @return parameter <code>formula</code>.
+     */
     public RobustnessFormula getArgument() {
-        return argument;
+        return formula;
     }
 }

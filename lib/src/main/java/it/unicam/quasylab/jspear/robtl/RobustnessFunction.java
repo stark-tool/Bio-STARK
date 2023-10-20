@@ -25,9 +25,9 @@ package it.unicam.quasylab.jspear.robtl;
 import it.unicam.quasylab.jspear.EvolutionSequence;
 
 /**
- * This functional interface represents an interpretation function of RobTL formulas.
+ * This functional interface represents an interpretation function of RobTL formulae.
  *
- * @param <T> formulas interpretation domain.
+ * @param <T> formulae interpretation domain.
  */
 @FunctionalInterface
 public interface RobustnessFunction<T> {

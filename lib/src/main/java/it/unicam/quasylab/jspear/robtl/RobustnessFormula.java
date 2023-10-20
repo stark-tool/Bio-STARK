@@ -24,7 +24,23 @@ package it.unicam.quasylab.jspear.robtl;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
 
-public sealed interface RobustnessFormula permits AlwaysRobustnessFormula, AtomicRobustnessFormula, ConjunctionRobustnessFormula, DisjunctionRobustnessFormula, EventuallyRobustnessFormula, FalseRobustnessFormula, ImplicationRobustnessFormula, NegationRobustnessFormula, TrueRobustnessFormula, UntilRobustnessFormula {
+/**
+ * We use the classes implementing the interface to represent formulae in the Robustness Temporal Logic (RobTL).
+ * The interface offers two methods to check whether a formula is satisfied:
+ * one based on the classic Boolean semantics,
+ * the other based on a three-valued semantics.
+ */
+public sealed interface RobustnessFormula permits
+        AlwaysRobustnessFormula,
+        AtomicRobustnessFormula,
+        ConjunctionRobustnessFormula,
+        DisjunctionRobustnessFormula,
+        EventuallyRobustnessFormula,
+        FalseRobustnessFormula,
+        ImplicationRobustnessFormula,
+        NegationRobustnessFormula,
+        TrueRobustnessFormula,
+        UntilRobustnessFormula {
 
     default boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
         return eval(sampleSize, step, sequence, true);
@@ -32,16 +48,45 @@ public sealed interface RobustnessFormula permits AlwaysRobustnessFormula, Atomi
 
     boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel);
 
+    /**
+     * Returns the evaluation of the formula according to a given interpretation function (Boolean, or three-valued).
+     *
+     * @param evaluator an interpretation function
+     * @return the evaluation of this formula according to <code>evaluator</code>
+     * @param <T> interpretation domain
+     */
     <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator);
 
+    /**
+     * Returns the evaluation of a given formula according to classic Boolean semantics.
+     *
+     * @param formula a RobTL formula
+     * @return the Boolean evaluation of <code>formula</code>.
+     */
     static RobustnessFunction<Boolean> getBooleanEvaluationFunction(RobustnessFormula formula) {
         return formula.eval(new BooleanSemanticsVisitor());
     }
 
+    /**
+     * Returns the evaluation of a given formula according to three-valued semantics,
+     * using default values for the bootstrap method in the evaluation of confidence intervals.
+     *
+     * @param formula a RobTL formula
+     * @return the three-valued evaluation of <code>formula</code>.
+     */
     static RobustnessFunction<TruthValues> getThreeValuedEvaluationFunction(RobustnessFormula formula) {
         return formula.eval(new ThreeValuedSemanticsVisitor());
     }
 
+    /**
+     * Returns the evaluation of a given formula according to three-valued semantics,
+     * using custom values for the bootstrap method in the evaluation of confidence intervals.
+     *
+     * @param m number of repetitions for the boostrap method
+     * @param z the quantile of the standard normal distribution corresponding to the desired coverage probability
+     * @param formula a RobTL formula
+     * @return the three-valued evaluation of <code>formula</code>.
+     */
     static RobustnessFunction<TruthValues> getThreeValuedEvaluationFunction(int m, double z, RobustnessFormula formula) {
         return formula.eval(new ThreeValuedSemanticsVisitor(m, z));
     }
