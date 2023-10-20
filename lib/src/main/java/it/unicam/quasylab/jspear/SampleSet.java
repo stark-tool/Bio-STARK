@@ -96,19 +96,25 @@ public class SampleSet<T extends SystemState> {
      * @return the distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>.
      */
-
     public synchronized double distance(DataStateExpression f, SampleSet<T> other) {
         if (other.size() % this.size() != 0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
-        int k = otherData.length / thisData.length;
-        return IntStream.range(0, thisData.length).parallel()
-                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.abs(otherData[i * k + j] - thisData[i])).sum())
-                .sum() / otherData.length;
+        return computeDistance(thisData,otherData);
+        //int k = otherData.length / thisData.length;
+        //return IntStream.range(0, thisData.length).parallel().mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.abs(otherData[i * k + j] - thisData[i])).sum()).sum() / otherData.length;
     }
 
+    /**
+     * Utility method to evaluate the Wasserstein distance between two sampled distributions on reals,
+     * based on a symmetric ground distance.
+     *
+     * @param thisData an array of real values
+     * @param otherData an array of real values
+     * @return the symmetric Wasserstein distance between the sampled distributions <code>thisData</code> and <code>otherData</code>.
+     */
     private double computeDistance(double[] thisData, double[] otherData) {
         int k = otherData.length / thisData.length;
         return IntStream.range(0, thisData.length).parallel()
@@ -132,13 +138,19 @@ public class SampleSet<T extends SystemState> {
         }
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
-        int k = otherData.length / thisData.length;
-        return IntStream.range(0, thisData.length).parallel()
-                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, otherData[i * k + j] - thisData[i])).sum())
-                .sum() / otherData.length;
+        return computeDistanceLeq(thisData,otherData);
+        //int k = otherData.length / thisData.length;
+        //return IntStream.range(0, thisData.length).parallel().mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, otherData[i * k + j] - thisData[i])).sum()).sum() / otherData.length;
     }
 
-
+    /**
+     * Utility method to evaluate the Wasserstein distance between two sampled distributions on reals,
+     * based on an asymmetric ground distance.
+     *
+     * @param thisData an array of real values
+     * @param otherData an array of real values
+     * @return the asymmetric Wasserstein distance between the sampled distributions <code>thisData</code> and <code>otherData</code>.
+     */
     private double computeDistanceLeq(double[] thisData, double[] otherData) {
         int k = otherData.length / thisData.length;
         return IntStream.range(0, thisData.length).parallel()
@@ -155,19 +167,25 @@ public class SampleSet<T extends SystemState> {
      * @return the distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>.
      */
-
     public synchronized double distanceGeq(DataStateExpression f, SampleSet<T> other) {
         if (other.size() % this.size() != 0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
-        int k = otherData.length / thisData.length;
-        return IntStream.range(0, thisData.length).parallel()
-                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, thisData[i] - otherData[i * k + j])).sum())
-                .sum() / otherData.length;
+        return computeDistanceGeq(thisData,otherData);
+        //int k = otherData.length / thisData.length;
+        //return IntStream.range(0, thisData.length).parallel().mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, thisData[i] - otherData[i * k + j])).sum()).sum() / otherData.length;
     }
 
+    /**
+     * Utility method to evaluate the Wasserstein distance between two sampled distributions on reals,
+     * based on an asymmetric ground distance.
+     *
+     * @param thisData an array of real values
+     * @param otherData an array of real values
+     * @return the asymmetric Wasserstein distance between the sampled distributions <code>otherData</code> and <code>thisData</code>.
+     */
     private double computeDistanceGeq(double[] thisData, double[] otherData) {
         int k = otherData.length / thisData.length;
         return IntStream.range(0, thisData.length).parallel()
@@ -257,7 +275,6 @@ public class SampleSet<T extends SystemState> {
      * @return the limits of the confidence interval of the evaluation of the distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>.
      */
-
     public synchronized double[] bootstrapDistanceGeq(DataStateExpression f, SampleSet<T> other, int m, double z) {
         Random rand = new Random();
         if (other.size()%this.size()!=0) {
