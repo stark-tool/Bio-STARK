@@ -47,7 +47,7 @@ public interface SystemState {
     DataState getDataState();
 
     /**
-     * Returns one state sampled among the one reachable from this state in one step.
+     * Returns one state sampled among the ones reachable from this state in one step.
      *
      * @param rg random generator used sample random expression.
      * @return one state sampled among the one reachable from this state in one step.
@@ -55,10 +55,10 @@ public interface SystemState {
     SystemState sampleNext(RandomGenerator rg);
 
     /**
-     * Returns the system state where the data state is replaced with the given one.
+     * Returns the system state in which the current data state is replaced with the given one.
      *
      * @param dataState new data state.
-     * @return the system state where the data state is replaced with the given one.
+     * @return the system state in which the current data state is replaced with the given one.
      */
     SystemState setDataState(DataState dataState);
 
@@ -89,7 +89,6 @@ public interface SystemState {
     static double[] sample(RandomGenerator rg, DataStateExpression f, SystemState system, int steps, int size) {
         return sample(rg, f, rgn -> system, steps, size);
     }
-
 
     /**
      * Computes the average value obtained by applying the given function experienced in a computation of a
@@ -188,7 +187,6 @@ public interface SystemState {
         }
         return result;
     }
-
 
     /**
      * Computes the average values obtained by applying all functions in a list experienced in a computation of a

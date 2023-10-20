@@ -56,7 +56,6 @@ public class SampleSet<T extends SystemState> {
         return new SampleSet<>(IntStream.range(0, size).mapToObj(i -> generator.apply(rg)).toList());
     }
 
-
     /**
      * Adds a new state to this sample set.
      *
@@ -86,7 +85,6 @@ public class SampleSet<T extends SystemState> {
         return states.stream().map(SystemState::getDataState).mapToDouble(f).sorted().toArray();
     }
 
-
     /**
      * Returns the symmetric distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>.
@@ -103,8 +101,6 @@ public class SampleSet<T extends SystemState> {
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
         return computeDistance(thisData,otherData);
-        //int k = otherData.length / thisData.length;
-        //return IntStream.range(0, thisData.length).parallel().mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.abs(otherData[i * k + j] - thisData[i])).sum()).sum() / otherData.length;
     }
 
     /**
@@ -122,7 +118,6 @@ public class SampleSet<T extends SystemState> {
                 .sum() / otherData.length;
     }
 
-
     /**
      * Returns the asymmetric distance between <code>other</code> and this sample set computed according to
      * the function <code>f</code>.
@@ -139,8 +134,6 @@ public class SampleSet<T extends SystemState> {
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
         return computeDistanceLeq(thisData,otherData);
-        //int k = otherData.length / thisData.length;
-        //return IntStream.range(0, thisData.length).parallel().mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, otherData[i * k + j] - thisData[i])).sum()).sum() / otherData.length;
     }
 
     /**
@@ -174,8 +167,6 @@ public class SampleSet<T extends SystemState> {
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
         return computeDistanceGeq(thisData,otherData);
-        //int k = otherData.length / thisData.length;
-        //return IntStream.range(0, thisData.length).parallel().mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, thisData[i] - otherData[i * k + j])).sum()).sum() / otherData.length;
     }
 
     /**
@@ -197,6 +188,7 @@ public class SampleSet<T extends SystemState> {
      * Returns the confidence interval of the evaluation of the distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>. The confidence interval is evaluated by means of the empirical bootstrap method.
      *
+     * @param rg a random generator
      * @param f penalty function used to compute the distance.
      * @param other sample set to compare.
      * @param m number of applications of bootstrapping
@@ -204,9 +196,7 @@ public class SampleSet<T extends SystemState> {
      * @return the limits of the confidence interval of the evaluation of the distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>.
      */
-
-    public synchronized double[] bootstrapDistance(DataStateExpression f, SampleSet<T> other, int m, double z) {
-        Random rand = new Random();
+    public synchronized double[] bootstrapDistance(RandomGenerator rg, DataStateExpression f, SampleSet<T> other, int m, double z) {
         if (this.size()%other.size()!=0 && other.size()%this.size()!=0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
@@ -215,8 +205,8 @@ public class SampleSet<T extends SystemState> {
         double[] W = new double[m];
         double WSum = 0.0;
         for (int i = 0; i<m; i++){
-            double[] thisBootstrapData = IntStream.range(0, thisData.length).mapToDouble(j -> thisData[rand.nextInt(thisData.length)]).toArray();
-            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> otherData[rand.nextInt(otherData.length)]).toArray();
+            double[] thisBootstrapData = IntStream.range(0, thisData.length).mapToDouble(j -> thisData[rg.nextInt(thisData.length)]).toArray();
+            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> otherData[rg.nextInt(otherData.length)]).toArray();
             W[i] = computeDistance(thisBootstrapData,otherBootstrapData);
             WSum += W[i];
         }
@@ -226,6 +216,14 @@ public class SampleSet<T extends SystemState> {
         CI[0] = Math.max(0,BootMean - z*StandardError);
         CI[1] = Math.min(BootMean + z*StandardError,1);
         return CI;
+    }
+
+    /**
+     * In case the random generator is not passed as parameter,
+     * the default one is used.
+     */
+    public synchronized double[] bootstrapDistance(DataStateExpression f, SampleSet<T> other, int m, double z) {
+        return bootstrapDistance(new DefaultRandomGenerator(), f, other, m, z);
     }
 
     /**
@@ -240,8 +238,7 @@ public class SampleSet<T extends SystemState> {
      * @return the limits of the confidence interval of the evaluation of the distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>.
      */
-    public synchronized double[] bootstrapDistanceLeq(DataStateExpression f, SampleSet<T> other, int m, double z) {
-        Random rand = new Random();
+    public synchronized double[] bootstrapDistanceLeq(RandomGenerator rg, DataStateExpression f, SampleSet<T> other, int m, double z) {
         if (other.size()%this.size()!=0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
@@ -250,8 +247,8 @@ public class SampleSet<T extends SystemState> {
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
         for (int i = 0; i<m; i++){
-            double[] thisBootstrapData = IntStream.range(0, thisData.length).mapToDouble(j -> thisData[rand.nextInt(thisData.length)]).toArray();
-            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> otherData[rand.nextInt(otherData.length)]).toArray();
+            double[] thisBootstrapData = IntStream.range(0, thisData.length).mapToDouble(j -> thisData[rg.nextInt(thisData.length)]).toArray();
+            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> otherData[rg.nextInt(otherData.length)]).toArray();
             W[i] = computeDistanceLeq(thisBootstrapData, otherBootstrapData);
             WSum += W[i];
         }
@@ -261,6 +258,14 @@ public class SampleSet<T extends SystemState> {
         CI[0] = Math.max(0,BootMean - z*StandardError);
         CI[1] = Math.min(BootMean + z*StandardError,1);
         return CI;
+    }
+
+    /**
+     * In case the random generator is not passed as parameter,
+     * the default one is used.
+     */
+    public synchronized double[] bootstrapDistanceLeq(DataStateExpression f, SampleSet<T> other, int m, double z) {
+        return bootstrapDistanceLeq(new DefaultRandomGenerator(), f, other, m, z);
     }
 
     /**
@@ -275,8 +280,7 @@ public class SampleSet<T extends SystemState> {
      * @return the limits of the confidence interval of the evaluation of the distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>.
      */
-    public synchronized double[] bootstrapDistanceGeq(DataStateExpression f, SampleSet<T> other, int m, double z) {
-        Random rand = new Random();
+    public synchronized double[] bootstrapDistanceGeq(RandomGenerator rg, DataStateExpression f, SampleSet<T> other, int m, double z) {
         if (other.size()%this.size()!=0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
@@ -285,8 +289,8 @@ public class SampleSet<T extends SystemState> {
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
         for (int i = 0; i<m; i++){
-            double[] thisBootstrapData = IntStream.range(0, thisData.length).mapToDouble(j -> thisData[rand.nextInt(thisData.length)]).toArray();
-            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> otherData[rand.nextInt(otherData.length)]).toArray();
+            double[] thisBootstrapData = IntStream.range(0, thisData.length).mapToDouble(j -> thisData[rg.nextInt(thisData.length)]).toArray();
+            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> otherData[rg.nextInt(otherData.length)]).toArray();
             W[i] = computeDistanceGeq(thisBootstrapData, otherBootstrapData);
             WSum += W[i];
         }
@@ -296,6 +300,14 @@ public class SampleSet<T extends SystemState> {
         CI[0] = Math.max(0,BootMean - z*StandardError);
         CI[1] = Math.min(BootMean + z*StandardError,1);
         return CI;
+    }
+
+    /**
+     * In case the random generator is not passed as parameter,
+     * the default one is used.
+     */
+    public synchronized double[] bootstrapDistanceGeq(DataStateExpression f, SampleSet<T> other, int m, double z) {
+        return bootstrapDistanceGeq(new DefaultRandomGenerator(), f, other, m, z);
     }
 
     /**

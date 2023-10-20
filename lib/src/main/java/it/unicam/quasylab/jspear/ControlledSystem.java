@@ -29,7 +29,11 @@ import it.unicam.quasylab.jspear.ds.DataStateFunction;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
- * Represents a system controlled by controller.
+ * Represents a system in the evolution sequence model,
+ * namely a system that consists of
+ * an agent,
+ * an environment, and
+ * a set of application-relevant data.
  */
 public class ControlledSystem implements SystemState {
 
@@ -38,9 +42,9 @@ public class ControlledSystem implements SystemState {
     private final DataState state;
 
     /**
-     * Creates a system with the given controller and the given state.
-     *  @param controller system controller.
-     * @param environment
+     * Creates a system with the given agent, environment and data state.
+     * @param controller process modelling the agent,
+     * @param environment set of functions modelling the environment,
      * @param state current data state.
      */
     public ControlledSystem(Controller controller, DataStateFunction environment, DataState state) {
