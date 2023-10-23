@@ -28,14 +28,14 @@ package it.unicam.quasylab.jspear;
 public interface SimulationMonitor {
 
     /**
-     * This method is invoked when the sampling of step <code>n</code> started.
+     * This method is invoked when the sampling of step <code>n</code> starts.
      *
      * @param step an integer identifying a time step.
      */
     void startSamplingsOfStep(int step);
 
     /**
-     * This method is invoked when the sampling of step <code>n</code> terminated.
+     * This method is invoked when the sampling of step <code>n</code> terminates.
      *
      * @param step an integer identifying a time step.
      */

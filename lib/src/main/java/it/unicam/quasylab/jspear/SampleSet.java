@@ -35,7 +35,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
- * Instances of this class are used to model a set of data states.
+ * Instances of this class are used to model a set of system states.
+ * The set is implemented as a list.
  */
 public class SampleSet<T extends SystemState> {
 
@@ -48,18 +49,32 @@ public class SampleSet<T extends SystemState> {
         this(new LinkedList<>());
     }
 
+    /**
+     * Creates a sample set from a given list of system states.
+     *
+     * @param states system states in the sample.
+     */
     private SampleSet(List<T> states) {
         this.states = states;
     }
 
+    /**
+     * Returns a set of samples, of a given size, generated with a given function.
+     *
+     * @param rg random generator
+     * @param generator random function used to generate the samples
+     * @param size number of samples
+     * @return the sample set of size <code>size</code> in which is sample is obtained by applying function <code>generator</code>.
+     * @param <T> model domain
+     */
     public static <T extends SystemState> SampleSet<T> generate(RandomGenerator rg, Function<RandomGenerator, T> generator, int size) {
         return new SampleSet<>(IntStream.range(0, size).mapToObj(i -> generator.apply(rg)).toList());
     }
 
     /**
-     * Adds a new state to this sample set.
+     * Adds a new system state to this sample set.
      *
-     * @param state a data state.
+     * @param state a system state.
      */
     public void add(T state) {
         states.add(state);
@@ -75,11 +90,13 @@ public class SampleSet<T extends SystemState> {
     }
 
     /**
-     * Given a penalty function described by means of an expression returns a (sorted array) containing its evaluation
-     * on each element of the data set.
+     * Given a penalty function, described by means of an expression over data states,
+     * returns a (sorted array) containing its evaluation on the data state
+     * of each element in the sample set.
      *
      * @param f a penalty function.
-     * @return a sorted array containing all the elements in
+     * @return a sorted array containing all the evaluations of <code>f</code> over the
+     * data states associated to the system states the sample set.
      */
     public synchronized double[] evalPenaltyFunction(DataStateExpression f) {
         return states.stream().map(SystemState::getDataState).mapToDouble(f).sorted().toArray();
@@ -129,7 +146,7 @@ public class SampleSet<T extends SystemState> {
      */
     public synchronized double distanceLeq(DataStateExpression f, SampleSet<T> other) {
         if (other.size() % this.size() != 0) {
-            throw new IllegalArgumentException("Incompatible size of data sets!");
+            throw new IllegalArgumentException("Incompatible size of data states!");
         }
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);

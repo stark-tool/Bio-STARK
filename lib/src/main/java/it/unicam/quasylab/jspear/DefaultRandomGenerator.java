@@ -26,6 +26,9 @@ import org.apache.commons.math3.random.AbstractRandomGenerator;
 
 import java.util.Random;
 
+/**
+ * We use this class to implement a computationally efficient random generator.
+ */
 public class DefaultRandomGenerator extends AbstractRandomGenerator {
 
     private Random random = new Random();
