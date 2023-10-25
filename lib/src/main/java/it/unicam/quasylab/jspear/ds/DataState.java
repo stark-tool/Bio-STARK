@@ -29,7 +29,6 @@ import java.util.stream.IntStream;
 
 /**
  * A data state is an object associating variables with values.
- *
  */
 public class DataState {
 
@@ -37,8 +36,10 @@ public class DataState {
     private final DataRange[] dataRanges;
 
     /**
-     * Creates a new data state with the given number of cells. All the values are set to 0.0. All the cells in the
-     * data state can assume values in the interval [{@link Double#NEGATIVE_INFINITY}, {@link Double#POSITIVE_INFINITY}].
+     * Creates a new data state with the given number of cells.
+     * By default, all the values are set to 0.0.
+     * All the cells in the data state can assume values in the interval
+     * [{@link Double#NEGATIVE_INFINITY}, {@link Double#POSITIVE_INFINITY}].
      *
      * @param size number of cells in the data state.
      */
@@ -47,7 +48,8 @@ public class DataState {
     }
 
     /**
-     * Creates a new data state with the given values. All the cells in the data state can assume values
+     * Creates a new data state with the given values.
+     * All the cells in the data state can assume values
      * in the interval [{@link Double#NEGATIVE_INFINITY}, {@link Double#POSITIVE_INFINITY}].
      *
      * @param data values in the data state.
@@ -57,8 +59,8 @@ public class DataState {
     }
 
     /**
-     * Creates a new data state with the given number of cells. Values in the data state are initialised by
-     * assigning to the cell in position <code>i</code> the value <code>initFunction.applyAsDouble(i)</code>.
+     * Creates a new data state with the given number of cells.
+     * Values in the data state are initialised by assigning to the cell in position <code>i</code> the value <code>initFunction.applyAsDouble(i)</code>.
      * All the cells in the data state can assume values in the interval
      * [{@link Double#NEGATIVE_INFINITY}, {@link Double#POSITIVE_INFINITY}].
      *
@@ -70,23 +72,24 @@ public class DataState {
     }
 
     /**
-     * Creates a new data state with the <code>dataRanges.length</code> cells. Values in the data state are initialised by
-     * assigning to the cell in position <code>i</code> the value <code>initFunction.applyAsDouble(i)</code>.
+     * Creates a new data state with the <code>dataRanges.length</code> cells.
+     * Values in the data state are initialised by assigning to the cell in position <code>i</code> the value <code>initFunction.applyAsDouble(i)</code>.
      * The cell in position <code>i</code> can assume values in the interval <code>dataRanges[i]</code>.
      *
      * @param initFunction function used to initialise the values.
-     * @param dataRanges data ranges of the cells.
+     * @param dataRanges data ranges of the values in the cells.
      */
     public DataState(DataRange[] dataRanges, IntToDoubleFunction initFunction) {
         this(dataRanges, IntStream.range(0, dataRanges.length).mapToDouble(initFunction).toArray());
     }
 
     /**
-     * Creates a new data state with <code>dataRanges.length</code> cells that are initialised with the given
-     * values <code>data</code>. For any <code>i</code>, <code>dataRanges[i]</code> is the data range for the
+     * Creates a new data state with <code>dataRanges.length</code> cells
+     * that are initialised with the given values <code>data</code>.
+     * For any <code>i</code>, <code>dataRanges[i]</code> is the data range for the values in the
      * cell in position <code>i</code>.
      *
-     * @param dataRanges data ranges for the cells in the created data state.
+     * @param dataRanges data ranges for the values in the cells in the created data state.
      * @param data data state values.
      * @throws IllegalArgumentException if <code>dataRanges.length != data.length</code>.
      */
@@ -98,22 +101,65 @@ public class DataState {
         this.dataRanges = dataRanges;
     }
 
+    /**
+     * Returns the evaluation of the relation <code>></code> between
+     * the value in a given cell and a given value.
+     *
+     * @param idx index of the cell
+     * @param value value to which we want to compare the chosen datum
+     * @return <code>true</code> if <code>this.data[idx] > value</code>.
+     */
     public static Predicate<DataState> greaterThan(int idx, double value) {
         return ds -> ds.get(idx)>value;
     }
 
-    public static Predicate<DataState> lessOrEqualThan(int idx, double value) {
-        return ds -> ds.get(idx)<=value;
-    }
-
-    public static Predicate<DataState> equalsTo(int idx, double value) {
-        return ds -> ds.get(idx)==value;
-    }
-
+    /**
+     * Returns the evaluation of the relation <code>>=</code> between
+     * the value in a given cell and a given value.
+     *
+     * @param idx index of the cell
+     * @param value value to which we want to compare the chosen datum
+     * @return <code>true</code> if <code>this.data[idx] >= value</code>.
+     */
     public static Predicate<DataState> greaterOrEqualThan(int idx, double value) {
         return ds -> ds.get(idx)>=value;
     }
 
+    /**
+     * Returns the evaluation of the relation <code><</code> between
+     * the value in a given cell and a given value.
+     *
+     * @param idx index of the cell
+     * @param value value to which we want to compare the chosen datum
+     * @return <code>true</code> if <code>this.data[idx] < value</code>.
+     */
+    public static Predicate<DataState> lessThan(int idx, double value) {
+        return ds -> ds.get(idx)<value;
+    }
+
+    /**
+     * Returns the evaluation of the relation <code><=</code> between
+     * the value in a given cell and a given value.
+     *
+     * @param idx index of the cell
+     * @param value value to which we want to compare the chosen datum
+     * @return <code>true</code> if <code>this.data[idx] <= value</code>.
+     */
+    public static Predicate<DataState> lessOrEqualThan(int idx, double value) {
+        return ds -> ds.get(idx)<=value;
+    }
+
+    /**
+     * Returns the evaluation of the relation <code>==</code> between
+     * the value in a given cell and a given value.
+     *
+     * @param idx index of the cell
+     * @param value value to which we want to compare the chosen datum
+     * @return <code>true</code> if <code>this.data[idx] = value</code>.
+     */
+    public static Predicate<DataState> equalsTo(int idx, double value) {
+        return ds -> ds.get(idx)==value;
+    }
 
     /**
      * Returns the size of this data state, namely the number of stored values.
@@ -125,8 +171,8 @@ public class DataState {
     }
 
     /**
-     * Returns the value in position i. An {@link IndexOutOfBoundsException} is thrown if <code>i<0</code> or
-     * <code>i>=this.size()</code>.
+     * Returns the value in position i.
+     * An {@link IndexOutOfBoundsException} is thrown if <code>i<0</code> or <code>i>=this.size()</code>.
      *
      * @param i value index.
      * @return the value in position i
@@ -136,15 +182,16 @@ public class DataState {
         return this.data[i];
     }
 
-
     /**
-     * Returns an int-to-double function providing a view of the elements in this data space from index from
-     * to index to. The returned function associates to each <code>i</code> in the interval <code>[0,from-to)</code>
-     * the value contained in the cell with index <code>to+i</code>.
+     * Returns an int-to-double function providing a view of the elements in this data space
+     * stored in cells with indexes in the interval <code>[from,to]</code>.
+     * The returned function associates to each <code>i</code> in the interval <code>[0,to-from]</code>
+     * the value contained in the cell with index <code>from+i</code>.
      *
      * @param from starting index of the provided view.
      * @param to   ending index of the provided view.
-     * @return an int-to-double function providing a view of the elements in this data space from index from to index to.
+     * @return an int-to-double function providing a view of the elements in this data space
+     * stored in the cells from index <code>from</code> to index <code>to</code>.
      */
     public IntToDoubleFunction get(int from, int to) {
         return i -> {
@@ -156,7 +203,7 @@ public class DataState {
     }
 
     /**
-     * Set the value in position i to the value <code>getDataRange(i).apply(v)</code>.
+     * Sets the value in position i to the value <code>getDataRange(i).apply(v)</code>.
      *
      * @param i index of cell to set.
      * @param v value to assign to the cell.
@@ -176,7 +223,8 @@ public class DataState {
     }
 
     /**
-     * Apply the list of given updates to this data sate.
+     * Applies the list of given updates to this data sate,
+     * and returns the updated data state.
      *
      * @param updates list of updates to apply.
      * @return the data state obtained from this data state by applying the given updates.
@@ -187,6 +235,11 @@ public class DataState {
         return newDataState;
     }
 
+    /**
+     * Applies a given update to this data state.
+     *
+     * @param dataStateUpdate update to be applied.
+     */
     private void apply(DataStateUpdate dataStateUpdate) {
         this.set(dataStateUpdate.getIndex(), dataStateUpdate.getValue());
     }
