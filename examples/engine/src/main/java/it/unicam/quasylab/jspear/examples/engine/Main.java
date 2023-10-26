@@ -92,10 +92,11 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         try {
+            RandomGenerator rg = new DefaultRandomGenerator();
             Controller controller = getController();
             DataState state = getInitialState(INITIAL_TEMP_VALUE);
-            ControlledSystem system = new ControlledSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), new DefaultRandomGenerator(), rg -> system, 100);
+            ControlledSystem system = new ControlledSystem(controller, (r, ds) -> ds.apply(getEnvironmentUpdates(r, ds)), state);
+            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), rg, r -> system, 100);
             EvolutionSequence sequence2_tau = sequence.apply(getPerturbation(),TAU, 100);
             EvolutionSequence sequence2_tau2 = sequence.apply(getPerturbation(),TAU2, 100);
             EvolutionSequence sequence2_tau3 = sequence.apply(getPerturbation(),TAU3, 100);
@@ -116,7 +117,7 @@ public class Main {
 
             //Test bootstrap method
             for(int i=50; i<250; i++) {
-                double[] testBoost = sequence.get(i).bootstrapDistance(ds -> (ds.get(temp)/Math.abs(MAX_TEMP-MIN_TEMP)), sequence2_tau.get(i),100,1.96);
+                double[] testBoost = sequence.get(i).bootstrapDistance(rg, ds -> (ds.get(temp)/Math.abs(MAX_TEMP-MIN_TEMP)), sequence2_tau.get(i),100,1.96);
                 System.out.println("CI at step "+i+" = "+Arrays.toString(testBoost));
             }
 

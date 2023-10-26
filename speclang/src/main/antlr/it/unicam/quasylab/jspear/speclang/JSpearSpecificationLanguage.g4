@@ -84,11 +84,22 @@ controllerStateDeclaration: 'state' name=ID body=controllerBlockBehaviour;
 //controllerProbabilisticItem: ('when' guard=expression)? '[' probability=expression '>' controllerBlockBehaviour ;
 
 controllerBlockBehaviour: '{'
-    controllerSequentialBehaviour
+    controllerCommand*
+//        controllerSequentialBehaviour
 '}';
 
 controllerSequentialBehaviour:
     statements+=controllerVariableAssignment* last=controllerTerminalStatement
+;
+
+controllerCommand:
+      controllerStepAtion
+    | controllerExecAction
+    | controllerLetAssignment
+    | controllerVariableAssignment
+//    | controllerSwitchStatement
+    | controllerIfThenElseBehaviour
+    | controllerBlockBehaviour
 ;
 
 

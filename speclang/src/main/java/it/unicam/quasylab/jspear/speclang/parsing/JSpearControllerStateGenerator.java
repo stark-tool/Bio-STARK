@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 public class JSpearControllerStateGenerator extends JSpearSpecificationLanguageBaseVisitor<JSpearControllerFunction> {
 
@@ -65,7 +66,7 @@ public class JSpearControllerStateGenerator extends JSpearSpecificationLanguageB
 
     @Override
     public JSpearControllerFunction visitControllerBlockBehaviour(JSpearSpecificationLanguageParser.ControllerBlockBehaviourContext ctx) {
-        return ctx.controllerSequentialBehaviour().accept(this);
+        return JSpearControllerFunction.sequential(ctx.controllerCommand().stream().map(it -> it.accept(this)).collect(Collectors.toList()));
     }
 
     @Override
@@ -75,6 +76,15 @@ public class JSpearControllerStateGenerator extends JSpearSpecificationLanguageB
         return (rg, ds) -> next.apply(rg, ds).applyBefore(assignments.apply(rg, ds));
     }
 
+    @Override
+    public JSpearControllerFunction visitControllerVariableAssignment(JSpearSpecificationLanguageParser.ControllerVariableAssignmentContext ctx) {
+        BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>> assignment = getVariableAssignment(ctx);
+        return (rg, ds) -> {
+            Optional<DataStateUpdate> result = assignment.apply(rg, ds);
+            return result.<EffectStep<Controller>>map(dataStateUpdate -> new EffectStep<>(List.of(dataStateUpdate))).orElseGet(EffectStep::new);
+        };
+    }
+
     private BiFunction<RandomGenerator, JSpearStore, List<DataStateUpdate>> getVariableAssignments(List<JSpearSpecificationLanguageParser.ControllerVariableAssignmentContext> statements) {
         List<BiFunction<RandomGenerator, JSpearStore, Optional<DataStateUpdate>>> assignments = statements.stream().map(this::getVariableAssignment).toList();
         return (rg, store) -> assignments.stream().map(a -> a.apply(rg, store)).filter(Optional::isPresent).map(Optional::get).toList();
@@ -82,6 +92,7 @@ public class JSpearControllerStateGenerator extends JSpearSpecificationLanguageB
 
     @Override
     public JSpearControllerFunction visitControllerCaseStatment(JSpearSpecificationLanguageParser.ControllerCaseStatmentContext ctx) {
+        //TODO: FIXME!
         return super.visitControllerCaseStatment(ctx);
     }
 
@@ -149,3 +160,13 @@ public class JSpearControllerStateGenerator extends JSpearSpecificationLanguageB
                 ctx.elseBranch.accept(this));
     }
 }
+
+/**
+ * if (x<10) {
+ *      step Pippo
+ * } else {
+ *     y = 27;
+ * }
+ * setp Pluto;
+ *
+ */

@@ -35,6 +35,14 @@ import java.util.stream.Stream;
  */
 public record EffectStep<T>(List<DataStateUpdate> effect, T next) {
 
+    public EffectStep(List<DataStateUpdate> effect) {
+        this(effect, null);
+    }
+
+    public EffectStep() {
+        this(List.of());
+    }
+
     /**
      * Applies a given operator on controllers to this step.
      *
@@ -70,5 +78,16 @@ public record EffectStep<T>(List<DataStateUpdate> effect, T next) {
         } else {
             return new EffectStep<>(Stream.concat(updates.stream(), this.effect.stream()).toList(), next);
         }
+    }
+
+    public EffectStep<T> applyAfter(EffectStep<T> apply) {
+        if (this.isCompleted()) return this;
+        LinkedList<DataStateUpdate> updates = new LinkedList<>(this.effect);
+        updates.addAll(apply.effect);
+        return new EffectStep<>(updates, apply.next);
+    }
+
+    public boolean isCompleted() {
+        return (this.next != null);
     }
 }
