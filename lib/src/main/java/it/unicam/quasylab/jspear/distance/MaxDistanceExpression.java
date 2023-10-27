@@ -23,7 +23,7 @@
 package it.unicam.quasylab.jspear.distance;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
-
+import org.apache.commons.math3.random.RandomGenerator;
 import java.util.stream.IntStream;
 
 /**
@@ -65,25 +65,18 @@ public final class MaxDistanceExpression implements DistanceExpression {
     }
 
     /**
-     * The confidence interval is obtained from the confidence intervals on the evaluations of the two expressions
-     * by taking the maxima for each bound.
+     * @inheritDoc
      *
-     * @param step time step at which we start the evaluation of the expression
-     * @param seq1 an evolution sequence
-     * @param seq2 an evolution sequence
-     * @param m number of repetitions for the bootstrap method
-     * @param z the quantile of the standard normal distribution corresponding to the desired coverage probability.
-     * @return the evaluation of the maximum and the related confidence interval,
-     * whose bounds are obtained by taking the maximum of the respective bounds from the
-     * confidence intervals on the evaluations of the two expressions.
+     * The confidence interval is obtained from the confidence intervals on the evaluations of the two expressions
+     * by taking the maxima of the respective bounds.
      */
     @Override
-    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+    public double[] evalCI(RandomGenerator rg, int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
         if (step<0) {
             throw new IllegalArgumentException();
         }
         return IntStream.range(0,3)
-                .mapToDouble(i -> Math.max(expr1.evalCI(step, seq1, seq2, m, z)[i], expr2.evalCI(step, seq1, seq2, m, z)[i]))
+                .mapToDouble(i -> Math.max(expr1.evalCI(rg, step, seq1, seq2, m, z)[i], expr2.evalCI(rg, step, seq1, seq2, m, z)[i]))
                 .toArray();
     }
 

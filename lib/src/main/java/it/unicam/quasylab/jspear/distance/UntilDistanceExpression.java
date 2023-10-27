@@ -22,8 +22,8 @@
 
 package it.unicam.quasylab.jspear.distance;
 
-import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.EvolutionSequence;
+import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -84,28 +84,23 @@ public final class UntilDistanceExpression implements DistanceExpression {
     }
 
     /**
+     * @inheritDoc
+     *
      * The same calculations applied to obtain the value of the distance,
      * are applied to the bounds of the confidence intervals to obtain the
      * confidence interval on the evaluation of the until distance expression.
-     *
-     * @param step time step at which we start the evaluation of the expression
-     * @param seq1 an evolution sequence
-     * @param seq2 an evolution sequence
-     * @param m number of repetitions for the bootstrap method
-     * @param z the quantile of the standard normal distribution corresponding to the desired coverage probability.
-     * @return the evaluation of the until distance expression and the related confidence interval.
      */
     @Override
-    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+    public double[] evalCI(RandomGenerator rg, int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
         if (step<0) {
             throw new IllegalArgumentException();
         }
         double[] res = {1.0,1.0,1.0};
         for(int i = from+step; i<to+step; i++) {
-            double[] resR = rightExpression.evalCI(i, seq1, seq2, m, z);
-            double[] resL = leftExpression.evalCI(i,seq1,seq2,m,z);
+            double[] resR = rightExpression.evalCI(rg, i, seq1, seq2, m, z);
+            double[] resL = leftExpression.evalCI(rg, i,seq1,seq2,m,z);
             for(int j =from+step; j<i; j++) {
-                double[] partialL = leftExpression.evalCI(j,seq1,seq2,m,z);
+                double[] partialL = leftExpression.evalCI(rg, j,seq1,seq2,m,z);
                 resL[0] = Math.max(resL[0], partialL[0]);
                 resL[1] = Math.max(resL[1], partialL[1]);
                 resL[2] = Math.max(resL[2], partialL[2]);

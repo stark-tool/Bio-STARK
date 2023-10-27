@@ -23,8 +23,7 @@
 package it.unicam.quasylab.jspear.distance;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
-import it.unicam.quasylab.jspear.distance.DistanceExpression;
-
+import org.apache.commons.math3.random.RandomGenerator;
 import java.util.stream.IntStream;
 
 /**
@@ -64,22 +63,15 @@ public final class LinearCombinationDistanceExpression implements DistanceExpres
     }
 
     /**
-     * The confidence interval is obtained from the convex combination of the confidence intervals
-     * on the evaluations of the expressions.
+     * @inheritDoc
      *
-     * @param step time step at which we start the evaluation of the expression
-     * @param seq1 an evolution sequence
-     * @param seq2 an evolution sequence
-     * @param m number of repetitions for the bootstrap method
-     * @param z the desired z-score
-     * @return the evaluation of the convex combination and the related confidence interval,
-     * whose bounds are obtained as the convex combinations of the respective bounds from the
-     * confidence intervals on the evaluations of the expressions.
+     * The confidence interval is obtained from the convex combination of the respective bounds
+     * of the confidence intervals on the evaluations of the expressions.
      */
     @Override
-    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+    public double[] evalCI(RandomGenerator rg, int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
         return IntStream.range(0,3).mapToDouble(j -> IntStream.range(0, weights.length)
-                .mapToDouble(i -> weights[i]*expressions[i].evalCI(step, seq1, seq2, m, z)[j])
+                .mapToDouble(i -> weights[i]*expressions[i].evalCI(rg, step, seq1, seq2, m, z)[j])
                 .sum()).toArray();
     }
 

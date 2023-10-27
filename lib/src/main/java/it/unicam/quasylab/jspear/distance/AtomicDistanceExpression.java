@@ -25,42 +25,57 @@ package it.unicam.quasylab.jspear.distance;
 import it.unicam.quasylab.jspear.EvolutionSequence;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import org.apache.commons.math3.random.RandomGenerator;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.ToDoubleBiFunction;
+import java.util.stream.IntStream;
 
 /**
  * Class AtomicDistanceExpressionGeq implements the atomic distance expression
- * evaluating the hemidistance between the second and the first evolution sequence at a given time step.
+ * evaluating the Wasserstein lifting of a given ground distance
+ * between the distributions reached at a given time step
+ * by two given evolution sequences.
  */
-public final class AtomicDistanceExpressionGeq implements DistanceExpression {
+public final class AtomicDistanceExpression implements DistanceExpression {
 
     private final DataStateExpression rho;
+    private final DoubleBinaryOperator distance;
 
     /**
      * Generates the atomic distance expression that will use the given penalty function
-     * for the evaluation of the ground distance on data states
+     * for the evaluation of the given ground distance on data states.
      * @param rho the penalty function
+     * @param distance ground distance on reals.
      */
-    public AtomicDistanceExpressionGeq(DataStateExpression rho) {
+    public AtomicDistanceExpression(DataStateExpression rho, DoubleBinaryOperator distance) {
         this.rho = rho;
+        this.distance = distance;
     }
 
     /**
-     * Evaluates the hemidistance between the second and first evolution sequence at the given time step.
+     * Evaluates the Wasserstein lifting of this distance
+     * between the distributions reached at a given time step
+     * by two given evolution sequences.
      *
      * @param step time step at which the atomic is evaluated
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
-     * @return the hemidistance between the distribution reached by <code>seq2</code> and that reached by <code>seq1</code> at time <code>step</code>.
+     * @return the Wasserstein lifting of <code>this.distance</code> between
+     * the distribution reached by <code>seq1</code> and that reached by <code>seq2</code>
+     * at time <code>step</code>.
      */
     @Override
     public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return seq1.get(step).distanceGeq(rho, seq2.get(step));
+        return seq1.get(step).distance(rho, this.distance, seq2.get(step));
     }
 
     @Override
     public double[] evalCI(RandomGenerator rg, int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
         double[] res = new double[3];
-        res[0] = seq1.get(step).distanceGeq(rho, seq2.get(step));
-        double[] partial = seq1.get(step).bootstrapDistanceGeq(rg, rho, seq2.get(step),m,z);
+        res[0] = seq1.get(step).distance(rho, this.distance, seq2.get(step));
+        ToDoubleBiFunction<double[],double[]> bootDist = (a,b)->IntStream.range(0, a.length).parallel()
+                .mapToDouble(i -> IntStream.range(0, b.length/a.length).mapToDouble(j -> distance.applyAsDouble(a[i],b[i * (b.length/a.length) + j])).sum())
+                .sum() / b.length;
+        double[] partial = seq1.get(step).bootstrapDistance(rg, rho, bootDist, seq2.get(step),m,z);
         res[1] = partial[0];
         res[2] = partial[1];
         return res;

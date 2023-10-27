@@ -27,7 +27,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 import java.util.function.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -101,18 +100,17 @@ public class SampleSet<T extends SystemState> {
     }
 
     /**
-     * Returns the symmetric distance between this sample set and <code>other</code> computed according to
-     * the function <code>f</code>.
+     * Returns the Wasserstein lifting of a given ground distance on data states,
+     * computed according to the functions <code>f</code> and <code>distance</code>,
+     * between this sample set and <code>other</code>.
      *
-     * @param f penalty function used to compute the distance.
+     * @param f penalty function used to compute the ground distance.
+     * @param distance ground distance on reals.
      * @param other sample set to compare.
-     * @return the distance between this sample set and <code>other</code> computed according to
-     * the function <code>f</code>.
+     * @return the Wasserstein lifting of <code>distance</code>,
+     * computed on the values obtained by applying <code>f</code> to the data states in the samples,
+     * between this sample set and <code>other</code>.
      */
-    public synchronized double distance(DataStateExpression f, SampleSet<T> other) {
-        return distance(f, (v1, v2) -> Math.abs(v2-v1), other);
-    }
-
     public synchronized double distance(DataStateExpression f, DoubleBinaryOperator distance, SampleSet<T> other) {
         if (other.size() % this.size() != 0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
@@ -122,19 +120,30 @@ public class SampleSet<T extends SystemState> {
         return computeDistance(distance, thisData,otherData);
     }
 
+    /**
+     * In case the ground distance is not given,
+     * the Euclidean distance on reals is considered.
+     *
+     * @param f penalty function on data states.
+     * @param other sample set to compare.
+     * @return the Wasserstein lifting of the Euclidean distance,
+     * computed on the values obtained by applying <code>f</code> to the data states in the samples,
+     * between this sample set and <code>other</code>.
+     */
+    public synchronized double distance(DataStateExpression f, SampleSet<T> other) {
+        return distance(f, (v1, v2) -> Math.abs(v2-v1), other);
+    }
 
     /**
      * Utility method to evaluate the Wasserstein distance between two sampled distributions on reals,
-     * based on a symmetric ground distance.
+     * based on a given ground distance.
      *
+     * @param distance ground distance on reals
      * @param thisData an array of real values
      * @param otherData an array of real values
-     * @return the symmetric Wasserstein distance between the sampled distributions <code>thisData</code> and <code>otherData</code>.
+     * @return the Wasserstein lifting of <code>distance</code>
+     * between the sampled distributions <code>thisData</code> and <code>otherData</code>.
      */
-    private double computeDistance(double[] thisData, double[] otherData) {
-        return computeDistance((v1, v2) -> Math.abs(v2-v1), thisData, otherData);
-    }
-
     private double computeDistance(DoubleBinaryOperator distance, double[] thisData, double[] otherData) {
         int k = otherData.length / thisData.length;
         return IntStream.range(0, thisData.length).parallel()
@@ -142,6 +151,18 @@ public class SampleSet<T extends SystemState> {
                 .sum() / otherData.length;
     }
 
+    /**
+     * In case the ground distance is not specified,
+     * the Euclidean distance on reals is used.
+     *
+     * @param thisData an array of real values
+     * @param otherData an array of real values
+     * @return the Wasserstein lifting of Euclidean distance on reals
+     * between the sampled distributions <code>thisData</code> and <code>otherData</code>.
+     */
+    private double computeDistance(double[] thisData, double[] otherData) {
+        return computeDistance((v1, v2) -> Math.abs(v2-v1), thisData, otherData);
+    }
 
     /**
      * Returns the asymmetric distance between <code>other</code> and this sample set computed according to
@@ -165,10 +186,7 @@ public class SampleSet<T extends SystemState> {
      * @return the asymmetric Wasserstein distance between the sampled distributions <code>thisData</code> and <code>otherData</code>.
      */
     private double computeDistanceLeq(double[] thisData, double[] otherData) {
-        int k = otherData.length / thisData.length;
-        return IntStream.range(0, thisData.length).parallel()
-                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, otherData[i * k + j] - thisData[i])).sum())
-                .sum() / otherData.length;
+        return computeDistance((v1, v2) -> Math.max(0.0,v2-v1), thisData, otherData);
     }
 
     /**
@@ -193,15 +211,13 @@ public class SampleSet<T extends SystemState> {
      * @return the asymmetric Wasserstein distance between the sampled distributions <code>otherData</code> and <code>thisData</code>.
      */
     private double computeDistanceGeq(double[] thisData, double[] otherData) {
-        int k = otherData.length / thisData.length;
-        return IntStream.range(0, thisData.length).parallel()
-                .mapToDouble(i -> IntStream.range(0, k).mapToDouble(j -> Math.max(0, thisData[i] - otherData[i * k + j])).sum())
-                .sum() / otherData.length;
+        return computeDistance((v1, v2) -> Math.max(0.0,v1-v2), thisData, otherData);
     }
 
     /**
-     * Returns the confidence interval of the evaluation of the distance between this sample set and <code>other</code> computed according to
-     * the function <code>f</code>. The confidence interval is evaluated by means of the empirical bootstrap method.
+     * Returns the confidence interval of the evaluation of the distance between this sample set and <code>other</code>
+     * computed according to the function <code>f</code>.
+     * The confidence interval is evaluated by means of the empirical bootstrap method.
      *
      * @param rg a random generator
      * @param f penalty function used to compute the distance.
@@ -211,19 +227,7 @@ public class SampleSet<T extends SystemState> {
      * @return the limits of the confidence interval of the evaluation of the distance between this sample set and <code>other</code> computed according to
      * the function <code>f</code>.
      */
-    public synchronized double[] bootstrapDistance(RandomGenerator rg, DataStateExpression f, SampleSet<T> other, int m, double z) {
-        return bootstrapDistance(rg, f, other, this::computeDistance, m , z);
-    }
-
-    /**
-     * In case the random generator is not passed as parameter,
-     * the default one is used.
-     */
-    public synchronized double[] bootstrapDistance(DataStateExpression f, SampleSet<T> other, int m, double z) {
-        return bootstrapDistance(new DefaultRandomGenerator(), f, other, m, z);
-    }
-
-    public synchronized double[] bootstrapDistance(RandomGenerator rg, DataStateExpression f, SampleSet<T> other, ToDoubleBiFunction<double[], double[]> distanceFunction, int m, double z) {
+    public synchronized double[] bootstrapDistance(RandomGenerator rg, DataStateExpression f, ToDoubleBiFunction<double[], double[]> distanceFunction, SampleSet<T> other, int m, double z) {
         if (other.size()%this.size()!=0) {
             throw new IllegalArgumentException("Incompatible size of data sets!");
         }
@@ -244,7 +248,30 @@ public class SampleSet<T extends SystemState> {
         CI[1] = Math.min(BootMean + z*StandardError,1);
         return CI;
     }
-    
+
+    /**
+     * In case the random generator is not passed as parameter,
+     * the default one is used.
+     */
+    public synchronized double[] bootstrapDistance(DataStateExpression f, ToDoubleBiFunction<double[], double[]> distanceFunction, SampleSet<T> other, int m, double z) {
+        return bootstrapDistance(new DefaultRandomGenerator(), f, distanceFunction, other, m, z);
+    }
+
+    /**
+     * In case the method to compute the distance is not passed as parameter,
+     * method <code>computeDistance</code> is used as default.
+     */
+    public synchronized double[] bootstrapDistance(RandomGenerator rg, DataStateExpression f, SampleSet<T> other, int m, double z) {
+        return bootstrapDistance(rg, f, this::computeDistance, other, m , z);
+    }
+
+    /**
+     * In case neither the random generator nor the distance method are passed as parameters,
+     * the default ones are used.
+     */
+    public synchronized double[] bootstrapDistance(DataStateExpression f, SampleSet<T> other, int m, double z) {
+        return bootstrapDistance(new DefaultRandomGenerator(), f, this::computeDistance, other, m, z);
+    }
 
     /**
      * Returns the confidence interval of the evaluation of the asymmetric distance between
@@ -259,7 +286,7 @@ public class SampleSet<T extends SystemState> {
      * the function <code>f</code>.
      */
     public synchronized double[] bootstrapDistanceLeq(RandomGenerator rg, DataStateExpression f, SampleSet<T> other, int m, double z) {
-        return bootstrapDistance(rg, f, other, this::computeDistanceLeq, m , z);
+        return bootstrapDistance(rg, f, this::computeDistanceLeq, other, m , z);
     }
 
     /**
@@ -267,7 +294,7 @@ public class SampleSet<T extends SystemState> {
      * the default one is used.
      */
     public synchronized double[] bootstrapDistanceLeq(DataStateExpression f, SampleSet<T> other, int m, double z) {
-        return bootstrapDistanceLeq(new DefaultRandomGenerator(), f, other, m, z);
+        return bootstrapDistance(new DefaultRandomGenerator(), f, this::computeDistanceLeq, other, m, z);
     }
 
     /**
@@ -283,7 +310,7 @@ public class SampleSet<T extends SystemState> {
      * the function <code>f</code>.
      */
     public synchronized double[] bootstrapDistanceGeq(RandomGenerator rg, DataStateExpression f, SampleSet<T> other, int m, double z) {
-        return bootstrapDistance(rg, f, other, this::computeDistanceGeq, m , z);
+        return bootstrapDistance(rg, f, this::computeDistanceGeq, other, m , z);
     }
 
     /**
@@ -291,7 +318,7 @@ public class SampleSet<T extends SystemState> {
      * the default one is used.
      */
     public synchronized double[] bootstrapDistanceGeq(DataStateExpression f, SampleSet<T> other, int m, double z) {
-        return bootstrapDistanceGeq(new DefaultRandomGenerator(), f, other, m, z);
+        return bootstrapDistance(new DefaultRandomGenerator(), f, this::computeDistanceGeq, other, m, z);
     }
 
     /**

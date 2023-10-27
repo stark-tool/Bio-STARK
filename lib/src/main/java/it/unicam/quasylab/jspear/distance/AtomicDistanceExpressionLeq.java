@@ -24,6 +24,7 @@ package it.unicam.quasylab.jspear.distance;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
+import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  * Class AtomicDistanceExpressionGeq implements the atomic distance expression
@@ -55,24 +56,11 @@ public final class AtomicDistanceExpressionLeq implements DistanceExpression {
         return seq1.get(step).distanceLeq(rho, seq2.get(step));
     }
 
-    /**
-     * In addition to the evaluation of the distance,
-     * it also computes, via empirical bootstrap, the confidence interval on the evaluation
-     * with respect to a desired coverage probability.
-     *
-     * @param step time step at which the atomic distance is evaluated
-     * @param seq1 an evolution sequence
-     * @param seq2 an evolution sequence
-     * @param m number of repetitions for the bootstrap method
-     * @param z the quantile of the normal distribution encoding the desired coverage probability
-     * @return the array containing the evaluation of the distance
-     * and the two bounds of the confidence interval evaluated via empirical bootstrap.
-     */
     @Override
-    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
+    public double[] evalCI(RandomGenerator rg, int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
         double[] res = new double[3];
         res[0] = seq1.get(step).distanceLeq(rho, seq2.get(step));
-        double[] partial = seq1.get(step).bootstrapDistanceLeq(rho, seq2.get(step),m,z);
+        double[] partial = seq1.get(step).bootstrapDistanceLeq(rg, rho, seq2.get(step),m,z);
         res[1] = partial[0];
         res[2] = partial[1];
         return res;

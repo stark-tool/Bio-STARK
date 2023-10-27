@@ -22,7 +22,9 @@
 
 package it.unicam.quasylab.jspear.distance;
 
+import it.unicam.quasylab.jspear.DefaultRandomGenerator;
 import it.unicam.quasylab.jspear.EvolutionSequence;
+import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.stream.IntStream;
 
@@ -31,6 +33,7 @@ import java.util.stream.IntStream;
  * The interface also offers the methods for their evaluation.
  */
 public sealed interface DistanceExpression permits
+        AtomicDistanceExpression,
         AtomicDistanceExpressionLeq,
         AtomicDistanceExpressionGeq,
         LinearCombinationDistanceExpression,
@@ -72,7 +75,7 @@ public sealed interface DistanceExpression permits
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
      * @return the array containing the evaluations of the distance expression between <code>seq1</code> and <code>seq2</code>
-     * at each time step in <code>steps</code>
+     * at each time step in <code>steps</code>.
      */
     default double[] compute(int[] steps, EvolutionSequence seq1, EvolutionSequence seq2) {
         return IntStream.of(steps).mapToDouble(i -> compute(i, seq1, seq2)).toArray();
@@ -82,6 +85,24 @@ public sealed interface DistanceExpression permits
      * Returns the evaluation of the distance expression among the two sequences at the given step
      * and the related confidence interval with respect to a desired coverage probability.
      *
+     * @param rg random generator
+     * @param step time step at which we start the evaluation of the expression
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @param m number of repetitions for the bootstrap method
+     * @param z the quantile of the standard normal distribution corresponding to the desired coverage probability.
+     * @return the evaluation of the distance expression,
+     * at time <code>step</code>,
+     * between <code>seq1</code> and <code>seq2</code>,
+     * and its confidence interval evaluated via empirical bootstrapping
+     * using <code>m</code> and <code>z</code> as parameters for it.
+     */
+    double[] evalCI(RandomGenerator rg, int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z);
+
+    /**
+     * In case the random generator is not declared,
+     * the default one is used.
+     *
      * @param step time step at which we start the evaluation of the expression
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
@@ -89,8 +110,9 @@ public sealed interface DistanceExpression permits
      * @param z the quantile of the standard normal distribution corresponding to the desired coverage probability.
      * @return the evaluation of the distance expression at the given step among the two sequences and its confidence interval.
      */
-    double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z);
 
-
+    default double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
+        return evalCI(new DefaultRandomGenerator(), step, seq1, seq2, m, z);
+    }
 
 }
