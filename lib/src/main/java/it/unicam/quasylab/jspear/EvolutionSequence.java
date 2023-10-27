@@ -59,7 +59,6 @@ public class EvolutionSequence {
         this.sequence.add(lastGenerated);
     }
 
-
     /**
      * Creates an evolution sequence originating from the given generator.
      *
@@ -70,7 +69,6 @@ public class EvolutionSequence {
     public EvolutionSequence(RandomGenerator rg, Function<RandomGenerator, SystemState> generator, int size) {
         this(null, rg, generator, size);
     }
-
 
     /**
      * Creates an evolution sequence whose first elements are contained in the given sequence.
@@ -167,11 +165,23 @@ public class EvolutionSequence {
         }
     }
 
+    /**
+     * Adds a given sampled set as the last generated sample in the sequence.
+     *
+     * @param sampling a given set of samples.
+     */
     protected void doAdd(SampleSet<SystemState> sampling) {
         lastGenerated = sampling;
         sequence.add(lastGenerated);
     }
 
+    /**
+     * Returns the sample of the distribution that it is reached in one step
+     * from the last distribution in this sequence.
+     *
+     * @return the sample of the distribution that it is reached in one step
+     * from the last distribution in this sequence.
+     */
     protected SampleSet<SystemState> generateNextStep() {
         return lastGenerated.apply(s -> s.sampleNext(rg));
     }
@@ -235,10 +245,23 @@ public class EvolutionSequence {
         return new PerturbedEvolutionSequence(this.monitor, this.rg, this.select(perturbedStep-1), this.get(perturbedStep), perturbation, scale);
     }
 
-
-
-    public double[] compute(Perturbation perturbation, int from, int size, DistanceExpression expr, int t1, int t2) {
-        return expr.compute(t1, t2, this, this.apply(perturbation, from, size));
+    /**
+     * Evaluated a given distance expression, on a given time interval,
+     * between this sequence and sequence obtained by perturbing this
+     * with a given perturbation at a given time step.
+     *
+     * @param perturbation a perturbation
+     * @param step time step at which <code>perturbation</code> is applied
+     * @param size multiplication factor for the number of samples in the perturbed sequence
+     * @param expr a distance expression
+     * @param from left bound of the time interval
+     * @param to right bound of the time interval
+     * @return the evaluations of <code>expr</code>, in the interval <code>[from,to]</code>,
+     * between <code>this</code> and its perturbation obtained by applying <code>perturbation</code>
+     * at time <code>step</code>.
+     */
+    public double[] compute(Perturbation perturbation, int step, int size, DistanceExpression expr, int from, int to) {
+        return expr.compute(from, to, this, this.apply(perturbation, step, size));
     }
 
 

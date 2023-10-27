@@ -22,8 +22,6 @@
 
 package it.unicam.quasylab.jspear;
 
-import it.unicam.quasylab.jspear.SimulationMonitor;
-
 /**
  * This class can be used to monitor simulations.
  */

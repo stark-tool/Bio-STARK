@@ -29,18 +29,31 @@ import org.apache.commons.math3.random.RandomGenerator;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Represents an evolution sequence under the effect of a given perturbation.
+ */
 public class PerturbedEvolutionSequence extends EvolutionSequence {
 
     private Perturbation p;
 
-
+    /**
+     * Generates the perturbed version of a given evolution sequence,
+     * obtained by applying a given perturbation
+     * at a given time step.
+     *
+     * @param monitor a monitor
+     * @param rg a random generator
+     * @param sequence an evolution sequence
+     * @param perturbedStep the time step at which the perturbation is applied
+     * @param p the perturbation
+     * @param scale multiplication factor for the number of samples to be used
+     *              in the simulation of the perturbed system.
+     */
     protected PerturbedEvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> sequence, SampleSet<SystemState> perturbedStep, Perturbation p, int scale) {
         super(monitor, rg, sequence);
         this.p = p;
         doAdd(doApply(perturbedStep.replica(scale)));
     }
-
-
 
     @Override
     protected synchronized SampleSet<SystemState> generateNextStep() {
@@ -48,7 +61,12 @@ public class PerturbedEvolutionSequence extends EvolutionSequence {
         return doApply(super.generateNextStep());
     }
 
-
+    /**
+     * Applies this perturbation to a given sample set.
+     *
+     * @param sample a given sample set
+     * @return the perturbation of <code>sample</code> via <code>this.p</code>.
+     */
     protected synchronized SampleSet<SystemState> doApply(SampleSet<SystemState> sample) {
         Optional<DataStateFunction> perturbationFunction = this.p.effect();
         if (perturbationFunction.isPresent()) {

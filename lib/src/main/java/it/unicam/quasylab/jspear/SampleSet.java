@@ -174,7 +174,7 @@ public class SampleSet<T extends SystemState> {
      * the function <code>f</code>.
      */
     public synchronized double distanceLeq(DataStateExpression f, SampleSet<T> other) {
-        return distance(f, (v1,v2) -> Math.max(0, v2-v1), other);
+        return distance(f, (v1,v2) -> Math.max(0.0, v2-v1), other);
     }
 
     /**

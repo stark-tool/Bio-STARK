@@ -26,12 +26,22 @@ import it.unicam.quasylab.jspear.ds.DataState;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import org.apache.commons.math3.random.RandomGenerator;
 
+/**
+ * Represent a system in the evolution sequence model
+ * in which the evolution is affected by a given perturbation.
+ */
 public class PerturbedSystem implements SystemState {
 
     private final SystemState perturbedSystem;
     private final Perturbation perturbation;
-    private DataState perturbedDataState;
 
+    /**
+     * Generates a perturbed system, starting from a given system,
+     * given a perturbation.
+     *
+     * @param perturbedSystem a system
+     * @param perturbation a perturbation.
+     */
     public PerturbedSystem(SystemState perturbedSystem, Perturbation perturbation) {
         this.perturbedSystem = perturbedSystem;
         this.perturbation = perturbation;
