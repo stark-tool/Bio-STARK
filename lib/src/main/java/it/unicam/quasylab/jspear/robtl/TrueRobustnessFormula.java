@@ -22,17 +22,10 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
-
 /**
- * Defines the formula TRUE.
+ * Defines the formula <code>true</code>.
  */
 public final class TrueRobustnessFormula implements RobustnessFormula {
-
-    @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        return true;
-    }
 
     @Override
     public <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator) {

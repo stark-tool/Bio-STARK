@@ -22,10 +22,6 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
-
-import java.util.stream.IntStream;
-
 /**
  * We use the "always" operator to specify that
  * a given formula must be satisfied at each time step in a given interval.
@@ -47,16 +43,6 @@ public final class AlwaysRobustnessFormula implements RobustnessFormula {
         this.formula = formula;
         this.from = from;
         this.to = to;
-    }
-
-    @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        if (parallel) {
-            return IntStream.of(from, to).parallel().allMatch(i -> formula.eval(sampleSize, step+i, sequence, true));
-        } else {
-            return IntStream.of(from, to).sequential().allMatch(i -> formula.eval(sampleSize, step+i, sequence, false));
-
-        }
     }
 
     @Override

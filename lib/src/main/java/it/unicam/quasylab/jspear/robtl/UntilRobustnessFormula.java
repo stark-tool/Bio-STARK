@@ -22,10 +22,6 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
-
-import java.util.stream.IntStream;
-
 /**
  * We use the "until" operator to establish a correlation
  * between the satisfaction in a given time interval
@@ -55,21 +51,6 @@ public final class UntilRobustnessFormula implements RobustnessFormula {
         this.from = from;
         this.to = to;
         this.rightFormula = rightFormula;
-    }
-
-    @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        if (parallel) {
-            return IntStream.range(from+step, to+step).parallel().anyMatch(
-                    i -> rightFormula.eval(sampleSize, i, sequence, true) &&
-                            IntStream.range(from+step, i).allMatch(j -> leftFormula.eval(sampleSize, j, sequence, true))
-            );
-        } else {
-            return IntStream.range(from+step, to+step).sequential().anyMatch(
-                    i -> rightFormula.eval(sampleSize, i, sequence, false) &&
-                            IntStream.range(from+step, i).allMatch(j -> leftFormula.eval(sampleSize, j, sequence, false))
-            );
-        }
     }
 
     @Override

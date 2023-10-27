@@ -22,10 +22,6 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
-
-import java.util.stream.IntStream;
-
 /**
  * We use the "eventually" operator to specify that
  * given formula must be satisfied in at least one time step in a given interval.
@@ -46,15 +42,6 @@ public final class EventuallyRobustnessFormula implements RobustnessFormula {
         this.formula = formula;
         this.from = from;
         this.to = to;
-    }
-
-    @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean isParallel) {
-        if (isParallel) {
-            return IntStream.of(from, to).parallel().anyMatch(i -> formula.eval(sampleSize, step+i, sequence));
-        } else {
-            return IntStream.of(from, to).sequential().anyMatch(i -> formula.eval(sampleSize, step+i, sequence));
-        }
     }
 
     @Override

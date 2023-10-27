@@ -23,7 +23,6 @@
 package it.unicam.quasylab.jspear.robtl;
 
 import it.unicam.quasylab.jspear.distance.DistanceExpression;
-import it.unicam.quasylab.jspear.EvolutionSequence;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import it.unicam.quasylab.jspear.ds.RelationOperator;
 
@@ -55,13 +54,6 @@ public final class AtomicRobustnessFormula implements RobustnessFormula {
         this.expr = expr;
         this.relop = relop;
         this.threshold = threshold;
-    }
-
-    @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        return relop.eval(
-                expr.compute(step, sequence, sequence.apply(perturbation, step, sampleSize)),
-                threshold);
     }
 
     @Override

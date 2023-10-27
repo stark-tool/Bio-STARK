@@ -22,8 +22,6 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
-
 /**
  * Defines the implication between two given RobTL formulae.
  */
@@ -41,11 +39,6 @@ public final class ImplicationRobustnessFormula implements RobustnessFormula {
     public ImplicationRobustnessFormula(RobustnessFormula leftFormula, RobustnessFormula rightFormula) {
         this.leftFormula = leftFormula;
         this.rightFormula = rightFormula;
-    }
-
-    @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        return (!leftFormula.eval(sampleSize, step, sequence,parallel))||rightFormula.eval(sampleSize, step, sequence,parallel);
     }
 
     @Override

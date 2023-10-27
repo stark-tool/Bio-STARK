@@ -35,7 +35,6 @@ import it.unicam.quasylab.jspear.perturbation.AtomicPerturbation;
 import it.unicam.quasylab.jspear.perturbation.IterativePerturbation;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import it.unicam.quasylab.jspear.robtl.*;
-import it.unicam.quasylab.jspear.robtl.old.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.IOException;
@@ -130,72 +129,66 @@ public class Main {
             RobustnessFormula PHI = getFinalFormula();
 
             int test_step = 50;
-            System.out.println("Evaluation of phi1 at step "+test_step+": "+PHI1.eval(100, test_step, sequence));
-            System.out.println("Evaluation of phi2 at step "+test_step+": "+PHI2.eval(100, test_step, sequence));
-            System.out.println("Evaluation of phi3 at step "+test_step+": "+PHI3.eval(100, test_step, sequence));
-            System.out.println("Evaluation of phi4 at step "+test_step+": "+PHI4.eval(100, test_step, sequence));
-            System.out.println("Evaluation of phi5 at step "+test_step+": "+PHI5.eval(100, test_step, sequence));
-            System.out.println("Evaluation of phi at step 0: "+PHI.eval(100, 0, sequence));
+            BooleanSemanticsVisitor BoolEvaluator = new BooleanSemanticsVisitor();
+            System.out.println("Evaluation of phi1 at step "+test_step+": "+BoolEvaluator.eval(PHI1).eval(60, test_step, sequence));
+            System.out.println("Evaluation of phi2 at step "+test_step+": "+BoolEvaluator.eval(PHI2).eval(100, test_step, sequence));
+            System.out.println("Evaluation of phi3 at step "+test_step+": "+BoolEvaluator.eval(PHI3).eval(100, test_step, sequence));
+            System.out.println("Evaluation of phi4 at step "+test_step+": "+BoolEvaluator.eval(PHI4).eval(100, test_step, sequence));
+            System.out.println("Evaluation of phi5 at step "+test_step+": "+BoolEvaluator.eval(PHI5).eval(100, test_step, sequence));
+            System.out.println("Evaluation of phi at step 0: "+BoolEvaluator.eval(PHI).eval(100, 0, sequence));
 
             //Test three-valued version of RobTL
-            int m = 50;
-            double z = 1.96;
-
             DistanceExpression expr4 = new AtomicDistanceExpressionLeq(ds -> Math.abs((ds.get(temp)-ds.get(ch_temp))/Math.abs(MAX_TEMP-MIN_TEMP)));
 
-            ThreeValuedFormula PSI1 = new AtomicThreeValuedFormula(getPerturbation(),
+            RobustnessFormula PSI1 = new AtomicRobustnessFormula(getPerturbation(),
                     new MinIntervalDistanceExpression(
                             expr4,
                             TAU,
                             TAU+N-1
                     ),
                     RelationOperator.GREATER_OR_EQUAL_THAN,
-                    ETA1,
-                    m,
-                    z
+                    ETA1
             );
-            ThreeValuedFormula PSI2 = new AtomicThreeValuedFormula(getPerturbation(),
+            RobustnessFormula PSI2 = new AtomicRobustnessFormula(getPerturbation(),
                     new MaxIntervalDistanceExpression(
                             expr4,
                             TAU,
                             TAU+N-1
                     ),
                     RelationOperator.LESS_OR_EQUAL_THAN,
-                    ETA2,
-                    m,
-                    z
+                    ETA2
             );
-            ThreeValuedFormula PSI3 = new AtomicThreeValuedFormula(getPerturbation(),
+            RobustnessFormula PSI3 = new AtomicRobustnessFormula(getPerturbation(),
                     MaxExpr2,
                     RelationOperator.LESS_OR_EQUAL_THAN,
-                    ETA3,
-                    m,
-                    z
+                    ETA3
             );
-            ThreeValuedFormula PSI4 = new AtomicThreeValuedFormula(getPerturbation(),
+            RobustnessFormula PSI4 = new AtomicRobustnessFormula(getPerturbation(),
                     MaxExpr3,
                     RelationOperator.GREATER_THAN,
-                    ETA4,
-                    m,
-                    z
+                    ETA4
             );
-            ThreeValuedFormula PSI5 = new ImplicationThreeValuedFormula(
-                    new ConjunctionThreeValuedFormula(PSI1, PSI2),
-                    new ConjunctionThreeValuedFormula(PSI3, PSI4)
+            RobustnessFormula PSI5 = new ImplicationRobustnessFormula(
+                    new ConjunctionRobustnessFormula(PSI1, PSI2),
+                    new ConjunctionRobustnessFormula(PSI3, PSI4)
             );
-            ThreeValuedFormula PSI = new EventuallyThreeValuedFormula(PSI5,
+            RobustnessFormula PSI = new EventuallyRobustnessFormula(PSI5,
                     0,
                     H
             );
 
             int test_step_threeValued = 50;
+            int m = 50;
+            double z = 1.96;
 
-            System.out.println("Evaluation of psi1 at step "+test_step_threeValued+": "+PSI1.eval(100, test_step_threeValued, sequence));
-            System.out.println("Evaluation of psi2 at step "+test_step_threeValued+": "+PSI2.eval(100, test_step_threeValued, sequence));
-            System.out.println("Evaluation of psi3 at step "+test_step_threeValued+": "+PSI3.eval(100, test_step_threeValued, sequence));
-            System.out.println("Evaluation of psi4 at step "+test_step_threeValued+": "+PSI4.eval(100, test_step_threeValued, sequence));
-            System.out.println("Evaluation of psi5 at step "+test_step_threeValued+": "+PSI5.eval(100, test_step_threeValued, sequence));
-            System.out.println("Evaluation of psi at step 0: "+PSI.eval(100, 0, sequence));
+            ThreeValuedSemanticsVisitor ThreeEvaluator = new ThreeValuedSemanticsVisitor(m,z);
+
+            System.out.println("Evaluation of psi1 at step "+test_step_threeValued+": "+ThreeEvaluator.eval(PSI1).eval(100, test_step_threeValued, sequence));
+            System.out.println("Evaluation of psi2 at step "+test_step_threeValued+": "+ThreeEvaluator.eval(PSI2).eval(100, test_step_threeValued, sequence));
+            System.out.println("Evaluation of psi3 at step "+test_step_threeValued+": "+ThreeEvaluator.eval(PSI3).eval(100, test_step_threeValued, sequence));
+            System.out.println("Evaluation of psi4 at step "+test_step_threeValued+": "+ThreeEvaluator.eval(PSI4).eval(100, test_step_threeValued, sequence));
+            System.out.println("Evaluation of psi5 at step "+test_step_threeValued+": "+ThreeEvaluator.eval(PSI5).eval(100, test_step_threeValued, sequence));
+            System.out.println("Evaluation of psi at step 0: "+ThreeEvaluator.eval(PSI).eval(100, 0, sequence));
 
             //Collecting data for behavioural analysis
 

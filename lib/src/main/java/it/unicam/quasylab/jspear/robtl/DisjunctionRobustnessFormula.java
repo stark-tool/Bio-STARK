@@ -22,8 +22,6 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
-
 /**
  * Defines the disjunction of two given RobTL formulae.
  */
@@ -41,11 +39,6 @@ public final class DisjunctionRobustnessFormula implements RobustnessFormula {
     public DisjunctionRobustnessFormula(RobustnessFormula leftFormula, RobustnessFormula rightFormula) {
         this.leftFormula = leftFormula;
         this.rightFormula = rightFormula;
-    }
-
-    @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        return leftFormula.eval(sampleSize, step, sequence, parallel)||rightFormula.eval(sampleSize, step, sequence, parallel);
     }
 
     @Override

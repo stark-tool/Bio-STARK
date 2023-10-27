@@ -42,12 +42,6 @@ public sealed interface RobustnessFormula permits
         TrueRobustnessFormula,
         UntilRobustnessFormula {
 
-    default boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return eval(sampleSize, step, sequence, true);
-    }
-
-    boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel);
-
     /**
      * Returns the evaluation of the formula according to a given interpretation function (Boolean, or three-valued).
      *
