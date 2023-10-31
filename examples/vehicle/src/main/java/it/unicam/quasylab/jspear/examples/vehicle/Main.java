@@ -103,11 +103,12 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         try {
+            RandomGenerator rand = new DefaultRandomGenerator();
             Controller controller_V1 = getController_V1();
             Controller controller_V2 = getController_V2();
             DataState state = getInitialState();
             ControlledSystem system = new ControlledSystem(new ParallelController(controller_V1, controller_V2), (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, 1);
+            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
             EvolutionSequence sequence2 = sequence.apply(getIteratedCombinedPerturbation(),0, 60);
 
             DistanceExpression crash_probability = new AtomicDistanceExpressionLeq(Main::rho_crash_probability);
@@ -176,7 +177,7 @@ public class Main {
 
             for(int i = 0; i<10; i++) {
                 int step = i*10;
-                TruthValues value1 = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_slow).eval(60, step, sequence);
+                TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_slow).eval(60, step, sequence);
                 System.out.println("Phi_slow evaluation at step "+step+": " + value1);
                 if (value1 == TruthValues.TRUE) {
                     val_slow[i][0] = 1;
@@ -187,7 +188,7 @@ public class Main {
                         val_slow[i][0] = -1;
                     }
                 }
-                TruthValues value2 = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_comb).eval(60, step, sequence);
+                TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_comb).eval(60, step, sequence);
                 System.out.println("Phi_comb evaluation at step "+step+": " + value2);
                 if (value2 == TruthValues.TRUE) {
                     val_crash[i][0] = 1;
@@ -206,7 +207,7 @@ public class Main {
             double[][] val_crash_speed = new double[10][1];
             for(int i = 0; i<10; i++) {
                 int step = i*50;
-                TruthValues value = new ThreeValuedSemanticsVisitor(40,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
+                TruthValues value = new ThreeValuedSemanticsVisitor(rand,40,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
                 System.out.println("Phi_crash_speed evaluation at step "+step+": " + value);
                 if (value == TruthValues.TRUE) {
                     val_crash_speed[i][0] = 1;

@@ -28,6 +28,7 @@ import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
 import it.unicam.quasylab.jspear.robtl.RobustnessFunction;
 import it.unicam.quasylab.jspear.robtl.TruthValues;
+import org.apache.commons.math3.random.RandomGenerator;
 
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -54,6 +55,8 @@ public class SystemSpecification {
 
     private int m = 50;
     private double z = 1.96;
+
+    private RandomGenerator rand = new DefaultRandomGenerator();
 
     private int scale = 10;
 
@@ -100,7 +103,7 @@ public class SystemSpecification {
     }
 
     public void generateSequence() {
-        this.sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, this.size);
+        this.sequence = new EvolutionSequence(rand, rg -> system, this.size);
     }
 
     public void setSize(int size) {
@@ -158,7 +161,7 @@ public class SystemSpecification {
         if (formula == null) {
             return TruthValues.FALSE;
         }
-        return eval(RobustnessFormula.getThreeValuedEvaluationFunction(m, z, formula), sampleSize, step);
+        return eval(RobustnessFormula.getThreeValuedEvaluationFunction(rand, m, z, formula), sampleSize, step);
     }
 
     public TruthValues[] evalThreeValuedSemantic(String name, int sampleSize, int from, int to, int by) {
@@ -167,7 +170,7 @@ public class SystemSpecification {
             return null;
         }
         TruthValues[] data = new TruthValues[(to-from)/by];
-        eval(RobustnessFormula.getThreeValuedEvaluationFunction(m, z, formula), sampleSize, from, by, data);
+        eval(RobustnessFormula.getThreeValuedEvaluationFunction(rand, m, z, formula), sampleSize, from, by, data);
         return data;
     }
 
@@ -177,7 +180,7 @@ public class SystemSpecification {
             return null;
         }
         TruthValues[] data = new TruthValues[steps.length];
-        eval(RobustnessFormula.getThreeValuedEvaluationFunction(m, z, formula), sampleSize, steps, data);
+        eval(RobustnessFormula.getThreeValuedEvaluationFunction(rand, m, z, formula), sampleSize, steps, data);
         return data;
     }
 

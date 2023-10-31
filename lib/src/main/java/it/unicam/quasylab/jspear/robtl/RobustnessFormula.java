@@ -23,6 +23,7 @@
 package it.unicam.quasylab.jspear.robtl;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
+import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  * We use the classes implementing the interface to represent formulae in the Robustness Temporal Logic (RobTL).
@@ -81,8 +82,8 @@ public sealed interface RobustnessFormula permits
      * @param formula a RobTL formula
      * @return the three-valued evaluation of <code>formula</code>.
      */
-    static RobustnessFunction<TruthValues> getThreeValuedEvaluationFunction(int m, double z, RobustnessFormula formula) {
-        return formula.eval(new ThreeValuedSemanticsVisitor(m, z));
+    static RobustnessFunction<TruthValues> getThreeValuedEvaluationFunction(RandomGenerator rg, int m, double z, RobustnessFormula formula) {
+        return formula.eval(new ThreeValuedSemanticsVisitor(rg, m, z));
     }
 
 }

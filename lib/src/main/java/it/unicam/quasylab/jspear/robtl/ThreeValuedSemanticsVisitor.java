@@ -22,37 +22,41 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
+import it.unicam.quasylab.jspear.DefaultRandomGenerator;
 import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.ds.RelationOperator;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
+import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  * This class implements the three-valued interpretation of RobTL formulae.
  */
 public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<TruthValues> {
 
+    private final RandomGenerator rg;
     private final int m;
-
     private final double z;
 
     /**
      * As the evaluation of confidence intervals is necessary to determine the three-valued semantics,
      * the class takes the following two parameters:
      *
+     * @param rg random generator
      * @param m number of repetitions for the bootstrap method
      * @param z the quantile of the normal distribution encoding the desired coverage probability.
      */
-    public ThreeValuedSemanticsVisitor(int m, double z) {
+    public ThreeValuedSemanticsVisitor(RandomGenerator rg, int m, double z) {
+        this.rg = rg;
         this.m = m;
         this.z = z;
     }
 
     /**
-     * In case parameters <code>m</code> and <code>z</code> are not declared,
+     * In case parameters <code>rg</code>, <code>m</code> and <code>z</code> are not declared,
      * default values are used.
      */
     public ThreeValuedSemanticsVisitor() {
-        this(50,1.96);
+        this(new DefaultRandomGenerator(),50,1.96);
     }
 
     @Override
@@ -84,7 +88,7 @@ public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<Tru
         RelationOperator relop = atomicRobustnessFormula.getRelationOperator();
         double value = atomicRobustnessFormula.getThreshold();
         return (sampleSize, step, sequence) -> {
-            double[] res = expr.evalCI(step, sequence, sequence.apply(perturbation, step, sampleSize), m, z);
+            double[] res = expr.evalCI(rg, step, sequence, sequence.apply(perturbation, step, sampleSize), m, z);
             if(res[1] < value && value < res[2]){return TruthValues.UNKNOWN;}
             if(relop.eval(res[0],value)){return TruthValues.TRUE;}
             return TruthValues.FALSE;

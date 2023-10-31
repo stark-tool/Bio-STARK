@@ -181,7 +181,7 @@ public class Main {
             int m = 50;
             double z = 1.96;
 
-            ThreeValuedSemanticsVisitor ThreeEvaluator = new ThreeValuedSemanticsVisitor(m,z);
+            ThreeValuedSemanticsVisitor ThreeEvaluator = new ThreeValuedSemanticsVisitor(rg,m,z);
 
             System.out.println("Evaluation of psi1 at step "+test_step_threeValued+": "+ThreeEvaluator.eval(PSI1).eval(100, test_step_threeValued, sequence));
             System.out.println("Evaluation of psi2 at step "+test_step_threeValued+": "+ThreeEvaluator.eval(PSI2).eval(100, test_step_threeValued, sequence));
