@@ -11,7 +11,7 @@ element: declarationConstant
 | declarationParameter
 | declarationVariables
 | declarationType
-| declarationEnvironment
+| declarationEnvironmnet
 | declarationPenalty
 | declarationFunction
 | declarationComponent
@@ -157,7 +157,7 @@ controllerIfThenElseBehaviour: 'if' '(' guard=expression ')' thenBranch=controll
 /**************************/
 /* ENVIRONMENT            */
 /**************************/
-declarationEnvironment:
+declarationEnvironmnet:
     'environment' block=environmentBlock
 ;
 
