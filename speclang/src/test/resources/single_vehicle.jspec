@@ -1,0 +1,214 @@
+param A = 1.0;
+param B = 2.0;
+param V = 0.0;
+param TIMER = 5;
+param INIT_SPEED = 25.0;
+param MAX_SPEED = 40.0;
+param MAX_SPEED_OFFSET_02 = 0.2;
+param MAX_SPEED_OFFSET_03 = 0.3;
+param MAX_SPEED_OFFSET_04 = 0.4;
+param INIT_DISTANCE = 10000.0;
+param SAFETY_DISTANCE = 200.0;
+param ETA_slow = 0.1;
+param OK = 0;
+param DANGER = 1;
+
+
+
+/*type IDSmsg = OK|DANGER;*/
+
+
+function give_distance(real dist){
+    return dist;
+}
+
+function new_timer(int timer){
+  return timer - 1;
+}
+
+function travelled(real speed, real accel){
+  return accel/2 + speed;
+}
+
+function new_speed(real speed, real accel){
+  return min(MAX_SPEED, max(0, speed + accel));
+}
+
+function new_s_speed (real speed, real acc, real token) {
+  if (token < 0.5) {
+      return new_speed(speed, acc) + 0.3;
+    } else {
+      return new_speed(speed, acc) - 0.3;
+    }
+}
+
+function new_distance(real dist, real travel){
+ return dist - travel;
+}
+
+function eval_bd(real speed){
+  return (speed^2 + (A + B) * (A * TIMER^2 + 2 * speed * TIMER)) / (2 * B);
+}
+
+function eval_rd(real speed){
+  return eval_bd(speed) + SAFETY_DISTANCE;
+}
+
+function crash_probability(real dist){
+  if (dist > 0){
+    return 0.0;
+  } else {
+    return 1.0;
+  }
+}
+
+function slow_speed(real speed, real offs){
+  return max(0, speed - offs);
+}
+
+function IDS_guard(boolean dist, boolean acc1, boolean acc2, boolean speed){
+  return dist && (acc1 || (acc2 && speed));
+}
+
+
+
+global variables{
+  real p_speed range [0,MAX_SPEED] = INIT_SPEED;
+  real p_distance range [0,INIT_DISTANCE] = INIT_DISTANCE;
+  real braking_distance range [0, INIT_DISTANCE] = eval_bd(INIT_SPEED);
+  real required_distance range [0, INIT_DISTANCE] = eval_rd(INIT_SPEED);
+  real gap range [0, INIT_DISTANCE] = INIT_DISTANCE - eval_rd(INIT_SPEED);
+  real offset_speed range [0,MAX_SPEED*MAX_SPEED_OFFSET] = 0.0;
+}
+
+
+
+component Vehicle {
+  variables{
+    real s_speed range [0,MAX_SPEED] = INIT_SPEED;
+    real s_distance range [0,INIT_DISTANCE] = INIT_DISTANCE;
+    real accel range [-B,A] = V;
+    int counter range [0,TIMER] = 0;
+    int warning = OK;
+  }
+  controller {
+    state Ctrl {
+      if (s_speed > 0) {
+        if (gap > 0) {
+          accel' = A;
+          counter' = TIMER;
+          step Accelerate;
+        } else {
+          accel' = -B;
+          counter' = TIMER;
+          step Decelerate;
+        }
+      } else {
+        accel' = V;
+        counter' = TIMER;
+        step Stop;
+      }
+    }
+    state Accelerate {
+      if (counter > 0) {
+        step Accelerate;
+      } else {
+        exec Ctrl;
+      }
+    }
+    state Decelerate {
+      if (counter > 0) {
+        step Decelerate;
+      } else {
+        exec Ctrl;
+      }
+    }
+    state Stop {
+      if (counter > 0) {
+        step Stop;
+      } else {
+        if (warning == DANGER) {
+          accel' = -B;
+          counter' = TIMER;
+          step Decelerate;
+        } else {
+          counter' = TIMER;
+          step Stop;
+        }
+      }
+    }
+    state IDS {
+      if (IDS_guard(p_distance <= 2*TIMER*SAFETY_DISTANCE, accel == A, accel == V, p_speed > 0.0)) {
+        warning' = DANGER;
+        step IDS;
+      } else {
+        warning' = OK;
+        step IDS;
+      }
+    }
+  }
+  init Ctrl || IDS
+}
+
+environment {
+    let
+        token = R[0,1]
+    in
+    counter' = new_timer(counter);
+    p_speed' = new_speed(p_speed,accel);
+    p_distance' = new_distance(p_distance, travelled(p_speed,accel));
+    s_speed' = new_s_speed(p_speed,accel,token);
+    s_distance' = new_distance(p_distance, travelled(new_s_speed(p_speed,accel,token),accel));
+    if (new_timer(counter) == 0) {
+        braking_distance' = eval_bd(new_s_speed(p_speed,accel,token));
+        required_distance' = eval_rd(new_s_speed(p_speed,accel,token));
+        gap' = new_distance(p_distance, travelled(new_s_speed(p_speed,accel,token),accel)) - eval_rd(new_s_speed(p_speed,accel,token));
+    }
+}
+
+
+
+penalty rho_crash = crash_probability(p_distance)
+
+penalty physical_dist = give_distance(p_distance)
+
+penalty sensed_speed = s_speed
+
+penalty physical_speed = p_speed
+
+
+
+distance exp_crash = \G[350,450] < rho_crash;
+
+
+
+perturbation p_slow_02 = [s_speed <- slow_speed(s_speed,offset_speed),
+                       required_distance <- eval_rd(slow_speed(s_speed,offset_speed)),
+                       gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
+                       offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@(TIMER-1);
+
+perturbation p_ItSlow_02 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@0); (p_slow_02)^150;
+
+perturbation p_slow_03 = [s_speed <- slow_speed(s_speed,offset_speed),
+                       required_distance <- eval_rd(slow_speed(s_speed,offset_speed)),
+                       gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
+                       offset_speed <- p_speed * MAX_SPEED_OFFSET_03* R[0,1]]@(TIMER-1);
+
+perturbation p_ItSlow_03 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_03 * R[0,1]]@0); (p_slow_03)^150;
+
+perturbation p_slow_04 = [s_speed <- slow_speed(s_speed,offset_speed),
+                       required_distance <- eval_rd(slow_speed(s_speed,offset_speed)),
+                       gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
+                       offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@(TIMER-1);
+
+perturbation p_ItSlow_04 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@0); (p_slow_04)^150;
+
+
+
+formula phi_slow_02 = \G[0,450] \D[exp_crash,p_ItSlow_02] <= ETA_slow;
+
+formula phi_slow_03 = \G[0,450] \D[exp_crash,p_ItSlow_03] <= ETA_slow;
+
+formula phi_slow_04 = \G[0,450] \D[exp_crash,p_ItSlow_04] <= ETA_slow;
+
+
