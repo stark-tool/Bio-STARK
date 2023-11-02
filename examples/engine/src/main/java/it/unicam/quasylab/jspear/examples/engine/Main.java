@@ -69,9 +69,7 @@ public class Main {
     public static final int cool = 9;//variableRegistry.getVariable("cool");
     private static final int ch_speed = 10;//variableRegistry.getVariable("speed");
     private static final int ch_wrn = 11;//variableRegistry.getVariable("ch_wrn");
-
     private static final int ch_in = 12;//variableRegistry.getVariable("ch_in");
-
     private static final int ch_out = 13;//
 
     private static final int NUMBER_OF_VARIABLES = 14;//
@@ -95,7 +93,7 @@ public class Main {
             Controller controller = getController();
             DataState state = getInitialState(INITIAL_TEMP_VALUE);
             ControlledSystem system = new ControlledSystem(controller, (r, ds) -> ds.apply(getEnvironmentUpdates(r, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new ConsoleMonitor("Engine: "), rg, r -> system, 100);
+            EvolutionSequence sequence = new EvolutionSequence(rg, r -> system, 100);
             EvolutionSequence sequence2_tau = sequence.apply(getPerturbation(),TAU, 100);
             EvolutionSequence sequence2_tau2 = sequence.apply(getPerturbation(),TAU2, 100);
             EvolutionSequence sequence2_tau3 = sequence.apply(getPerturbation(),TAU3, 100);

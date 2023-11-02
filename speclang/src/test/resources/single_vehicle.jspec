@@ -153,13 +153,15 @@ component Vehicle {
 environment {
     let
         token = R[0,1]
+    and
+        new_counter = new_timer(counter)
     in
     counter' = new_timer(counter);
     p_speed' = new_speed(p_speed,accel);
     p_distance' = new_distance(p_distance, travelled(p_speed,accel));
     s_speed' = new_s_speed(p_speed,accel,token);
     s_distance' = new_distance(p_distance, travelled(new_s_speed(p_speed,accel,token),accel));
-    if (new_timer(counter) == 0) {
+    if (new_counter == 0) {
         braking_distance' = eval_bd(new_s_speed(p_speed,accel,token));
         required_distance' = eval_rd(new_s_speed(p_speed,accel,token));
         gap' = new_distance(p_distance, travelled(new_s_speed(p_speed,accel,token),accel)) - eval_rd(new_s_speed(p_speed,accel,token));

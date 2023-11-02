@@ -109,7 +109,7 @@ public class JSpearDistanceGenerator extends JSpearSpecificationLanguageBaseVisi
     public DistanceExpression visitDistanceExpressionLinearCombination(JSpearSpecificationLanguageParser.DistanceExpressionLinearCombinationContext ctx) {
         double[] weights = ctx.weights.stream().map(exp -> JSpearExpressionEvaluator.evalToValue(context, registry, exp)).mapToDouble(JSpearValue::doubleOf).toArray();
         DistanceExpression[] distanceExpressions = ctx.values.stream().map(de -> de.accept(this)).toArray(DistanceExpression[]::new);
-        return new LinearCombinationDistanceExpression(weights, distanceExpressions);
+        return new ConvexCombinationDistanceExpression(weights, distanceExpressions);
     }
 
 

@@ -79,7 +79,7 @@ public final class UntilDistanceExpression implements DistanceExpression {
         return IntStream.range(from+step, to+step).parallel()
                 .mapToDouble(i -> Math.max(rightExpression.compute(i, seq1, seq2),
                         IntStream.range(from+step,i).parallel()
-                                .mapToDouble(j-> leftExpression.compute(j,seq1,seq2)).max().getAsDouble()))
+                                .mapToDouble(j-> leftExpression.compute(j,seq1,seq2)).max().orElse(Double.NaN)))
                 .min().orElse(Double.NaN);
     }
 

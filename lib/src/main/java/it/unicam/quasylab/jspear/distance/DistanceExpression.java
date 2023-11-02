@@ -36,7 +36,7 @@ public sealed interface DistanceExpression permits
         AtomicDistanceExpression,
         AtomicDistanceExpressionLeq,
         AtomicDistanceExpressionGeq,
-        LinearCombinationDistanceExpression,
+        ConvexCombinationDistanceExpression,
         MaxDistanceExpression,
         MaxIntervalDistanceExpression,
         MinDistanceExpression,

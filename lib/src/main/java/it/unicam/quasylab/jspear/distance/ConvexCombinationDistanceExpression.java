@@ -24,12 +24,14 @@ package it.unicam.quasylab.jspear.distance;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
 import org.apache.commons.math3.random.RandomGenerator;
+
+import java.util.Arrays;
 import java.util.stream.IntStream;
 
 /**
  * Class LinearCombinationDistanceExpression implements the convex combination of distance expressions.
  */
-public final class LinearCombinationDistanceExpression implements DistanceExpression {
+public final class ConvexCombinationDistanceExpression implements DistanceExpression {
 
     public final double[] weights;
     public final DistanceExpression[] expressions;
@@ -39,8 +41,11 @@ public final class LinearCombinationDistanceExpression implements DistanceExpres
      * @param weights the array of the weights
      * @param expressions the array of the distance expressions.
      */
-    public LinearCombinationDistanceExpression(double[] weights, DistanceExpression[] expressions) {
+    public ConvexCombinationDistanceExpression(double[] weights, DistanceExpression[] expressions) {
         if (weights.length != expressions.length) {
+            throw new IllegalArgumentException();
+        }
+        if (Arrays.stream(weights).sum() != 1){
             throw new IllegalArgumentException();
         }
         this.weights = weights;
