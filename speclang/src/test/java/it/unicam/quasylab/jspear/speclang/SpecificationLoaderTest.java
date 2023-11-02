@@ -54,7 +54,6 @@ class SpecificationLoaderTest {
     }
 
     @Test
-    @Disabled
     void loadEngineSpecification() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(ENGINE)).openStream());
