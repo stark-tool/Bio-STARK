@@ -61,6 +61,23 @@ class SpecificationLoaderTest {
     }
 
     @Test
+    void EngineFormulaBoolCheck() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(ENGINE)).openStream());
+        assertTrue(spec.evalBooleanSemantic("phi", 100, 0));
+    }
+
+    @Test
+    void EngineFormulaThreeValuedCheck() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(ENGINE)).openStream());
+        spec.setSize(100);
+        spec.setM(50);
+        spec.setZ(1.96);
+        assertEquals(TruthValues.TRUE,spec.evalThreeValuedSemantic("phi", 10, 0));
+    }
+
+    @Test
     @Disabled
     void loadVehicleSpecification() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
@@ -82,7 +99,7 @@ class SpecificationLoaderTest {
     void simulateVehicleSystem() throws IOException {
             SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
-        spec.setSize(1);
+        spec.setSize(100);
         assertNotNull(spec.getSamplesAt(50));
     }
 
@@ -318,20 +335,25 @@ class SpecificationLoaderTest {
         spec.setSize(100);
         ControlledSystem system = spec.getSystem();
         EvolutionSequence sequence = spec.getSequence();
-        DataStateExpression f = spec.getPenalty("rho_crash");
-        double[] data = SystemState.sample(new DefaultRandomGenerator(), f, system, 400, 100);
+        DataStateExpression f = spec.getPenalty("physical_dist");
+        double[] data = SystemState.sample(new DefaultRandomGenerator(), f, system, 300, 100);
         for (int i = 0; i < data.length; i++) {
             System.out.printf("%d> %f\n", i, data[i]);
         }
         DataStateExpression f2 = spec.getPenalty("sensed_speed");
-        double[] data2 = SystemState.sample(new DefaultRandomGenerator(), f2, system, 400, 100);
+        double[] data2 = SystemState.sample(new DefaultRandomGenerator(), f2, system, 300, 100);
         for (int i = 0; i < data2.length; i++) {
             System.out.printf("%d> %f\n", i, data2[i]);
         }
         DataStateExpression f3 = spec.getPenalty("physical_speed");
-        double[] data3 = SystemState.sample(new DefaultRandomGenerator(), f3, system, 400, 100);
+        double[] data3 = SystemState.sample(new DefaultRandomGenerator(), f3, system, 300, 100);
         for (int i = 0; i < data3.length; i++) {
             System.out.printf("%d> %f\n", i, data3[i]);
+        }
+        DataStateExpression f4 = spec.getPenalty("rho_token");
+        double[] data4 = SystemState.sample(new DefaultRandomGenerator(), f4, system, 300, 100);
+        for (int i = 0; i < data4.length; i++) {
+            System.out.printf("%d> %f\n", i, data4[i]);
         }
     }
 
@@ -370,12 +392,13 @@ class SpecificationLoaderTest {
     }
 
     @Test
-    void singleVehicleSlowOffset03() throws IOException{
+    void singleVehicleSlowOffset04() throws IOException{
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(SINGLE_VEHICLE)).openStream());
+        spec.setSize(100);
         spec.setM(50);
         spec.setZ(1.96);
-        assertEquals(TruthValues.FALSE, spec.evalThreeValuedSemantic("phi_slow_03", 100,0));
+        assertEquals(TruthValues.FALSE, spec.evalThreeValuedSemantic("phi_slow_04", 10,0));
     }
 
 

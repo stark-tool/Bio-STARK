@@ -8,6 +8,16 @@ param OK = 0;
 param HOT = 1;
 param INITIAL_TEMP = 95.0;
 
+param TAU = 100;
+param K = 100;
+param H = 1000;
+
+param TEMP_OFFSET = -1.5;
+param ETA_1 = 0.0;
+param ETA_2 = 0.02;
+param ETA_3 = 0.05;
+param ETA_4 = 0.3;
+
 /*type speed_value = LOW|HALF|FULL;
 type warning_value = OK|HOT;*/
 
@@ -49,9 +59,26 @@ function partialStress (real a){
   }
 }
 
-function isStressed(real a1, real a2, real a3, real a4, real a5, real a6) {
+function isStressed (real a1, real a2, real a3, real a4, real a5, real a6) {
   return partialStress(a1) + partialStress(a2) + partialStress(a3) + partialStress(a4) + partialStress(a5) + partialStress(a6);
 }
+
+function pen_temp (real temperature1, real temperature2) {
+  return abs(temperature1 - temperature2)/abs(MAX_TEMP - MIN_TEMP);
+}
+
+function pen_wrn (int warning) {
+  if (warning == HOT) {
+    return 1.0;
+  } else {
+    return 0.0;
+  }
+}
+
+function get_stress (real stress_value) {
+  return stress_value;
+}
+
 
 component Engine{
     variables{
@@ -117,4 +144,52 @@ environment {
       stress' = stress + STRESS_INCR;
     }
 }
+
+
+
+penalty rho_temperature = pen_temp(temp,ch_temp)
+
+penalty rho_warning = pen_wrn(ch_wrn)
+
+penalty rho_stress = pen_stress(stress)
+
+
+
+distance expr_temperature = < rho_temperature;
+
+distance expr_warning = < rho_warning;
+
+distance expr_stress = < rho_stress;
+
+distance min_temperature = \F[TAU,TAU+K-1] expr_temperature;
+
+distance max_temperature = \G[TAU,TAU+K-1] expr_temperature;
+
+distance max_warning = \G[TAU,TAU+K+10] expr_warning;
+
+distance max_stress = \G[TAU,TAU+K+10] expr_stress;
+
+
+
+perturbation fake_temperature = [ch_temp <- temp * TEMP_OFFSET * R[0,1]]@0;
+
+perturbation it_fake_temperature = fake_temperature^K;
+
+
+
+formula phi_1 = \D[min_temperature,it_fake_temperature] >= ETA_1;
+
+formula phi_2 = \D[max_temperature,it_fake_temperature] <= ETA_2;
+
+formula phi_3 = \D[max_warning,it_fake_temperature] <= ETA_3;
+
+formula phi_4 = \D[max_stress,it_fake_temperature] > ETA_4;
+
+formula phi_5 = phi_1 && phi_2;
+
+formula phi_6 = phi_3 && phi_4;
+
+formula phi_7 = !phi_5 || phi_6;
+
+formula phi = \F[0,H] phi_7;
 

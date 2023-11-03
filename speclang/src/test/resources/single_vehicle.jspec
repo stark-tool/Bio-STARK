@@ -18,32 +18,12 @@ param DANGER = 1;
 /*type IDSmsg = OK|DANGER;*/
 
 
-function give_distance(real dist){
-    return dist;
-}
-
-function new_timer(int timer){
-  return timer - 1;
-}
-
-function travelled(real speed, real accel){
-  return accel/2 + speed;
-}
-
-function new_speed(real speed, real accel){
-  return min(MAX_SPEED, max(0, speed + accel));
-}
-
 function new_s_speed (real speed, real acc, real token) {
   if (token < 0.5) {
-      return new_speed(speed, acc) + 0.3;
+      return min(MAX_SPEED, max(0, speed + acc + 0.3));
     } else {
-      return new_speed(speed, acc) - 0.3;
+      return min(MAX_SPEED, max(0, speed + acc - 0.3));
     }
-}
-
-function new_distance(real dist, real travel){
- return dist - travel;
 }
 
 function eval_bd(real speed){
@@ -70,25 +50,29 @@ function IDS_guard(boolean dist, boolean acc1, boolean acc2, boolean speed){
   return dist && (acc1 || (acc2 && speed));
 }
 
+function give_distance(real dist){
+    return dist;
+}
 
+function get_token(real tok){
+  return tok;
+}
 
 global variables{
   real p_speed range [0,MAX_SPEED] = INIT_SPEED;
   real p_distance range [0,INIT_DISTANCE] = INIT_DISTANCE;
-  real braking_distance range [0, INIT_DISTANCE] = eval_bd(INIT_SPEED);
-  real required_distance range [0, INIT_DISTANCE] = eval_rd(INIT_SPEED);
   real gap range [0, INIT_DISTANCE] = INIT_DISTANCE - eval_rd(INIT_SPEED);
   real offset_speed range [0,MAX_SPEED*MAX_SPEED_OFFSET] = 0.0;
+  real token = 1.0;
+  real s_speed range [0,MAX_SPEED] = INIT_SPEED;
+  real accel range [-B,A] = V;
+  int counter range [0,TIMER] = 0;
 }
 
 
 
 component Vehicle {
   variables{
-    real s_speed range [0,MAX_SPEED] = INIT_SPEED;
-    real s_distance range [0,INIT_DISTANCE] = INIT_DISTANCE;
-    real accel range [-B,A] = V;
-    int counter range [0,TIMER] = 0;
     int warning = OK;
   }
   controller {
@@ -151,20 +135,13 @@ component Vehicle {
 }
 
 environment {
-    let
-        token = R[0,1]
-    and
-        new_counter = new_timer(counter)
-    in
-    counter' = new_timer(counter);
-    p_speed' = new_speed(p_speed,accel);
-    p_distance' = new_distance(p_distance, travelled(p_speed,accel));
+    token' = R[0,1];
+    counter' = counter-1;
+    p_speed' = min(MAX_SPEED, max(0, p_speed + accel));
+    p_distance' = p_distance - (accel/2 + p_speed);
     s_speed' = new_s_speed(p_speed,accel,token);
-    s_distance' = new_distance(p_distance, travelled(new_s_speed(p_speed,accel,token),accel));
-    if (new_counter == 0) {
-        braking_distance' = eval_bd(new_s_speed(p_speed,accel,token));
-        required_distance' = eval_rd(new_s_speed(p_speed,accel,token));
-        gap' = new_distance(p_distance, travelled(new_s_speed(p_speed,accel,token),accel)) - eval_rd(new_s_speed(p_speed,accel,token));
+    if (counter-1 == 0) {
+        gap' = p_distance - (accel/2 + new_s_speed(p_speed,accel,token)) - eval_rd(new_s_speed(p_speed,accel,token));
     }
 }
 
@@ -172,11 +149,13 @@ environment {
 
 penalty rho_crash = crash_probability(p_distance)
 
-penalty physical_dist = give_distance(p_distance)
+penalty physical_dist = p_distance
 
 penalty sensed_speed = s_speed
 
 penalty physical_speed = p_speed
+
+penalty rho_token = token
 
 
 
@@ -185,32 +164,29 @@ distance exp_crash = \G[350,450] < rho_crash;
 
 
 perturbation p_slow_02 = [s_speed <- slow_speed(s_speed,offset_speed),
-                       required_distance <- eval_rd(slow_speed(s_speed,offset_speed)),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
                        offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_02 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@0); (p_slow_02)^150;
+perturbation p_ItSlow_02 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@0); (p_slow_02)^50;
 
 perturbation p_slow_03 = [s_speed <- slow_speed(s_speed,offset_speed),
-                       required_distance <- eval_rd(slow_speed(s_speed,offset_speed)),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
                        offset_speed <- p_speed * MAX_SPEED_OFFSET_03* R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_03 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_03 * R[0,1]]@0); (p_slow_03)^150;
+perturbation p_ItSlow_03 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_03 * R[0,1]]@0); (p_slow_03)^50;
 
 perturbation p_slow_04 = [s_speed <- slow_speed(s_speed,offset_speed),
-                       required_distance <- eval_rd(slow_speed(s_speed,offset_speed)),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
                        offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_04 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@0); (p_slow_04)^150;
+perturbation p_ItSlow_04 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@0); (p_slow_04)^50;
 
 
 
-formula phi_slow_02 = \G[0,450] \D[exp_crash,p_ItSlow_02] <= ETA_slow;
+formula phi_slow_02 = \G[0,350] \D[exp_crash,p_ItSlow_02] <= ETA_slow;
 
-formula phi_slow_03 = \G[0,450] \D[exp_crash,p_ItSlow_03] <= ETA_slow;
+formula phi_slow_03 = \G[0,350] \D[exp_crash,p_ItSlow_03] <= ETA_slow;
 
-formula phi_slow_04 = \G[0,450] \D[exp_crash,p_ItSlow_04] <= ETA_slow;
+formula phi_slow_04 = \G[0,350] \D[exp_crash,p_ItSlow_04] <= ETA_slow;
 
 
