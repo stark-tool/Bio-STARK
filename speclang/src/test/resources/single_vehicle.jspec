@@ -62,7 +62,7 @@ global variables{
   real p_speed range [0,MAX_SPEED] = INIT_SPEED;
   real p_distance range [0,INIT_DISTANCE] = INIT_DISTANCE;
   real gap range [0, INIT_DISTANCE] = INIT_DISTANCE - eval_rd(INIT_SPEED);
-  real offset_speed range [0,MAX_SPEED*MAX_SPEED_OFFSET] = 0.0;
+  real offset_speed = 0.0;
   real token = 1.0;
   real s_speed range [0,MAX_SPEED] = INIT_SPEED;
   real accel range [-B,A] = V;
@@ -157,6 +157,8 @@ penalty physical_speed = p_speed
 
 penalty rho_token = token
 
+penalty rho_offset = offset_speed
+
 
 
 distance exp_crash = \G[350,450] < rho_crash;
@@ -167,19 +169,19 @@ perturbation p_slow_02 = [s_speed <- slow_speed(s_speed,offset_speed),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
                        offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_02 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@0); (p_slow_02)^50;
+perturbation p_ItSlow_02 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@0); (p_slow_02)^150;
 
 perturbation p_slow_03 = [s_speed <- slow_speed(s_speed,offset_speed),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
                        offset_speed <- p_speed * MAX_SPEED_OFFSET_03* R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_03 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_03 * R[0,1]]@0); (p_slow_03)^50;
+perturbation p_ItSlow_03 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_03 * R[0,1]]@0); (p_slow_03)^150;
 
 perturbation p_slow_04 = [s_speed <- slow_speed(s_speed,offset_speed),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
                        offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_04 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@0); (p_slow_04)^50;
+perturbation p_ItSlow_04 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@0); (p_slow_04)^150;
 
 
 

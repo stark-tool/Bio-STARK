@@ -378,6 +378,21 @@ class SpecificationLoaderTest {
         for (int i = 0; i < data.length; i++) {
             System.out.printf("%d> %f\n", i, data[i]);
         }
+        DataStateExpression f1 = spec.getPenalty("physical_dist");
+        double[] data1 = SystemState.sample(new DefaultRandomGenerator(), f1, perturbation, system, 300, 100);
+        for (int i = 0; i < data1.length; i++) {
+            System.out.printf("%d> %f\n", i, data1[i]);
+        }
+        DataStateExpression f2 = spec.getPenalty("sensed_speed");
+        double[] data2 = SystemState.sample(new DefaultRandomGenerator(), f2, perturbation, system, 300, 100);
+        for (int i = 0; i < data2.length; i++) {
+            System.out.printf("%d> %f\n", i, data2[i]);
+        }
+        DataStateExpression f3 = spec.getPenalty("rho_offset");
+        double[] data3 = SystemState.sample(new DefaultRandomGenerator(), f3, perturbation, system, 300, 100);
+        for (int i = 0; i < data3.length; i++) {
+            System.out.printf("%d> %f\n", i, data3[i]);
+        }
         assertTrue(spec.evalDistanceExpression("exp_crash", "p_ItSlow_04", 0, 50)>0);
     }
 
@@ -389,6 +404,14 @@ class SpecificationLoaderTest {
         Boolean[] expected = new Boolean[10];
         Arrays.fill(expected,true);
         assertArrayEquals(expected, spec.evalBooleanSemantic("phi_slow_02", 10, 0,100,10));
+    }
+
+    @Test
+    void singleVehicleSlow04BoolCheck() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(SINGLE_VEHICLE)).openStream());
+        spec.setSize(100);
+        assertFalse(spec.evalBooleanSemantic("phi_slow_04", 10, 0));
     }
 
     @Test
