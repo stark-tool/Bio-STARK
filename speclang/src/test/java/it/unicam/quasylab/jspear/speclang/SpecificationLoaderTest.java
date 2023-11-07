@@ -138,11 +138,21 @@ class SpecificationLoaderTest {
         spec.setM(1);
         ControlledSystem system = spec.getSystem();
         EvolutionSequence sequence = spec.getSequence();
-        DataStateExpression f = spec.getPenalty("off");
-        Perturbation perturbation = spec.getPerturbation("p_ItDistSens");
-        double[] data = SystemState.sample(new DefaultRandomGenerator(), f, perturbation, system, 500, 1);
+        DataStateExpression f = spec.getPenalty("s_dist");
+        Perturbation perturbation = spec.getPerturbation("p_ItSlow_03");
+        double[] data = SystemState.sample(new DefaultRandomGenerator(), f, perturbation, system, 350, 100);
         for (int i = 0; i < data.length; i++) {
             System.out.printf("%d> %f\n", i, data[i]);
+        }
+        DataStateExpression f1 = spec.getPenalty("sensed_speed_v2");
+        double[] data1 = SystemState.sample(new DefaultRandomGenerator(), f1, perturbation, system, 450, 100);
+        for (int i = 0; i < data1.length; i++) {
+            System.out.printf("%d> %f\n", i, data1[i]);
+        }
+        DataStateExpression f2 = spec.getPenalty("dist");
+        double[] data2 = SystemState.sample(new DefaultRandomGenerator(), f2, system, 450, 100);
+        for (int i = 0; i < data2.length; i++) {
+            System.out.printf("%d> %f\n", i, data2[i]);
         }
     }
 
@@ -220,12 +230,11 @@ class SpecificationLoaderTest {
     void vehicleComb04x30ThreeValCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
-        spec.setSize(1);
         spec.setM(50);
         spec.setZ(1.96);
         TruthValues[] expected = new TruthValues[10];
         Arrays.fill(expected,TruthValues.FALSE);
-        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_comb_04", 60, 0,300,30));
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_comb_04", 100, 0,300,30));
     }
 
 
@@ -233,12 +242,10 @@ class SpecificationLoaderTest {
     void vehicleComb04x50ThreeValCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
-        spec.setSize(1);
         spec.setM(50);
         spec.setZ(1.96);
-        TruthValues[] expected = new TruthValues[10];
-        Arrays.fill(expected,TruthValues.FALSE);
-        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_comb_04", 60, 0,500,50));
+        TruthValues[] expected = new TruthValues[]{TruthValues.FALSE,TruthValues.FALSE,TruthValues.FALSE,TruthValues.FALSE,TruthValues.FALSE,TruthValues.FALSE,TruthValues.FALSE,TruthValues.TRUE,TruthValues.TRUE,TruthValues.TRUE};
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_comb_04", 100, 0,500,50));
     }
 
     @Test

@@ -22,6 +22,17 @@ param ETA_crash_speed_bis = 0.1;
 param ETA_crash_speed_ter = 0.15;
 
 
+function travelled(real speed, real accel){
+  return accel/2 + speed;
+}
+
+function new_speed(real speed, real accel){
+  return min(MAX_SPEED, max(0, speed + accel));
+}
+
+function new_distance(real dist, real travel){
+ return dist - travel;
+}
 
 function eval_bd(real speed){
   return (speed^2 + (ACCELERATION + BRAKE) * (ACCELERATION * TIMER_INIT^2 + 2 * speed * TIMER_INIT)) / (2 * BRAKE);
@@ -232,26 +243,26 @@ component Vehicle2 {
 
 environment {
     timer_V1' = timer_V1 - 1;
-    p_speed_V1' = min(MAX_SPEED, max(0.0, p_speed_V1 + accel_V1));
+    p_speed_V1' = min(MAX_SPEED, max(0, p_speed_V1 + accel_V1));
     p_distance_V1' = p_distance_V1 - accel_V1/2 - p_speed_V1;
     timer_V2' = timer_V2 - 1;
-    p_speed_V2' = min(MAX_SPEED, max(0.0, p_speed_V2 + accel_V2));
+    p_speed_V2' = min(MAX_SPEED, max(0, p_speed_V2 + accel_V2));
     p_distance_V2' = p_distance_V2 - accel_V2/2 - p_speed_V2;
     p_distance_V1_V2' = p_distance_V1_V2 - accel_V2/2 - p_speed_V2 + accel_V1/2 + p_speed_V1;
     if (timer_V1 - 1 == 0) {
-      braking_distance_V1' = eval_bd(min(MAX_SPEED, max(0.0, p_speed_V1 + accel_V1)));
-      required_distance_V1' = eval_rd(min(MAX_SPEED, max(0.0, p_speed_V1 + accel_V1)));
-      safety_gap_V1' = p_distance_V1 - (accel_V1/2 + p_speed_V1 - eval_rd(min(MAX_SPEED, max(0.0, p_speed_V1 + accel_V1))));
-      s_speed_V1' = min(MAX_SPEED, max(0.0, p_speed_V1 + accel_V1));
+      braking_distance_V1' = eval_bd(min(MAX_SPEED, max(0, p_speed_V1 + accel_V1)));
+      required_distance_V1' = eval_rd(min(MAX_SPEED, max(0, p_speed_V1 + accel_V1)));
+      safety_gap_V1' = p_distance_V1 - accel_V1/2 - p_speed_V1 - eval_rd(min(MAX_SPEED, max(0, p_speed_V1 + accel_V1)));
+      s_speed_V1' = min(MAX_SPEED, max(0, p_speed_V1 + accel_V1));
       s_distance_V1' = p_distance_V1 - accel_V1/2 - p_speed_V1;
     }
     if (timer_V2 - 1 == 0) {
-      braking_distance_V2' = eval_bd(min(MAX_SPEED, max(0.0, p_speed_V2 + accel_V2)));
-      required_distance_V2' = eval_rd(min(MAX_SPEED, max(0.0, p_speed_V2 + accel_V2)));
-      safety_gap_V2' = p_distance_V2 - (accel_V2/2 + p_speed_V2 - eval_rd(min(MAX_SPEED, max(0.0, p_speed_V2 + accel_V2))));
-      safety_gap_V1_V2' = p_distance_V1_V2 - (accel_V2/2 + p_speed_V2 - accel_V1/2 - p_speed_V1 - eval_rd(min(MAX_SPEED, max(0.0, p_speed_V2 + accel_V2))));
-      s_speed_V2' = min(MAX_SPEED, max(0.0, p_speed_V2 + accel_V2));
-      s_distance_V2' = p_distance_V2 - accel_V2/2 -p_speed_V2;
+      braking_distance_V2' = eval_bd(min(MAX_SPEED, max(0, p_speed_V2 + accel_V2)));
+      required_distance_V2' = eval_rd(min(MAX_SPEED, max(0, p_speed_V2 + accel_V2)));
+      safety_gap_V2' = p_distance_V2 - accel_V2/2 - p_speed_V2 - eval_rd(min(MAX_SPEED, max(0, p_speed_V2 + accel_V2)));
+      safety_gap_V1_V2' = p_distance_V1_V2 - accel_V2/2 - p_speed_V2 + accel_V1/2 + p_speed_V1 - eval_rd(min(MAX_SPEED, max(0, p_speed_V2 + accel_V2)));
+      s_speed_V2' = min(MAX_SPEED, max(0, p_speed_V2 + accel_V2));
+      s_distance_V2' = p_distance_V2 - accel_V2/2 - p_speed_V2;
       s_distance_V1_V2' = p_distance_V1_V2 - accel_V2/2 - p_speed_V2 + accel_V1/2 + p_speed_V1;
     }
     when (p_distance_V1 <= 0)
@@ -260,11 +271,20 @@ environment {
       crashed_V2' = 1;
 }
 
+
+
 penalty rho_crash = crash_probability(p_distance_V1_V2)
 
 penalty rho_crash_speed = crash_speed(crashed_V2, p_distance_V2, p_distance_V1_V2, p_speed_V2)
 
-penalty off = offset_distance
+penalty off = offset_speed_V2
+
+penalty sensed_speed_v2 = s_speed_V2
+
+penalty dist = p_distance_V1_V2
+
+penalty s_dist = s_distance_V1_V2
+
 
 distance exp_crash = \G[350,450] < rho_crash;
 
@@ -340,6 +360,7 @@ perturbation p_distSens = [s_distance_V1_V2 <- p_distance_V1_V2 * (1 + offset_di
                            offset_distance <- R[0,1] * MAX_DISTANCE_OFFSET]@(TIMER_INIT-1);
 
 perturbation p_ItDistSens = ([offset_distance <- R[0,1] * MAX_DISTANCE_OFFSET]@0); (p_distSens)^300;
+
 
 
 formula phi_slow_02 = \G[0,450] \D[exp_crash,p_ItSlow_02] <= ETA_slow;
