@@ -43,20 +43,14 @@ function crash_probability(real dist){
 }
 
 function slow_speed(real speed, real offs){
-  return max(0, speed - offs);
+  return max(0.0, speed - offs);
 }
 
 function IDS_guard(boolean dist, boolean acc1, boolean acc2, boolean speed){
   return dist && (acc1 || (acc2 && speed));
 }
 
-function give_distance(real dist){
-    return dist;
-}
 
-function get_token(real tok){
-  return tok;
-}
 
 global variables{
   real p_speed range [0,MAX_SPEED] = INIT_SPEED;

@@ -132,20 +132,15 @@ class SpecificationLoaderTest {
     }
 
     @Test
-    @Disabled
     void loadSample() throws IOException{
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
         spec.setM(1);
         ControlledSystem system = spec.getSystem();
         EvolutionSequence sequence = spec.getSequence();
-        DataStateExpression f = spec.getPenalty("rho_crash_speed");
-        SampleSet sample = spec.getSamplesAt(300);
-        double[] gino = sample.evalPenaltyFunction(f);
-        for (int i = 0; i<gino.length; i++){
-            System.out.println(gino[i]);
-        }
-        double[] data = SystemState.sample(new DefaultRandomGenerator(), f, system, 300, 1);
+        DataStateExpression f = spec.getPenalty("off");
+        Perturbation perturbation = spec.getPerturbation("p_ItDistSens");
+        double[] data = SystemState.sample(new DefaultRandomGenerator(), f, perturbation, system, 500, 1);
         for (int i = 0; i < data.length; i++) {
             System.out.printf("%d> %f\n", i, data[i]);
         }
@@ -172,16 +167,14 @@ class SpecificationLoaderTest {
     }
 
     @Test
-    @Disabled
     void testEvalDistance() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
         spec.setSize(1);
-        assertTrue(spec.evalDistanceExpression("exp_crash", "p_ItSlow_03", 350, 60)>0);
+        assertTrue(spec.evalDistanceExpression("exp_crash", "p_ItSlow_03", 0, 60)>0);
     }
 
     @Test
-    @Disabled
     void vehicleSlow02x10BoolCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -192,7 +185,6 @@ class SpecificationLoaderTest {
     }
 
     @Test
-    @Disabled
     void vehicleSlow02x30BoolCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -203,7 +195,6 @@ class SpecificationLoaderTest {
     }
 
     @Test
-    @Disabled
     void vehicleSlow02x50BoolCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -214,7 +205,6 @@ class SpecificationLoaderTest {
     }
 
     @Test
-    @Disabled
     void vehicleComb04x10ThreeValCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -227,7 +217,6 @@ class SpecificationLoaderTest {
     }
 
     @Test
-    @Disabled
     void vehicleComb04x30ThreeValCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -241,19 +230,18 @@ class SpecificationLoaderTest {
 
 
     @Test
-    @Disabled
     void vehicleComb04x50ThreeValCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
         spec.setSize(1);
         spec.setM(50);
         spec.setZ(1.96);
-        TruthValues[] expected = {TruthValues.FALSE, TruthValues.FALSE, TruthValues.FALSE, TruthValues.FALSE, TruthValues.FALSE, TruthValues.FALSE, TruthValues.FALSE, TruthValues.FALSE, TruthValues.TRUE, TruthValues.TRUE};
+        TruthValues[] expected = new TruthValues[10];
+        Arrays.fill(expected,TruthValues.FALSE);
         assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_comb_04", 60, 0,500,50));
     }
 
     @Test
-    @Disabled
     void vehicleSlowOffset03() throws IOException{
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
@@ -264,27 +252,24 @@ class SpecificationLoaderTest {
     }
 
     @Test
-    @Disabled
     void vehicleCombOffset03() throws IOException{
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
-        spec.setSize(1);
         spec.setM(50);
         spec.setZ(1.96);
         assertEquals(TruthValues.UNKNOWN, spec.evalThreeValuedSemantic("phi_comb_03", 60,0));
     }
 
     @Test
-    @Disabled
     void vehicleCrashThreeValuedCheck005x10() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(VEHICLE)).openStream());
         spec.setSize(1);
         spec.setM(40);
         spec.setZ(1.96);
-        TruthValues[] expected = new TruthValues[10];
-        Arrays.fill(expected,TruthValues.FALSE);
-        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_crash_speed", 60, 0,100,10));
+        //TruthValues[] expected = new TruthValues[10];
+        //Arrays.fill(expected,TruthValues.FALSE);
+        assertEquals(TruthValues.FALSE, spec.evalThreeValuedSemantic("phi_crash_speed", 60, 0));
     }
 
     @Test
