@@ -64,11 +64,11 @@ public interface SystemState {
 
 
     /**
-     * Returns the sampling of the given expression applied to this system state.
+     * Returns the sampling of the given function applied to this system state.
      *
      * @param rg       random generator used in the sampling
-     * @param function random expression to sample
-     * @return the sampling of the given expression applied to this system state.
+     * @param function random function to sample
+     * @return the sampling of the given function applied to this system state.
      */
     default SystemState apply(RandomGenerator rg, DataStateFunction function) {
         return this.setDataState(function.apply(rg, this.getDataState()));

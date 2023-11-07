@@ -79,6 +79,9 @@ public class EvolutionSequence {
         if (!sequence.isEmpty()) {
             this.lastGenerated = this.sequence.get(this.sequence.size()-1);
         }
+        else{
+            throw(new IllegalArgumentException());
+        }
         this.rg = rg;
         this.monitor = monitor;
     }

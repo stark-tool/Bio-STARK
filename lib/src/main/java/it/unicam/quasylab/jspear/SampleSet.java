@@ -61,7 +61,7 @@ public class SampleSet<T extends SystemState> {
      * @param rg random generator
      * @param generator random function used to generate the samples
      * @param size number of samples
-     * @return the sample set of size <code>size</code> in which is sample is obtained by applying function <code>generator</code>.
+     * @return the sample set of size <code>size</code> in which each sample is obtained by applying function <code>generator</code>.
      * @param <T> model domain
      */
     public static <T extends SystemState> SampleSet<T> generate(RandomGenerator rg, Function<RandomGenerator, T> generator, int size) {
@@ -88,12 +88,12 @@ public class SampleSet<T extends SystemState> {
 
     /**
      * Given a penalty function, described by means of an expression over data states,
-     * returns a (sorted array) containing its evaluation on the data state
+     * returns a (sorted) array containing its evaluation on the data state
      * of each element in the sample set.
      *
      * @param f a penalty function.
      * @return a sorted array containing all the evaluations of <code>f</code> over the
-     * data states associated to the system states the sample set.
+     * data states associated to the system states in the sample set.
      */
     public synchronized double[] evalPenaltyFunction(DataStateExpression f) {
         return states.stream().map(SystemState::getDataState).mapToDouble(f).sorted().toArray();
@@ -117,7 +117,7 @@ public class SampleSet<T extends SystemState> {
         }
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
-        return computeDistance(distance, thisData,otherData);
+        return computeDistance(distance, thisData, otherData);
     }
 
     /**
@@ -333,7 +333,7 @@ public class SampleSet<T extends SystemState> {
     /**
      * Returns a sample set obtained by applying the given operator to all the elements of this sample set.
      * @param function operator to apply.
-     * @return a sample set obtained by applying the given operator to all the elements of this sample set.
+     * @return a sample set obtained by applying <code>function</code> to all the elements of this sample set.
      */
     public SampleSet<T> apply(UnaryOperator<T> function) {
         return new SampleSet<>(this.stream().parallel().map(function).toList());
@@ -343,7 +343,7 @@ public class SampleSet<T extends SystemState> {
      * Returns a new sample set obtained by applying a given function to all the elements of this sample set.
      * @param rg random generator used to sample random values.
      * @param function function used to generate a new element.
-     * @return a new sample set obtained by applying <code>k</code> times a given random function to all the elements of this sample set.
+     * @return a new sample set obtained by applying <code>function</code> to all the elements of this sample set.
      */
     public SampleSet<T> apply(RandomGenerator rg, BiFunction<RandomGenerator, T, T> function) {
         return new SampleSet<>(
@@ -355,7 +355,7 @@ public class SampleSet<T extends SystemState> {
      * Returns a sample set obtained from this one by replicating all the elements the given number of times.
      *
      * @param k number of copies.
-     * @return a sample set obtained from this one by replicating all the elements the given number of times.
+     * @return a sample set obtained from this one by replicating all the elements <code>k</code>  times.
      */
     public SampleSet<T> replica(int k) {
         return new SampleSet<>(
