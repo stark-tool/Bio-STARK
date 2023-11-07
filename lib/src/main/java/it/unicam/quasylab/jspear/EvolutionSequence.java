@@ -72,15 +72,11 @@ public class EvolutionSequence {
 
     /**
      * Creates an evolution sequence whose first elements are contained in the given sequence.
-     * @throws IllegalArgumentException if sequence is empty.
      */
     protected EvolutionSequence(SimulationMonitor monitor, RandomGenerator rg, List<SampleSet<SystemState>> sequence) {
         this.sequence = new ArrayList<>(sequence);
         if (!sequence.isEmpty()) {
             this.lastGenerated = this.sequence.get(this.sequence.size()-1);
-        }
-        else{
-            throw(new IllegalArgumentException());
         }
         this.rg = rg;
         this.monitor = monitor;
