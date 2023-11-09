@@ -30,6 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StarkInterpreterTest {
 
+    public static final String vehicle = "./vehicle.stark";
+
     @Test
     void shouldBeCreatedWithoutErrors() throws StarkCommandExecutionException {
         StarkInterpreter si = new StarkInterpreter();
@@ -86,7 +88,7 @@ class StarkInterpreterTest {
     @Test
     void testScriptRun() throws StarkCommandExecutionException {
         StarkShell shell = new StarkShell();
-        shell.executeScript(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("vehicle.stark")).getFile());
+        shell.executeScript(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(vehicle)).getFile().replaceFirst("^/(.:/)", "$1"));
     }
 
 }

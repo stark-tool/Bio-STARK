@@ -163,19 +163,19 @@ perturbation p_slow_02 = [s_speed <- slow_speed(s_speed,offset_speed),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
                        offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_02 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@0); (p_slow_02)^150;
+perturbation p_ItSlow_02 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@0); (p_slow_02)^100;
 
 perturbation p_slow_03 = [s_speed <- slow_speed(s_speed,offset_speed),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
                        offset_speed <- p_speed * MAX_SPEED_OFFSET_03* R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_03 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_03 * R[0,1]]@0); (p_slow_03)^150;
+perturbation p_ItSlow_03 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_03 * R[0,1]]@0); (p_slow_03)^100;
 
 perturbation p_slow_04 = [s_speed <- slow_speed(s_speed,offset_speed),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
                        offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_04 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@0); (p_slow_04)^150;
+perturbation p_ItSlow_04 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@0); (p_slow_04)^100;
 
 
 

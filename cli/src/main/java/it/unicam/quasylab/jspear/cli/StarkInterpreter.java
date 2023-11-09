@@ -380,7 +380,7 @@ public class StarkInterpreter {
 
     private StarkCommandExecutionResult distances() {
         try {
-            return new StarkCommandExecutionResult(StarkMessages.distancesMesage(), List.of(starkEnvironment.getDistances()), true);
+            return new StarkCommandExecutionResult(StarkMessages.distancesMessage(), List.of(starkEnvironment.getDistances()), true);
         } catch (StarkCommandExecutionException e) {
             return new StarkCommandExecutionResult(e.getMessage(), e.getReasons(), false);
         }

@@ -84,7 +84,7 @@ public class StarkMessages {
         return PENALTIES_MESSAGE;
     }
 
-    public static String distancesMesage() {
+    public static String distancesMessage() {
         return DISTANCES_MESSAGE;
     }
 
