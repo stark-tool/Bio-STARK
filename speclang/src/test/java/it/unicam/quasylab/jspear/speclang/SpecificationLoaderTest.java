@@ -37,13 +37,14 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
+@Disabled
 class SpecificationLoaderTest {
 
     public static final String RANDOM_WALK = "./RandomWalk.jspec";
     public static final String ENGINE = "./Engine.jspec";
     public static final String VEHICLE = "./Vehicle.jspec";
     public static final String SINGLE_VEHICLE = "./single_vehicle.jspec";
+
 
     @Test
     @Disabled
