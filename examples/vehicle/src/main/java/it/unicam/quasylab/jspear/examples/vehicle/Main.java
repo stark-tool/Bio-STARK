@@ -54,7 +54,7 @@ public class Main {
     public final static int TIMER_INIT = 5;
     public final static int DANGER = 1;
     public final static int OK = 0;
-    public final static double MAX_SPEED_OFFSET = 0.4;
+    public final static double MAX_SPEED_OFFSET = 0.3;
     public final static double INIT_SPEED_V1 = 25.0;
     public final static double INIT_SPEED_V2 = 25.0;
     public final static double MAX_SPEED = 40.0;
@@ -178,7 +178,7 @@ public class Main {
             double[][] val_crash = new double[10][1];
 
             for(int i = 0; i<10; i++) {
-                int step = i*10;
+                int step = i*30;
                 TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_slow).eval(60, step, sequence);
                 System.out.println("Phi_slow evaluation at step "+step+": " + value1);
                 if (value1 == TruthValues.TRUE) {
@@ -203,11 +203,11 @@ public class Main {
                 }
             }
 
-            Util.writeToCSV("./slow_novel_04.csv",val_slow);
-            Util.writeToCSV("./comb_novel_04.csv",val_crash);
+            Util.writeToCSV("./slow_novel_03.csv",val_slow);
+            Util.writeToCSV("./comb_novel_03.csv",val_crash);
 
 
-
+            /*
             double[][] val_crash_speed = new double[10][1];
             for(int i = 0; i<10; i++) {
                 int step = i*50;
@@ -226,6 +226,8 @@ public class Main {
 
             Util.writeToCSV("./crash50_001.csv",val_crash_speed);
 
+
+             */
 
 
         } catch (RuntimeException e) {

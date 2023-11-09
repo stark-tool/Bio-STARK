@@ -133,8 +133,8 @@ environment {
     counter' = counter-1;
     p_speed' = min(MAX_SPEED, max(0, p_speed + accel));
     p_distance' = p_distance - (accel/2 + p_speed);
+    s_speed' = new_s_speed(p_speed,accel,token);
     if (counter-1 == 0) {
-        s_speed' = new_s_speed(p_speed,accel,token);
         gap' = p_distance - (accel/2 + new_s_speed(p_speed,accel,token)) - eval_rd(new_s_speed(p_speed,accel,token));
     }
 }
@@ -142,16 +142,6 @@ environment {
 
 
 penalty rho_crash = crash_probability(p_distance)
-
-penalty physical_dist = p_distance
-
-penalty sensed_speed = s_speed
-
-penalty physical_speed = p_speed
-
-penalty rho_token = token
-
-penalty rho_offset = offset_speed
 
 
 

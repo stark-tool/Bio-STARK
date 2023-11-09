@@ -23,7 +23,6 @@
 package it.unicam.quasylab.jspear.speclang;
 
 import it.unicam.quasylab.jspear.*;
-import it.unicam.quasylab.jspear.ds.DataState;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
@@ -37,12 +36,12 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Disabled
+//@Disabled
 class SpecificationLoaderTest {
 
     public static final String RANDOM_WALK = "./RandomWalk.jspec";
     public static final String ENGINE = "./Engine.jspec";
-    public static final String VEHICLE = "./Vehicle.jspec";
+    public static final String VEHICLE = "two_vehicles.jspec";
     public static final String SINGLE_VEHICLE = "./single_vehicle.jspec";
 
 
@@ -371,13 +370,23 @@ class SpecificationLoaderTest {
     }
 
     @Test
-    void singleVehicleSlow02x50BoolCheck() throws IOException {
+    void singleVehicleSlow02BoolCheck() throws IOException {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(SINGLE_VEHICLE)).openStream());
         spec.setSize(100);
-        Boolean[] expected = new Boolean[10];
+        Boolean[] expected = new Boolean[35];
         Arrays.fill(expected,true);
-        assertArrayEquals(expected, spec.evalBooleanSemantic("phi_slow_02", 10, 0,500,50));
+        assertArrayEquals(expected, spec.evalBooleanSemantic("phi_slow_02", 10, 0,350,10));
+    }
+
+    @Test
+    void singleVehicleSlow02x30Check() throws IOException {
+        SpecificationLoader loader = new SpecificationLoader();
+        SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(SINGLE_VEHICLE)).openStream());
+        spec.setSize(100);
+        TruthValues[] expected = new TruthValues[10];
+        Arrays.fill(expected,TruthValues.TRUE);
+        assertArrayEquals(expected, spec.evalThreeValuedSemantic("phi_slow_02", 10, 0,300,30));
     }
 
     @Test
@@ -385,7 +394,7 @@ class SpecificationLoaderTest {
         SpecificationLoader loader = new SpecificationLoader();
         SystemSpecification spec = loader.loadSpecification(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(SINGLE_VEHICLE)).openStream());
         spec.setSize(100);
-        assertFalse(spec.evalBooleanSemantic("phi_slow_04", 10, 0));
+        assertFalse(spec.evalBooleanSemantic("always_slow_04", 10, 0));
     }
 
     @Test
@@ -395,7 +404,7 @@ class SpecificationLoaderTest {
         spec.setSize(100);
         spec.setM(50);
         spec.setZ(1.96);
-        assertEquals(TruthValues.FALSE, spec.evalThreeValuedSemantic("phi_slow_04", 10,0));
+        assertEquals(TruthValues.FALSE, spec.evalThreeValuedSemantic("always_slow_04", 10,0));
     }
 
 

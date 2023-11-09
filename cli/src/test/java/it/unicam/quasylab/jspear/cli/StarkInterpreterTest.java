@@ -30,7 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StarkInterpreterTest {
 
-    public static final String vehicle = "./vehicle.stark";
+    public static final String two_vehicles = "two_vehicles.stark";
+    public static final String vehicle = "single_vehicle.stark";
 
     @Test
     void shouldBeCreatedWithoutErrors() throws StarkCommandExecutionException {

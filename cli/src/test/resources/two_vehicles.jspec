@@ -368,30 +368,54 @@ perturbation p_distSens = [s_distance_V1_V2 <- p_distance_V1_V2 * (1 + offset_di
 perturbation p_ItDistSens = ([offset_distance <- R[0,1] * MAX_DISTANCE_OFFSET]@0); (p_distSens)^300;
 
 
-formula phi_slow_02 = \G[0,450] \D[exp_crash,p_ItSlow_02] <= ETA_slow;
+formula phi_slow_02 = \D[exp_crash,p_ItSlow_02] <= ETA_slow;
 
-formula phi_fast_02 = \G[0,450] \D[exp_crash,p_ItFast_02] <= ETA_fast;
+formula phi_fast_02 = \D[exp_crash,p_ItFast_02] <= ETA_fast;
 
-formula phi_comb_02 = \G[0,450]\D[exp_crash,p_comb_02] <= ETA_comb;
+formula phi_comb_02 = \D[exp_crash,p_comb_02] <= ETA_comb;
 
+formula always_slow_02 = \G[0,450] \D[exp_crash,p_ItSlow_02] <= ETA_slow;
 
-formula phi_slow_03 = \G[0,450] \D[exp_crash,p_ItSlow_03] <= ETA_slow;
+formula always_fast_02 = \G[0,450] \D[exp_crash,p_ItFast_02] <= ETA_fast;
 
-formula phi_fast_03 = \G[0,450] \D[exp_crash,p_ItFast_03] <= ETA_fast;
-
-formula phi_comb_03 = \G[0,450]\D[exp_crash,p_comb_03] <= ETA_comb;
-
-
-formula phi_slow_04 = \G[0,450] \D[exp_crash,p_ItSlow_04] <= ETA_slow;
-
-formula phi_fast_04 = \G[0,450] \D[exp_crash,p_ItFast_04] <= ETA_fast;
-
-formula phi_comb_04 = \G[0,450]\D[exp_crash,p_comb_04] <= ETA_comb;
+formula always_comb_02 = \G[0,450]\D[exp_crash,p_comb_02] <= ETA_comb;
 
 
-formula phi_crash_speed = \G[0,450] \D[exp_crash_speed,p_ItDistSens] <= ETA_crash_speed;
+formula phi_slow_03 = \D[exp_crash,p_ItSlow_03] <= ETA_slow;
 
-formula phi_crash_speed_bis = \G[0,450] \D[exp_crash_speed,p_ItDistSens] <= ETA_crash_speed_bis;
+formula phi_fast_03 = \D[exp_crash,p_ItFast_03] <= ETA_fast;
 
-formula phi_crash_speed_ter = \G[0,450] \D[exp_crash_speed,p_ItDistSens] <= ETA_crash_speed_ter;
+formula phi_comb_03 = \D[exp_crash,p_comb_03] <= ETA_comb;
+
+formula always_slow_03 = \G[0,450] \D[exp_crash,p_ItSlow_03] <= ETA_slow;
+
+formula always_fast_03 = \G[0,450] \D[exp_crash,p_ItFast_03] <= ETA_fast;
+
+formula always_comb_03 = \G[0,450] \D[exp_crash,p_comb_03] <= ETA_comb;
+
+
+formula phi_slow_04 = \D[exp_crash,p_ItSlow_04] <= ETA_slow;
+
+formula phi_fast_04 = \D[exp_crash,p_ItFast_04] <= ETA_fast;
+
+formula phi_comb_04 = \D[exp_crash,p_comb_04] <= ETA_comb;
+
+formula always_slow_04 = \G[0,450] \D[exp_crash,p_ItSlow_04] <= ETA_slow;
+
+formula always_fast_04 = \G[0,450] \D[exp_crash,p_ItFast_04] <= ETA_fast;
+
+formula always_comb_04 = \G[0,450] \D[exp_crash,p_comb_04] <= ETA_comb;
+
+
+formula phi_crash_speed = \D[exp_crash_speed,p_ItDistSens] <= ETA_crash_speed;
+
+formula phi_crash_speed_bis = \D[exp_crash_speed,p_ItDistSens] <= ETA_crash_speed_bis;
+
+formula phi_crash_speed_ter = \D[exp_crash_speed,p_ItDistSens] <= ETA_crash_speed_ter;
+
+formula always_crash_speed = \G[0,450] \D[exp_crash_speed,p_ItDistSens] <= ETA_crash_speed;
+
+formula always_crash_speed_bis = \G[0,450] \D[exp_crash_speed,p_ItDistSens] <= ETA_crash_speed_bis;
+
+formula always_crash_speed_ter = \G[0,450] \D[exp_crash_speed,p_ItDistSens] <= ETA_crash_speed_ter;
 

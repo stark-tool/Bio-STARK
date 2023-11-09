@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import numpy
 from statistics import mean
 
-TEMP_off = numpy.genfromtxt("new_testTemperature.csv", names=["temp_off"])
-TEMP_off1 = numpy.genfromtxt("new_testTemperature_l1.csv", names=["temp_off1"])
-TEMP_off2 = numpy.genfromtxt("new_testTemperature_l2.csv", names=["temp_off2"])
+TEMP_off = numpy.genfromtxt("testTemperature.csv", names=["temp_off"])
+TEMP_off1 = numpy.genfromtxt("testTemperature_l1.csv", names=["temp_off1"])
+TEMP_off2 = numpy.genfromtxt("testTemperature_l2.csv", names=["temp_off2"])
 
 fix, ax = plt.subplots()
 ax.plot(range(90,300),TEMP_off1['temp_off1'],label="l_o = -1")
@@ -18,30 +18,30 @@ plt.title("Variation of temperature wrt different offset intervals")
 plt.savefig("new_temperature.png")
 plt.show()
 
-WRN_tau = numpy.genfromtxt("new_testWarning_tau.csv", names=["wrn_tau"])
+WRN_tau = numpy.genfromtxt("testWarning_tau.csv", names=["wrn_tau"])
 
 plt.plot(range(90,210), WRN_tau['wrn_tau'])
 plt.title("IDS warning lelvel for tau = 100")
 plt.savefig("new_wrn_100.png")
 plt.show()
 
-WRN_tau2 = numpy.genfromtxt("new_testWarning_tau2.csv", names=["wrn_tau2"])
+WRN_tau2 = numpy.genfromtxt("testWarning_tau2.csv", names=["wrn_tau2"])
 
 plt.plot(range(240,360), WRN_tau2['wrn_tau2'])
 plt.title("IDS warning level for tau = 250")
 plt.savefig("new_wrn_250.png")
 plt.show()
 
-WRN_tau3 = numpy.genfromtxt("new_testWarning_tau3.csv", names=["wrn_tau3"])
+WRN_tau3 = numpy.genfromtxt("testWarning_tau3.csv", names=["wrn_tau3"])
 
 plt.plot(range(290,410), WRN_tau3['wrn_tau3'])
 plt.title("IDS warning level for tau = 300")
 plt.savefig("new_wrn_300.png")
 plt.show()
 
-STRESS_off = numpy.genfromtxt("new_testStress.csv", names=["stress_off"])
-STRESS_off1 = numpy.genfromtxt("new_testStress_l1.csv", names=["stress_off1"])
-STRESS_off2 = numpy.genfromtxt("new_testStress_l2.csv", names=["stress_off2"])
+STRESS_off = numpy.genfromtxt("testStress.csv", names=["stress_off"])
+STRESS_off1 = numpy.genfromtxt("testStress_l1.csv", names=["stress_off1"])
+STRESS_off2 = numpy.genfromtxt("testStress_l2.csv", names=["stress_off2"])
 
 fix, ax = plt.subplots()
 ax.plot(range(90,220),STRESS_off1['stress_off1'],label="l_o = -1")
@@ -52,8 +52,8 @@ plt.title("Variation of stress wrt different offset intervals")
 plt.savefig("new_stress.png")
 plt.show()
 
-WRN_max = numpy.genfromtxt("new_testIntervalWarn.csv", names=["wrn_max"])
-STRESS_max = numpy.genfromtxt("new_testIntervalSt.csv", names=["stress_max"])
+WRN_max = numpy.genfromtxt("testIntervalWarn.csv", names=["wrn_max"])
+STRESS_max = numpy.genfromtxt("testIntervalSt.csv", names=["stress_max"])
 
 plt.plot(range(0,50),WRN_max['wrn_max'])
 plt.title("Evaluation of distances wrt warning over time")
@@ -75,7 +75,7 @@ plt.savefig("time.png")
 plt.show()
 
 
-Max_WRN = numpy.genfromtxt("new_testMaxWrn.csv", names=["max_wrn"])
+Max_WRN = numpy.genfromtxt("testMaxWrn.csv", names=["max_wrn"])
 plt.plot(range(0,50),Max_WRN['max_wrn'])
 plt.title("Evaluation of distances wrt warning over time")
 plt.savefig("new_time_max_wrn.png")
