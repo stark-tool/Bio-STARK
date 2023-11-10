@@ -88,6 +88,8 @@ class StarkInterpreterTest {
 
     @Test
     void testScriptRun() throws StarkCommandExecutionException {
+        StarkInterpreter si = new StarkInterpreter();
+        si.executeCommand("cd \"build\"");
         StarkShell shell = new StarkShell();
         shell.executeScript(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(vehicle)).getFile().replaceFirst("^/(.:/)", "$1"));
     }

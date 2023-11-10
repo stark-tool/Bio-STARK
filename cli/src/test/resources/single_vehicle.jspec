@@ -4,12 +4,16 @@ param V = 0.0;
 param TIMER = 5;
 param INIT_SPEED = 25.0;
 param MAX_SPEED = 40.0;
-param MAX_SPEED_OFFSET_02 = 0.2;
-param MAX_SPEED_OFFSET_03 = 0.3;
-param MAX_SPEED_OFFSET_04 = 0.4;
 param INIT_DISTANCE = 10000.0;
 param SAFETY_DISTANCE = 200.0;
+
+param MAX_OFFSET_02 = 0.2;
+param MAX_OFFSET_03 = 0.3;
+param MAX_OFFSET_04 = 0.4;
+param MAX_OFFSET_05 = 0.5;
 param ETA_slow = 0.1;
+param H = 300;
+
 param OK = 0;
 param DANGER = 1;
 
@@ -145,27 +149,34 @@ penalty rho_crash = crash_probability(p_distance)
 
 
 
-distance exp_crash = \G[250,350] < rho_crash;
+distance exp_crash = \G[250,300] < rho_crash;
 
 
 
 perturbation p_slow_02 = [s_speed <- slow_speed(s_speed,offset_speed),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
-                       offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@(TIMER-1);
+                       offset_speed <- p_speed * MAX_OFFSET_02 * R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_02 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_02 * R[0,1]]@0); (p_slow_02)^100;
+perturbation p_ItSlow_02 = ([offset_speed <- p_speed * MAX_OFFSET_02 * R[0,1]]@0); (p_slow_02)^50;
+
 
 perturbation p_slow_03 = [s_speed <- slow_speed(s_speed,offset_speed),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
-                       offset_speed <- p_speed * MAX_SPEED_OFFSET_03* R[0,1]]@(TIMER-1);
+                       offset_speed <- p_speed * MAX_OFFSET_03 * R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_03 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_03 * R[0,1]]@0); (p_slow_03)^100;
+perturbation p_ItSlow_03 = ([offset_speed <- p_speed * MAX_OFFSET_03 * R[0,1]]@0); (p_slow_03)^50;
 
 perturbation p_slow_04 = [s_speed <- slow_speed(s_speed,offset_speed),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
-                       offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@(TIMER-1);
+                       offset_speed <- p_speed * MAX_OFFSET_04 * R[0,1]]@(TIMER-1);
 
-perturbation p_ItSlow_04 = ([offset_speed <- p_speed * MAX_SPEED_OFFSET_04 * R[0,1]]@0); (p_slow_04)^100;
+perturbation p_ItSlow_04 = ([offset_speed <- p_speed * MAX_OFFSET_04 * R[0,1]]@0); (p_slow_04)^50;
+
+perturbation p_slow_05 = [s_speed <- slow_speed(s_speed,offset_speed),
+                       gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
+                       offset_speed <- p_speed * MAX_OFFSET_05 * R[0,1]]@(TIMER-1);
+
+perturbation p_ItSlow_05 = ([offset_speed <- p_speed * MAX_OFFSET_05 * R[0,1]]@0); (p_slow_05)^50;
 
 
 
@@ -175,10 +186,14 @@ formula phi_slow_03 = \D[exp_crash,p_ItSlow_03] <= ETA_slow;
 
 formula phi_slow_04 = \D[exp_crash,p_ItSlow_04] <= ETA_slow;
 
-formula always_slow_02 = \G[0,350] \D[exp_crash,p_ItSlow_02] <= ETA_slow;
+formula phi_slow_05 = \D[exp_crash,p_ItSlow_05] <= ETA_slow;
 
-formula always_slow_03 = \G[0,350] \D[exp_crash,p_ItSlow_03] <= ETA_slow;
+formula always_slow_02 = \G[0,H] \D[exp_crash,p_ItSlow_02] <= ETA_slow;
 
-formula always_slow_04 = \G[0,350] \D[exp_crash,p_ItSlow_04] <= ETA_slow;
+formula always_slow_03 = \G[0,H] \D[exp_crash,p_ItSlow_03] <= ETA_slow;
+
+formula always_slow_04 = \G[0,H] \D[exp_crash,p_ItSlow_04] <= ETA_slow;
+
+formula always_slow_05 = \G[0,H] \D[exp_crash,p_ItSlow_05] <= ETA_slow;
 
 
