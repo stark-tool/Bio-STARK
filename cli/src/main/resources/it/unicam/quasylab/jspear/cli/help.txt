@@ -65,6 +65,25 @@ save in "fileName"
 print
    prints the result(s) of the preceding command.
 
+set size = <new_size>
+   assigns the given value to parameter size, i.e., the number of samples to be used in the simulations:
+      - <new_size> integer value to be assigned to size.
+
+set scale = <new_scale>
+   assigns the given value to parameter scale, i.e., the additional number of samples to be used to simulate perturbations:
+         - <new_scale> integer value to be assigned to scale.
+
+set m = <new_m>
+   assigns the given value to parameter m, i.e., the number of iterations in the empirical bootstrap:
+         - <new_m> integer value to be assigned to m.
+
+set z = <new_z>
+   assigns the given value to parameter z, i.e., the quantile of the standard normal distribution in the empirical bootstrap:
+         - <new_z> real value to be assigned to z.
+
+info
+   returns the current values of parameters.
+
 clear
    resets the default parameters.
 
