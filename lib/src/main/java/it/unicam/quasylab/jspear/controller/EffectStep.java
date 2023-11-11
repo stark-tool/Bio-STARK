@@ -44,7 +44,7 @@ public record EffectStep<T>(List<DataStateUpdate> effect, T next) {
     }
 
     /**
-     * Applies a given operator on controllers to this step.
+     * Applies a given operator on controller to this step.
      *
      * @param op operator to apply.
      * @return a new step where the next controller is obtained by this by applying the giving operator.
@@ -80,6 +80,12 @@ public record EffectStep<T>(List<DataStateUpdate> effect, T next) {
         }
     }
 
+    /**
+     * Returns this step if it has a controller, otherwise returns a customary step whose list of updates is concatenated with that of this step.
+     *
+     * @param apply the step to which the updates of this step are concatenated.
+     * @return a step consisting of the concatenation of the updates of this step with the application of <code>apply</code>.
+     */
     public EffectStep<T> applyAfter(EffectStep<T> apply) {
         if (this.isCompleted()) return this;
         LinkedList<DataStateUpdate> updates = new LinkedList<>(this.effect);
@@ -87,6 +93,11 @@ public record EffectStep<T>(List<DataStateUpdate> effect, T next) {
         return new EffectStep<>(updates, apply.next);
     }
 
+    /**
+     * Returns if the controller of this step is not null.
+     *
+     * @return a boolean answering the question if the controller of this step is null.
+     */
     public boolean isCompleted() {
         return (this.next != null);
     }
