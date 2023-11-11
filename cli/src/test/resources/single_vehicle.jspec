@@ -137,8 +137,8 @@ environment {
     counter' = counter-1;
     p_speed' = min(MAX_SPEED, max(0, p_speed + accel));
     p_distance' = p_distance - (accel/2 + p_speed);
+    s_speed' = new_s_speed(p_speed,accel,token);
     if (counter-1 == 0) {
-        s_speed' = new_s_speed(p_speed,accel,token);
         gap' = p_distance - (accel/2 + new_s_speed(p_speed,accel,token)) - eval_rd(new_s_speed(p_speed,accel,token));
     }
 }
@@ -146,16 +146,6 @@ environment {
 
 
 penalty rho_crash = crash_probability(p_distance)
-
-penalty physical_dist = p_distance
-
-penalty sensed_speed = s_speed
-
-penalty physical_speed = p_speed
-
-penalty rho_token = token
-
-penalty rho_offset = offset_speed
 
 
 
@@ -169,9 +159,10 @@ perturbation p_slow_02 = [s_speed <- slow_speed(s_speed,offset_speed),
 
 perturbation p_ItSlow_02 = ([offset_speed <- p_speed * MAX_OFFSET_02 * R[0,1]]@0); (p_slow_02)^50;
 
+
 perturbation p_slow_03 = [s_speed <- slow_speed(s_speed,offset_speed),
                        gap <- p_distance - eval_rd(slow_speed(s_speed,offset_speed)),
-                       offset_speed <- p_speed * MAX_OFFSET_03* R[0,1]]@(TIMER-1);
+                       offset_speed <- p_speed * MAX_OFFSET_03 * R[0,1]]@(TIMER-1);
 
 perturbation p_ItSlow_03 = ([offset_speed <- p_speed * MAX_OFFSET_03 * R[0,1]]@0); (p_slow_03)^50;
 
@@ -186,7 +177,6 @@ perturbation p_slow_05 = [s_speed <- slow_speed(s_speed,offset_speed),
                        offset_speed <- p_speed * MAX_OFFSET_05 * R[0,1]]@(TIMER-1);
 
 perturbation p_ItSlow_05 = ([offset_speed <- p_speed * MAX_OFFSET_05 * R[0,1]]@0); (p_slow_05)^50;
-
 
 
 
@@ -205,3 +195,5 @@ formula always_slow_03 = \G[0,H] \D[exp_crash,p_ItSlow_03] <= ETA_slow;
 formula always_slow_04 = \G[0,H] \D[exp_crash,p_ItSlow_04] <= ETA_slow;
 
 formula always_slow_05 = \G[0,H] \D[exp_crash,p_ItSlow_05] <= ETA_slow;
+
+

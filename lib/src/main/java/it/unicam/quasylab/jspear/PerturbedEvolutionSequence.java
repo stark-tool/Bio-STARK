@@ -39,12 +39,12 @@ public class PerturbedEvolutionSequence extends EvolutionSequence {
     /**
      * Generates the perturbed version of a given evolution sequence,
      * obtained by applying a given perturbation
-     * at a given time step.
+     * to a given data state.
      *
      * @param monitor a monitor
      * @param rg a random generator
      * @param sequence an evolution sequence
-     * @param perturbedStep the time step at which the perturbation is applied
+     * @param perturbedStep initial data state to which the perturbation is applied
      * @param p the perturbation
      * @param scale multiplication factor for the number of samples to be used
      *              in the simulation of the perturbed system.
