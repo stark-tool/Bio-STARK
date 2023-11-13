@@ -30,8 +30,9 @@ import java.util.function.ToDoubleBiFunction;
 import java.util.stream.IntStream;
 
 /**
- * Class AtomicDistanceExpressionGeq implements the atomic distance expression
- * evaluating the Wasserstein lifting of a given ground distance
+ * Class AtomicDistanceExpression implements the atomic distance expression
+ * evaluating the Wasserstein lifting of the ground distance, obtained from
+ * the given penalty function over data states and the given distance over reals,
  * between the distributions reached at a given time step
  * by two given evolution sequences.
  */
@@ -42,7 +43,7 @@ public final class AtomicDistanceExpression implements DistanceExpression {
 
     /**
      * Generates the atomic distance expression that will use the given penalty function
-     * for the evaluation of the given ground distance on data states.
+     * and the given distance over reals for the evaluation of the ground distance on data states.
      * @param rho the penalty function
      * @param distance ground distance on reals.
      */
@@ -52,30 +53,31 @@ public final class AtomicDistanceExpression implements DistanceExpression {
     }
 
     /**
-     * Evaluates the Wasserstein lifting of this distance
+     * Evaluates the Wasserstein lifting of this ground distance
      * between the distributions reached at a given time step
      * by two given evolution sequences.
      *
      * @param step time step at which the atomic is evaluated
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
-     * @return the Wasserstein lifting of <code>this.distance</code> between
+     * @return the Wasserstein lifting of the ground distance over data states obtained
+     * from <code>this.distance</code> and <code>this.rho</code> between
      * the distribution reached by <code>seq1</code> and that reached by <code>seq2</code>
      * at time <code>step</code>.
      */
     @Override
     public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return seq1.get(step).distance(rho, this.distance, seq2.get(step));
+        return seq1.get(step).distance(this.rho, this.distance, seq2.get(step));
     }
 
     @Override
     public double[] evalCI(RandomGenerator rg, int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
         double[] res = new double[3];
-        res[0] = seq1.get(step).distance(rho, this.distance, seq2.get(step));
+        res[0] = seq1.get(step).distance(this.rho, this.distance, seq2.get(step));
         ToDoubleBiFunction<double[],double[]> bootDist = (a,b)->IntStream.range(0, a.length).parallel()
                 .mapToDouble(i -> IntStream.range(0, b.length/a.length).mapToDouble(j -> distance.applyAsDouble(a[i],b[i * (b.length/a.length) + j])).sum())
                 .sum() / b.length;
-        double[] partial = seq1.get(step).bootstrapDistance(rg, rho, bootDist, seq2.get(step),m,z);
+        double[] partial = seq1.get(step).bootstrapDistance(rg, this.rho, bootDist, seq2.get(step),m,z);
         res[1] = partial[0];
         res[2] = partial[1];
         return res;

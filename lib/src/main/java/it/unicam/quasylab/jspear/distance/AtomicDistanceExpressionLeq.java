@@ -27,7 +27,7 @@ import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
- * Class AtomicDistanceExpressionGeq implements the atomic distance expression
+ * Class AtomicDistanceExpressionLeq implements the atomic distance expression
  * evaluating the hemidistance between the first and the second evolution sequence at a given time step.
  */
 public final class AtomicDistanceExpressionLeq implements DistanceExpression {
@@ -36,7 +36,7 @@ public final class AtomicDistanceExpressionLeq implements DistanceExpression {
 
     /**
      * Generates the atomic distance expression that will use the given penalty function
-     * for the evaluation of the ground distance on data states
+     * and the difference over reals for the evaluation of the ground distance on data states
      * @param rho the penalty function
      */
     public AtomicDistanceExpressionLeq(DataStateExpression rho) {

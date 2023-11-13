@@ -36,7 +36,7 @@ public final class AtomicDistanceExpressionGeq implements DistanceExpression {
 
     /**
      * Generates the atomic distance expression that will use the given penalty function
-     * for the evaluation of the ground distance on data states
+     * and the difference over reals for the evaluation of the ground distance on data states
      * @param rho the penalty function
      */
     public AtomicDistanceExpressionGeq(DataStateExpression rho) {

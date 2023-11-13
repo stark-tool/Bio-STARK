@@ -47,7 +47,7 @@ public sealed interface DistanceExpression permits
     /**
      * Returns the evaluation of the distance expression between the two sequences at the given step.
      *
-     * @param step time step at which we start the evaluation of the expression
+     * @param step time step at which we evaluate the expression
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
      * @return the evaluation of the distance expression at the given step between the two sequences.
