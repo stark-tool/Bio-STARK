@@ -188,12 +188,12 @@ formula phi_slow_04 = \D[exp_crash,p_ItSlow_04] <= ETA_slow;
 
 formula phi_slow_05 = \D[exp_crash,p_ItSlow_05] <= ETA_slow;
 
-formula always_slow_02 = \G[0,H] \D[exp_crash,p_ItSlow_02] <= ETA_slow;
+formula always_slow_02 = \G[0,H] phi_slow_02;
 
-formula always_slow_03 = \G[0,H] \D[exp_crash,p_ItSlow_03] <= ETA_slow;
+formula always_slow_03 = \G[0,H] phi_slow_03;
 
-formula always_slow_04 = \G[0,H] \D[exp_crash,p_ItSlow_04] <= ETA_slow;
+formula always_slow_04 = \G[0,H] phi_slow_04;
 
-formula always_slow_05 = \G[0,H] \D[exp_crash,p_ItSlow_05] <= ETA_slow;
+formula always_slow_05 = \G[0,H] phi_slow_05;
 
 
