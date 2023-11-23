@@ -179,7 +179,7 @@ public class StarkInterpreter {
 
         @Override
         public StarkCommandExecutionResult visitComputeCommand(StarkScriptParser.ComputeCommandContext ctx) {
-            return compute(ctx.perturbation.getText(), ctx.distance.getText(), Integer.parseInt(ctx.when.getText()), computeSteps(ctx.steps));
+            return compute(ctx.distance.getText(), ctx.perturbation.getText(), Integer.parseInt(ctx.when.getText()), computeSteps(ctx.steps));
         }
 
         @Override
@@ -301,9 +301,9 @@ public class StarkInterpreter {
         this.lastResults = data;
     }
 
-    private StarkCommandExecutionResult compute(String perturbation, String distance, int at, int[] steps) {
+    private StarkCommandExecutionResult compute(String distance, String perturbation, int at, int[] steps) {
         try {
-            setLastResults(starkEnvironment.compute(perturbation, distance, at, steps));
+            setLastResults(starkEnvironment.compute(distance, perturbation, at, steps));
             this.steps = steps;
             return new StarkCommandExecutionResult(StarkMessages.doneMessage(), true);
         } catch (StarkCommandExecutionException e) {

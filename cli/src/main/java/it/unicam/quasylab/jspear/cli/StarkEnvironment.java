@@ -101,10 +101,10 @@ public class StarkEnvironment {
         this.specification.clear();
     }
 
-    public double[] compute(String perturbation, String distance, int at, int[] steps) throws StarkCommandExecutionException {
+    public double[] compute(String distance, String perturbation, int at, int[] steps) throws StarkCommandExecutionException {
         checkSpecification();
         checkPerturbation(perturbation);
-        return specification.evalDistanceExpression(perturbation, distance, at, scale, steps);
+        return specification.evalDistanceExpression(distance, perturbation, at, scale, steps);
     }
 
     private void checkPerturbation(String perturbation) throws StarkCommandExecutionException {
