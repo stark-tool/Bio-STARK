@@ -5,7 +5,8 @@ set z = 1.96
 set size = 100
 set scale = 10
 
-
+compute exp_crash after p_ItSlow_05 at 0 at 0
+print
 
 check boolean phi_slow_03 from 0 to 310 every 10
 save in "phi_slow_03_test_boolean"

@@ -73,17 +73,6 @@ function pen_temp (real temperature1, real temperature2) {
   return abs(temperature1 - temperature2)/abs(MAX_TEMP - MIN_TEMP);
 }
 
-function pen_wrn (int warning) {
-  if (warning == HOT) {
-    return 1.0;
-  } else {
-    return 0.0;
-  }
-}
-
-function get_stress (real stress_value) {
-  return stress_value;
-}
 
 function pert_cool (real temperature1, bool cooler) {
   if (temperature1 >= 99.8-COOL_ATTACK) {
@@ -166,9 +155,9 @@ environment {
 
 penalty rho_temperature = pen_temp(temp,ch_temp)
 
-penalty rho_warning = pen_wrn(ch_wrn)
+penalty rho_warning = ch_wrn
 
-penalty rho_stress = pen_stress(stress)
+penalty rho_stress = stress
 
 penalty rho_fn = fn
 
