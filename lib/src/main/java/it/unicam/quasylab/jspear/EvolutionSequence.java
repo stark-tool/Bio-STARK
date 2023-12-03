@@ -109,7 +109,7 @@ public class EvolutionSequence {
     }
 
     /**
-     * Returns the list of sample sets of this sequence containing the first <code>n</code> steps.
+     * Returns the list of sample sets of this sequence containing the first <code>n+1</code> steps.
      *
      * @param n number of selected steps.
      * @return the list of sample sets of this sequence containing the first <code>n</code> steps.
