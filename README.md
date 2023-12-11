@@ -57,22 +57,22 @@ cd ./cli/build/install/stark
 ./bin/stark
 ```
 
-An example, based on the vehicles' scenario, is available in the folder ```examples\vahicle```. 
-The ```Vehicle.jspear``` model can be loaded by using the following command:
+An example, based on the single vehicle scenario, is available in the folder ```examples\single_vehicle```. 
+The ```single_vehicle.jspear``` model can be loaded by using the following command:
 
 ```
-cd "examples/vehicle"
+cd "examples/single_vehicle"
 
-load "Vehicle.jspec"
+load "single_vehicle.jspec"
 ```
 
 After that, the command ```formulas``` can be used to view the list of formulas defined in the model. 
 Their satisfaction of a formula at a given time step can be checked as follows:
 
 ```
-check boolean phi_crash at 300
+check boolean phi_slow_04 at 300
 
-check threevalued phi_crash at 300
+check threevalued always_slow_05 at 0
 ```
 
 ## How to run experiments with Java
