@@ -69,6 +69,7 @@ public class SystemSpecification {
         this.formulas = formulas;
         this.perturbations = perturbations;
         this.expressions = expressions;
+        this.rand.setSeed(7);
     }
 
     /**
@@ -393,6 +394,10 @@ public class SystemSpecification {
      */
     public void setZ(double z) {
         this.z = z;
+    }
+
+    public void setRand(long seed){
+        this.rand.setSeed(seed);
     }
 
     /**
