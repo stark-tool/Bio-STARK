@@ -220,6 +220,11 @@ public class StarkInterpreter {
         public StarkCommandExecutionResult visitSetScaleCommand(StarkScriptParser.SetScaleCommandContext ctx) {
             return setScale(Integer.parseInt(ctx.value.getText()));
         }
+
+        @Override
+        public StarkCommandExecutionResult visitSetSeedCommand(StarkScriptParser.SetSeedCommandContext ctx) {
+            return setRandomSeed(Long.parseLong(ctx.value.getText()));
+        }
     }
 
     private StarkCommandExecutionResult setSize(int size) {
@@ -248,6 +253,15 @@ public class StarkInterpreter {
     private StarkCommandExecutionResult setZ(double z) {
         try {
             this.starkEnvironment.setZ(z);
+            return new StarkCommandExecutionResult(StarkMessages.doneMessage(), true);
+        } catch (StarkCommandExecutionException e) {
+            return new StarkCommandExecutionResult(e.getMessage(), e.getReasons(), false);
+        }
+    }
+
+    private StarkCommandExecutionResult setRandomSeed(long seed) {
+        try {
+            this.starkEnvironment.setRandomSeed(seed);
             return new StarkCommandExecutionResult(StarkMessages.doneMessage(), true);
         } catch (StarkCommandExecutionException e) {
             return new StarkCommandExecutionResult(e.getMessage(), e.getReasons(), false);

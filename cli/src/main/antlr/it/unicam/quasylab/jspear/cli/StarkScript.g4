@@ -24,8 +24,8 @@ scriptCommand:
     | clearCommand
     | setCommand
     | infoCommand
-//    | helpCommand
 ;
+
 
 //helpCommand: 'help';
 
@@ -36,6 +36,7 @@ setCommand:
     | 'set' 'm' '=' value=INTEGER # setMCommand
     | 'set' 'z' '=' value=REAL # setZCommand
     | 'set' 'scale' '=' value=INTEGER # setScaleCommand
+    | 'set' 'seed' '=' value=INTEGER # setSeedCommand
 //    | 'set' 'param' param=ID '=' value=parameterValue # setParameterCommand
     ;
 
