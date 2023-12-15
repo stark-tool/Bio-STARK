@@ -69,7 +69,6 @@ public class SystemSpecification {
         this.formulas = formulas;
         this.perturbations = perturbations;
         this.expressions = expressions;
-        this.rand.setSeed(7);
     }
 
     /**
