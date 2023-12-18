@@ -94,6 +94,21 @@ public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<Tru
     }
 
     @Override
+    public RobustnessFunction<TruthValues> evalEventually(EventuallyRobustnessFormula eventuallyRobustnessFormula) {
+        RobustnessFunction<TruthValues> argumentFunction = eventuallyRobustnessFormula.getArgument().eval(this);
+        int from = eventuallyRobustnessFormula.getFrom();
+        int to = eventuallyRobustnessFormula.getTo();
+        return ((sampleSize, step, sequence) -> {
+            TruthValues value = TruthValues.FALSE;
+            for(int i = from+step; i<to+step; i++){
+                value = TruthValues.or(value, argumentFunction.eval(sampleSize, i, sequence));
+                if(value==TruthValues.TRUE){i=to+step;}
+            }
+            return value;
+        });
+    }
+
+    @Override
     public RobustnessFunction<TruthValues> evalFalse() {
         return (sampleSize, step, sequence) -> TruthValues.FALSE;
     }
@@ -126,12 +141,10 @@ public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<Tru
             TruthValues value = TruthValues.FALSE;
             TruthValues leftValue = TruthValues.TRUE;
             for(int i=from+step; (i<to+step)&&(value!=TruthValues.TRUE)&&(leftValue!=TruthValues.FALSE); i++){
-                //double start = System.currentTimeMillis();
                 value = TruthValues.and(leftValue, rightFunction.eval(sampleSize, i, sequence));
                 if (value != TruthValues.TRUE) {
                     leftValue = TruthValues.and(leftValue, leftFunction.eval(sampleSize, i, sequence));
                 }
-                //System.out.println(i+"> "+(System.currentTimeMillis()-start));
             }
             return value;
 //
@@ -147,18 +160,5 @@ public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<Tru
         });
     }
 
-    @Override
-    public RobustnessFunction<TruthValues> evaEventually(EventuallyRobustnessFormula eventuallyRobustnessFormula) {
-        RobustnessFunction<TruthValues> argumentFunction = eventuallyRobustnessFormula.getArgument().eval(this);
-        int from = eventuallyRobustnessFormula.getFrom();
-        int to = eventuallyRobustnessFormula.getTo();
-        return ((sampleSize, step, sequence) -> {
-            TruthValues value = TruthValues.FALSE;
-            for(int i = from+step; i<to+step; i++){
-                value = TruthValues.or(value, argumentFunction.eval(sampleSize, i, sequence));
-                if(value==TruthValues.TRUE){i=to+step;}
-            }
-            return value;
-        });
-    }
+
 }

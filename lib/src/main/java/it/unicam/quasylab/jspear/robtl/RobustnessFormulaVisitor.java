@@ -44,5 +44,5 @@ public interface RobustnessFormulaVisitor<T> {
 
     RobustnessFunction<T> evalUntil(UntilRobustnessFormula untilRobustnessFormula);
 
-    RobustnessFunction<T> evaEventually(EventuallyRobustnessFormula eventuallyRobustnessFormula);
+    RobustnessFunction<T> evalEventually(EventuallyRobustnessFormula eventuallyRobustnessFormula);
 }

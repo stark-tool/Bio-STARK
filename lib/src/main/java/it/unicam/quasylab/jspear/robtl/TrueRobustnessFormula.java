@@ -27,11 +27,6 @@ import it.unicam.quasylab.jspear.EvolutionSequence;
 public final class TrueRobustnessFormula implements RobustnessFormula {
 
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        return true;
-    }
-
-    @Override
     public <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator) {
         return evaluator.evalTrue();
     }

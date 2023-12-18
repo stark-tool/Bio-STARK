@@ -34,10 +34,6 @@ public final class ImplicationRobustnessFormula implements RobustnessFormula {
         this.rightFormula = rightFormula;
     }
 
-    @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        return (!leftFormula.eval(sampleSize, step, sequence,parallel))||rightFormula.eval(sampleSize, step, sequence,parallel);
-    }
 
     @Override
     public <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator) {

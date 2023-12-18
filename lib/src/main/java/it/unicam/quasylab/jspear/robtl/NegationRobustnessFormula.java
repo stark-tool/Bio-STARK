@@ -35,11 +35,6 @@ public final class NegationRobustnessFormula implements RobustnessFormula {
 
 
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        return !argument.eval(sampleSize, step, sequence, parallel);
-    }
-
-    @Override
     public <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator) {
         return evaluator.evalNegation(this);
     }

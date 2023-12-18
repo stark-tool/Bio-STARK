@@ -48,20 +48,6 @@ public final class AtomicRobustnessFormula implements RobustnessFormula {
     }
 
     @Override
-    public boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        if (op==0){
-            return relop.eval(
-                    expr.compute(step, sequence, sequence.apply(perturbation, step, sampleSize)),
-                    value);
-        }
-        else{
-            return relop.eval(
-                    expr.compute(step, sequence.apply(perturbation, step, sampleSize), sequence),
-                    value);
-        }
-    }
-
-    @Override
     public <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator) {
         return evaluator.evalAtomic(this);
     }

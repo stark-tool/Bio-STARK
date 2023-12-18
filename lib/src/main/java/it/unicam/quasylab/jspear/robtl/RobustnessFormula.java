@@ -26,12 +26,6 @@ import it.unicam.quasylab.jspear.EvolutionSequence;
 
 public sealed interface RobustnessFormula permits AlwaysRobustnessFormula, AtomicRobustnessFormula, ConjunctionRobustnessFormula, DisjunctionRobustnessFormula, EventuallyRobustnessFormula, FalseRobustnessFormula, ImplicationRobustnessFormula, NegationRobustnessFormula, TrueRobustnessFormula, UntilRobustnessFormula {
 
-    default boolean eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return eval(sampleSize, step, sequence, true);
-    }
-
-    boolean eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel);
-
     <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator);
 
     static RobustnessFunction<Boolean> getBooleanEvaluationFunction(RobustnessFormula formula) {

@@ -127,7 +127,7 @@ public class BooleanSemanticsVisitor implements RobustnessFormulaVisitor<Boolean
     }
 
     @Override
-    public RobustnessFunction<Boolean> evaEventually(EventuallyRobustnessFormula eventuallyRobustnessFormula) {
+    public RobustnessFunction<Boolean> evalEventually(EventuallyRobustnessFormula eventuallyRobustnessFormula) {
         RobustnessFunction<Boolean> argumentFunction = eventuallyRobustnessFormula.getArgument().eval(this);
         int from = eventuallyRobustnessFormula.getFrom();
         int to = eventuallyRobustnessFormula.getTo();
