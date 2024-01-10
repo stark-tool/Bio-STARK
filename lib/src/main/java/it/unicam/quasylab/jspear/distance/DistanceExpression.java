@@ -1,7 +1,7 @@
 /*
- * JSpear: a SimPle Environment for statistical estimation of Adaptation and Reliability.
+ * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *              Copyright (C) 2020.
+ *                Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -22,6 +22,8 @@
 
 package it.unicam.quasylab.jspear.distance;
 
+import it.unicam.quasylab.jspear.DefaultRandomGenerator;
+import org.apache.commons.math3.random.RandomGenerator;
 import it.unicam.quasylab.jspear.EvolutionSequence;
 
 import java.util.stream.IntStream;
@@ -30,7 +32,7 @@ public sealed interface DistanceExpression permits
         AtomicDistanceExpression,
         AtomicDistanceExpressionLeq,
         AtomicDistanceExpressionGeq,
-        LinearCombinationDistanceExpression,
+        ConvexCombinationDistanceExpression,
         MaxDistanceExpression,
         MaxIntervalDistanceExpression,
         MinDistanceExpression,
@@ -48,88 +50,66 @@ public sealed interface DistanceExpression permits
      */
     double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2);
 
+    /**
+     * Returns the evaluation of the distance expression between the two sequences at each time step in a given interval.
+     *
+     * @param from left bound of the time interval
+     * @param to right bound of the time interval
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @return the array containing the evaluations of the distance expression between <code>seq1</code> and <code>seq2</code>
+     * at each time step in <code>[from,to]</code>
+     */
     default double[] compute(int from, int to, EvolutionSequence seq1, EvolutionSequence seq2) {
         return compute(IntStream.range(from, to+1).toArray(), seq1, seq2);
     }
 
+    /**
+     * Returns the evaluation of the distance expression between the two sequences at each time step in a given interval.
+     *
+     * @param steps time interval
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @return the array containing the evaluations of the distance expression between <code>seq1</code> and <code>seq2</code>
+     * at each time step in <code>steps</code>.
+     */
     default double[] compute(int[] steps, EvolutionSequence seq1, EvolutionSequence seq2) {
         return IntStream.of(steps).mapToDouble(i -> compute(i, seq1, seq2)).toArray();
     }
 
+
     /**
-     * Returns the evaluation of the distance expression between teh first and the second sequence at the given step.
+     * Returns the evaluation of the distance expression among the two sequences at the given step
+     * and the related confidence interval with respect to a desired coverage probability.
      *
-     * @param step step where the expression is evaluated
+     * @param rg random generator
+     * @param step time step at which we start the evaluation of the expression
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
-     * @return the evaluation of the distance expression at the given step among the two sequences.
+     * @param m number of repetitions for the bootstrap method
+     * @param z the quantile of the standard normal distribution corresponding to the desired coverage probability.
+     * @return the evaluation of the distance expression,
+     * at time <code>step</code>,
+     * between <code>seq1</code> and <code>seq2</code>,
+     * and its confidence interval evaluated via empirical bootstrapping
+     * using <code>m</code> and <code>z</code> as parameters for it.
      */
-    double computeLeq(int step, EvolutionSequence seq1, EvolutionSequence seq2);
-
-    default double[] computeLeq(int from, int to, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return computeLeq(IntStream.range(from, to+1).toArray(), seq1, seq2);
-    }
-
-    default double[] computeLeq(int[] steps, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return IntStream.of(steps).mapToDouble(i -> computeLeq(i, seq1, seq2)).toArray();
-    }
+    double[] evalCI(RandomGenerator rg, int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z);
 
     /**
-     * Returns the evaluation of the distance expression the second and the first sequence at the given step.
+     * In case the random generator is not declared,
+     * the default one is used.
      *
-     * @param step step where the expression is evaluated
+     * @param step time step at which we start the evaluation of the expression
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
-     * @return the evaluation of the distance expression at the given step among the two sequences.
-     */
-    double computeGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2);
-
-    default double[] computeGeq(int from, int to, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return computeGeq(IntStream.range(from, to+1).toArray(), seq1, seq2);
-    }
-
-    default double[] computeGeq(int[] steps, EvolutionSequence seq1, EvolutionSequence seq2) {
-        return IntStream.of(steps).mapToDouble(i -> computeGeq(i, seq1, seq2)).toArray();
-    }
-
-
-    /**
-     * Returns the evaluation of the distance expression among the two sequences at the given step and the related confidence interval.
-     *
-     * @param step step where the expression is evaluated
-     * @param seq1 an evolution sequence
-     * @param seq2 an evolution sequence
-     * @param m number of repetition for bootstrapping
-     * @param z the desired z-score
+     * @param m number of repetitions for the bootstrap method
+     * @param z the quantile of the standard normal distribution corresponding to the desired coverage probability.
      * @return the evaluation of the distance expression at the given step among the two sequences and its confidence interval.
      */
-    double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z);
 
-
-    /**
-     * Returns the evaluation of the asymmetric distance expression between the second sequence and the first sequence at the given step and the related confidence interval.
-     * The second evolution sequence
-     *
-     * @param step step where the expression is evaluated
-     * @param seq1 an evolution sequence
-     * @param seq2 an evolution sequence
-     * @param m number of repetition for bootstrapping
-     * @param z the desired z-score
-     * @return the evaluation of the distance expression at the given step among the two sequences and its confidence interval.
-     */
-    double[] evalCILeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z);
-
-
-    /**
-     * Returns the evaluation of the asymmetric distance expression between the second sequence and the first sequence at the given step and the related confidence interval.
-     *
-     * @param step step where the expression is evaluated
-     * @param seq1 an evolution sequence
-     * @param seq2 an evolution sequence
-     * @param m number of repetition for bootstrapping
-     * @param z the desired z-score
-     * @return the evaluation of the distance expression at the given step among the two sequences and its confidence interval.
-     */
-    double[] evalCIGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z);
+    default double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z){
+        return evalCI(new DefaultRandomGenerator(), step, seq1, seq2, m, z);
+    }
 
 }

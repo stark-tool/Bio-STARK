@@ -1,7 +1,7 @@
 /*
- * JSpear: a SimPle Environment for statistical estimation of Adaptation and Reliability.
+ * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *              Copyright (C) 2020.
+ *                Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -23,7 +23,6 @@
 package it.unicam.quasylab.jspear.robtl;
 
 import it.unicam.quasylab.jspear.distance.DistanceExpression;
-import it.unicam.quasylab.jspear.EvolutionSequence;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import it.unicam.quasylab.jspear.ds.RelationOperator;
 
@@ -32,7 +31,7 @@ public final class AtomicRobustnessFormula implements RobustnessFormula {
     private final Perturbation perturbation;
     private final DistanceExpression expr;
     private final RelationOperator relop;
-    private final double value;
+    private final double threshold;
     private final int op;
 
     public AtomicRobustnessFormula(Perturbation perturbation, DistanceExpression expr, RelationOperator relop, double value) {
@@ -43,7 +42,7 @@ public final class AtomicRobustnessFormula implements RobustnessFormula {
         this.perturbation = perturbation;
         this.expr = expr;
         this.relop = relop;
-        this.value = value;
+        this.threshold = value;
         this.op = op;
     }
 
@@ -64,7 +63,7 @@ public final class AtomicRobustnessFormula implements RobustnessFormula {
         return this.relop;
     }
 
-    public double getValue() {
-        return this.value;
+    public double getThreshold() {
+        return this.threshold;
     }
 }

@@ -1,7 +1,7 @@
 /*
- * JSpear: a SimPle Environment for statistical estimation of Adaptation and Reliability.
+ * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *              Copyright (C) 2020.
+ *                Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -109,7 +109,7 @@ public class JSpearDistanceGenerator extends JSpearSpecificationLanguageBaseVisi
     public DistanceExpression visitDistanceExpressionLinearCombination(JSpearSpecificationLanguageParser.DistanceExpressionLinearCombinationContext ctx) {
         double[] weights = ctx.weights.stream().map(exp -> JSpearExpressionEvaluator.evalToValue(context, registry, exp)).mapToDouble(JSpearValue::doubleOf).toArray();
         DistanceExpression[] distanceExpressions = ctx.values.stream().map(de -> de.accept(this)).toArray(DistanceExpression[]::new);
-        return new LinearCombinationDistanceExpression(weights, distanceExpressions);
+        return new ConvexCombinationDistanceExpression(weights, distanceExpressions);
     }
 
 

@@ -1,7 +1,7 @@
 /*
- * JSpear: a SimPle Environment for statistical estimation of Adaptation and Reliability.
+ * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *              Copyright (C) 2020.
+ *                Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -23,19 +23,31 @@
 package it.unicam.quasylab.jspear.distance;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
-
+import org.apache.commons.math3.random.RandomGenerator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
+/**
+ * Class MaxIntervalDistanceExpression implements the distance expression for the evaluation of
+ * the maximum value assumed by a given distance expression in a given time interval.
+ */
 public final class MaxIntervalDistanceExpression implements DistanceExpression {
 
-    private final DistanceExpression argument;
+    private final DistanceExpression expression;
     private final int from;
     private final int to;
 
-    public MaxIntervalDistanceExpression(DistanceExpression argument, int from, int to) {
-        this.argument = Objects.requireNonNull(argument);
+    /**
+     * Generates the distance expression for the evaluation of
+     * the maximum of given distance expression in a given time interval.
+     *
+     * @param expression the distance expression
+     * @param from the left bound of the time interval
+     * @param to the right bound of the time interval.
+     */
+    public MaxIntervalDistanceExpression(DistanceExpression expression, int from, int to) {
+        this.expression = Objects.requireNonNull(expression);
         if ((from<0)||(to<0)||(from>=to)) {
             throw new IllegalArgumentException();
         }
@@ -43,79 +55,40 @@ public final class MaxIntervalDistanceExpression implements DistanceExpression {
         this.to = to;
     }
 
+    /**
+     * Computes the maximum of the distance between two evolution sequences over the time interval shifted by a given time step.
+     *
+     * @param step time step at which we start the evaluation of the expression
+     * @param seq1 an evolution sequence
+     * @param seq2 an evolution sequence
+     * @return the maximum of the evaluations of <code>expression</code> between <code>seq1</code> and <code>seq2</code>
+     * at each time step in the interval <code>[from+step, to+step]</code>
+     */
     @Override
     public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
         if (step<0) {
             throw new IllegalArgumentException();
         }
-        return IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.compute(i, seq1, seq2)).max().orElse(Double.NaN);
+        return IntStream.range(from+step, to+step).parallel().mapToDouble(i -> expression.compute(i, seq1, seq2)).max().orElse(Double.NaN);
     }
 
+    /**
+     * @inheritDoc
+     *
+     * The confidence interval is obtained from the confidence intervals on the evaluations of the expression
+     * by taking the maxima of the respective bounds.
+     */
     @Override
-    public double computeLeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        if (step<0) {
-            throw new IllegalArgumentException();
-        }
-        return IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.computeLeq(i, seq1, seq2)).max().orElse(Double.NaN);
-    }
-
-    @Override
-    public double computeGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
-        if (step<0) {
-            throw new IllegalArgumentException();
-        }
-        return IntStream.range(from+step, to+step).parallel().mapToDouble(i -> argument.computeGeq(i, seq1, seq2)).max().orElse(Double.NaN);
-    }
-
-    @Override
-    public double[] evalCI(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
+    public double[] evalCI(RandomGenerator rg, int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
         if (step<0) {
             throw new IllegalArgumentException();
         }
         double[] res = new double[3];
-        /*
-        for(int i = from; i<to; i++) {
-
-            double[] partial = argument.evalCI(i + step, seq1, seq2, m, z);
-            res[0] = Math.max(res[0], partial[0]);
-            res[1] = Math.max(res[1], partial[1]);
-            res[2] = Math.max(res[2], partial[2]);
-        }
-
-         */
-        List<double[]> resList = IntStream.range(from + step, to + step).parallel().mapToObj(i -> argument.evalCI(i, seq1, seq2, m, z)).toList();
+        List<double[]> resList = IntStream.range(from + step, to + step).parallel().mapToObj(i -> expression.evalCI(rg, i, seq1, seq2, m, z)).toList();
         res[0] = resList.stream().parallel().mapToDouble(r -> r[0]).max().orElse(Double.NaN);
         res[1] = resList.stream().parallel().mapToDouble(r -> r[1]).max().orElse(Double.NaN);
         res[2] = resList.stream().parallel().mapToDouble(r -> r[2]).max().orElse(Double.NaN);
-//        res[0] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[0]).max().orElse(Double.NaN);
-//        res[1] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[1]).max().orElse(Double.NaN);
-//        res[2] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCI(i, seq1, seq2, m, z)[2]).max().orElse(Double.NaN);
         return res;
     }
 
-    @Override
-    public double[] evalCILeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
-        if (step<0) {
-            throw new IllegalArgumentException();
-        }
-        double[] res = new double[3];
-
-        res[0] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCILeq(i, seq1, seq2, m, z)[0]).max().orElse(Double.NaN);
-        res[1] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCILeq(i, seq1, seq2, m, z)[1]).max().orElse(Double.NaN);
-        res[2] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCILeq(i, seq1, seq2, m, z)[2]).max().orElse(Double.NaN);
-        return res;
-    }
-
-    @Override
-    public double[] evalCIGeq(int step, EvolutionSequence seq1, EvolutionSequence seq2, int m, double z) {
-        if (step<0) {
-            throw new IllegalArgumentException();
-        }
-        double[] res = new double[3];
-
-        res[0] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCIGeq(i, seq1, seq2, m, z)[0]).max().orElse(Double.NaN);
-        res[1] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCIGeq(i, seq1, seq2, m, z)[1]).max().orElse(Double.NaN);
-        res[2] = IntStream.range(from + step, to + step).parallel().mapToDouble(i -> argument.evalCIGeq(i, seq1, seq2, m, z)[2]).max().orElse(Double.NaN);
-        return res;
-    }
 }

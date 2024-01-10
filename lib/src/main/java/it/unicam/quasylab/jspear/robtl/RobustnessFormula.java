@@ -1,7 +1,7 @@
 /*
- * JSpear: a SimPle Environment for statistical estimation of Adaptation and Reliability.
+ * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *              Copyright (C) 2020.
+ *                Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -23,6 +23,7 @@
 package it.unicam.quasylab.jspear.robtl;
 
 import it.unicam.quasylab.jspear.EvolutionSequence;
+import org.apache.commons.math3.random.RandomGenerator;
 
 public sealed interface RobustnessFormula permits AlwaysRobustnessFormula, AtomicRobustnessFormula, ConjunctionRobustnessFormula, DisjunctionRobustnessFormula, EventuallyRobustnessFormula, FalseRobustnessFormula, ImplicationRobustnessFormula, NegationRobustnessFormula, TrueRobustnessFormula, UntilRobustnessFormula {
 
@@ -36,8 +37,8 @@ public sealed interface RobustnessFormula permits AlwaysRobustnessFormula, Atomi
         return formula.eval(new ThreeValuedSemanticsVisitor());
     }
 
-    static RobustnessFunction<TruthValues> getThreeValuedEvaluationFunction(int m, double z, RobustnessFormula formula) {
-        return formula.eval(new ThreeValuedSemanticsVisitor(m, z));
+    static RobustnessFunction<TruthValues> getThreeValuedEvaluationFunction(RandomGenerator rg, int m, double z, RobustnessFormula formula) {
+        return formula.eval(new ThreeValuedSemanticsVisitor(rg, m, z));
     }
 
 }

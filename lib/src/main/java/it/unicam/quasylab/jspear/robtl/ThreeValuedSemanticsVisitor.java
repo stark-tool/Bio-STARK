@@ -1,7 +1,7 @@
 /*
- * JSpear: a SimPle Environment for statistical estimation of Adaptation and Reliability.
+ * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *              Copyright (C) 2020.
+ *                Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -22,25 +22,41 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
+import it.unicam.quasylab.jspear.DefaultRandomGenerator;
 import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.ds.RelationOperator;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
+import org.apache.commons.math3.random.RandomGenerator;
 
-import java.util.stream.IntStream;
-
+/**
+ * This class implements the three-valued interpretation of RobTL formulae.
+ */
 public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<TruthValues> {
 
+    private final RandomGenerator rg;
     private final int m;
-
     private final double z;
 
-    public ThreeValuedSemanticsVisitor(int m, double z) {
+    /**
+     * As the evaluation of confidence intervals is necessary to determine the three-valued semantics,
+     * the class takes the following two parameters:
+     *
+     * @param rg random generator
+     * @param m number of repetitions for the bootstrap method
+     * @param z the quantile of the normal distribution encoding the desired coverage probability.
+     */
+    public ThreeValuedSemanticsVisitor(RandomGenerator rg, int m, double z) {
+        this.rg = rg;
         this.m = m;
         this.z = z;
     }
 
+    /**
+     * In case parameters <code>rg</code>, <code>m</code> and <code>z</code> are not declared,
+     * default values are used.
+     */
     public ThreeValuedSemanticsVisitor() {
-        this(50,1.96);
+        this(new DefaultRandomGenerator(),50,1.96);
     }
 
     @Override
@@ -70,9 +86,9 @@ public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<Tru
         Perturbation perturbation = atomicRobustnessFormula.getPerturbation();
         DistanceExpression expr = atomicRobustnessFormula.getDistanceExpression();
         RelationOperator relop = atomicRobustnessFormula.getRelationOperator();
-        double value = atomicRobustnessFormula.getValue();
+        double value = atomicRobustnessFormula.getThreshold();
         return (sampleSize, step, sequence) -> {
-            double[] res = expr.evalCI(step, sequence, sequence.apply(perturbation, step, sampleSize), m, z);
+            double[] res = expr.evalCI(rg, step, sequence, sequence.apply(perturbation, step, sampleSize), m, z);
             if(res[1] < value && value < res[2]){return TruthValues.UNKNOWN;}
             if(relop.eval(res[0],value)){return TruthValues.TRUE;}
             return TruthValues.FALSE;
@@ -83,14 +99,16 @@ public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<Tru
     public RobustnessFunction<TruthValues> evalConjunction(ConjunctionRobustnessFormula conjunctionRobustnessFormula) {
         RobustnessFunction<TruthValues> leftFunction = conjunctionRobustnessFormula.getLeftFormula().eval(this);
         RobustnessFunction<TruthValues> rightFunction = conjunctionRobustnessFormula.getRightFormula().eval(this);
-        return (sampleSize, step, sequence) -> TruthValues.and(leftFunction.eval(sampleSize, step, sequence), rightFunction.eval(sampleSize, step, sequence));
+        return (sampleSize, step, sequence) ->
+                TruthValues.and(leftFunction.eval(sampleSize, step, sequence), rightFunction.eval(sampleSize, step, sequence));
     }
 
     @Override
     public RobustnessFunction<TruthValues> evalDisjunction(DisjunctionRobustnessFormula disjunctionRobustnessFormula) {
         RobustnessFunction<TruthValues> leftFunction = disjunctionRobustnessFormula.getLeftFormula().eval(this);
         RobustnessFunction<TruthValues> rightFunction = disjunctionRobustnessFormula.getRightFormula().eval(this);
-        return (sampleSize, step, sequence) -> TruthValues.or(leftFunction.eval(sampleSize, step, sequence), rightFunction.eval(sampleSize, step, sequence));
+        return (sampleSize, step, sequence) ->
+                TruthValues.or(leftFunction.eval(sampleSize, step, sequence), rightFunction.eval(sampleSize, step, sequence));
     }
 
     @Override
@@ -117,13 +135,15 @@ public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<Tru
     public RobustnessFunction<TruthValues> evalImplication(ImplicationRobustnessFormula implicationRobustnessFormula) {
         RobustnessFunction<TruthValues> leftFunction = implicationRobustnessFormula.getLeftFormula().eval(this);
         RobustnessFunction<TruthValues> rightFunction = implicationRobustnessFormula.getRightFormula().eval(this);
-        return (sampleSize, step, sequence) -> TruthValues.imply(leftFunction.eval(sampleSize, step, sequence),rightFunction.eval(sampleSize, step, sequence));
+        return (sampleSize, step, sequence) ->
+                TruthValues.imply(leftFunction.eval(sampleSize, step, sequence),rightFunction.eval(sampleSize, step, sequence));
     }
 
     @Override
     public RobustnessFunction<TruthValues> evalNegation(NegationRobustnessFormula negationRobustnessFormula) {
         RobustnessFunction<TruthValues> argumentFunction = negationRobustnessFormula.getArgument().eval(this);
-        return (sampleSize, step, sequence) -> TruthValues.neg(argumentFunction.eval(sampleSize, step, sequence));
+        return (sampleSize, step, sequence) ->
+                TruthValues.neg(argumentFunction.eval(sampleSize, step, sequence));
     }
 
     @Override
@@ -141,10 +161,12 @@ public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<Tru
             TruthValues value = TruthValues.FALSE;
             TruthValues leftValue = TruthValues.TRUE;
             for(int i=from+step; (i<to+step)&&(value!=TruthValues.TRUE)&&(leftValue!=TruthValues.FALSE); i++){
+                //double start = System.currentTimeMillis();
                 value = TruthValues.and(leftValue, rightFunction.eval(sampleSize, i, sequence));
                 if (value != TruthValues.TRUE) {
                     leftValue = TruthValues.and(leftValue, leftFunction.eval(sampleSize, i, sequence));
                 }
+                //System.out.println(i+"> "+(System.currentTimeMillis()-start));
             }
             return value;
 //
@@ -159,6 +181,5 @@ public class ThreeValuedSemanticsVisitor implements RobustnessFormulaVisitor<Tru
 //            return value;
         });
     }
-
 
 }

@@ -1,7 +1,7 @@
 /*
- * JSpear: a SimPle Environment for statistical estimation of Adaptation and Reliability.
+ * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *              Copyright (C) 2020.
+ *                Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -113,11 +113,12 @@ public class test_figure_3_center {
 
     public static void main(String[] args) throws IOException {
         try {
+            RandomGenerator rand = new DefaultRandomGenerator();
             Controller controller_V1 = getController_V1();
             Controller controller_V2 = getController_V2();
             DataState state = getInitialState();
             ControlledSystem system = new ControlledSystem(new ParallelController(controller_V1, controller_V2), (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, 1);
+            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
 
             DistanceExpression crash_speed = new AtomicDistanceExpressionLeq(test_figure_3_center::rho_crash_speed);
 
@@ -151,7 +152,7 @@ public class test_figure_3_center {
 
             for(int i = 0; i<10; i++) {
                 int step = i*30;
-                TruthValues value = new ThreeValuedSemanticsVisitor(40,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
+                TruthValues value = new ThreeValuedSemanticsVisitor(rand,40,1.96).eval(Phi_crash_speed).eval(60, step, sequence);
                 System.out.println("Phi_crash_speed evaluation at step "+step+" with threshold "+ETA_CRASH_SPEED+": " + value);
                 if (value == TruthValues.TRUE) {
                     val_crash_speed[i][0] = 1;
@@ -170,7 +171,7 @@ public class test_figure_3_center {
 
             for(int i = 0; i<10; i++) {
                 int step = i*30;
-                TruthValues value = new ThreeValuedSemanticsVisitor(40,1.96).eval(Phi_crash_speed_bis).eval(60, step, sequence);
+                TruthValues value = new ThreeValuedSemanticsVisitor(rand,40,1.96).eval(Phi_crash_speed_bis).eval(60, step, sequence);
                 System.out.println("Phi_crash_speed evaluation at step "+step+" with threshold "+ETA_CRASH_SPEED_BIS+": " + value);
                 if (value == TruthValues.TRUE) {
                     val_crash_speed[i][0] = 1;
@@ -189,7 +190,7 @@ public class test_figure_3_center {
 
             for(int i = 0; i<10; i++) {
                 int step = i*30;
-                TruthValues value = new ThreeValuedSemanticsVisitor(40,1.96).eval(Phi_crash_speed_ter).eval(60, step, sequence);
+                TruthValues value = new ThreeValuedSemanticsVisitor(rand,40,1.96).eval(Phi_crash_speed_ter).eval(60, step, sequence);
                 System.out.println("Phi_crash_speed evaluation at step "+step+" with threshold "+ETA_CRASH_SPEED_TER+": " + value);
                 if (value == TruthValues.TRUE) {
                     val_crash_speed[i][0] = 1;

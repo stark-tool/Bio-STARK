@@ -1,7 +1,7 @@
 /*
- * JSpear: a SimPle Environment for statistical estimation of Adaptation and Reliability.
+ * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *              Copyright (C) 2020.
+ *                Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -125,6 +125,7 @@ public class EnvZOmpR {
 
     public static void main(String[] args) throws IOException {
         try {
+            RandomGenerator rand = new DefaultRandomGenerator();
 
             int size = 50;
 
@@ -134,11 +135,11 @@ public class EnvZOmpR {
 
             TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)),state, ds->GillespieTime(new DefaultRandomGenerator(),ds));
 
-            EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, size);
+            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
             EvolutionSequence sequence2 = sequence.apply(addXY(),10,10);
 
             DistanceExpression distance = new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpression(ds->ds.get(YP)/40),
+                    new AtomicDistanceExpression(ds->ds.get(YP)/40,(v1, v2) -> Math.abs(v2-v1)),
                     200,
                     300);
 
@@ -188,17 +189,17 @@ public class EnvZOmpR {
             //double[][] val_200_005 = new double[10][1];
             //double[][] val_200_003 = new double[10][1];
 
-            TruthValues value1 = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_012).eval(10, 0, sequence);
+            TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_012).eval(10, 0, sequence);
             System.out.println("Phi_012 evaluation at 0: " + value1);
-            TruthValues value2 = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_010).eval(10, 0, sequence);
+            TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_010).eval(10, 0, sequence);
             System.out.println("Phi_010 evaluation at 0: " + value2);
-            //TruthValues value3 = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_001).eval(10, 0, sequence);
+            //TruthValues value3 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_001).eval(10, 0, sequence);
             //System.out.println("Phi_001 evaluation at 0: " + value3);
 
             /*
             for(int i = 0; i<10; i++) {
                 int step = i*10;
-                TruthValues value1 = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_200_007).eval(10, step, sequence);
+                TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_200_007).eval(10, step, sequence);
                 System.out.println("Phi_200_007 evaluation at step "+step+": " + value1);
                 if (value1 == TruthValues.TRUE) {
                     val_200_007[i][0] = 1;
@@ -209,7 +210,7 @@ public class EnvZOmpR {
                         val_200_007[i][0] = -1;
                     }
                 }
-                TruthValues value2 = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_200_005).eval(10, step, sequence);
+                TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_200_005).eval(10, step, sequence);
                 System.out.println("Phi_200_005 evaluation at step "+step+": " + value2);
                 if (value2 == TruthValues.TRUE) {
                     val_200_005[i][0] = 1;
@@ -220,7 +221,7 @@ public class EnvZOmpR {
                         val_200_005[i][0] = -1;
                     }
                 }
-                TruthValues value3 = new ThreeValuedSemanticsVisitor(50,1.96).eval(Phi_200_003).eval(10, step, sequence);
+                TruthValues value3 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_200_003).eval(10, step, sequence);
                 System.out.println("Phi_200_003 evaluation at step "+step+": " + value3);
                 if (value3 == TruthValues.TRUE) {
                     val_200_003[i][0] = 1;
