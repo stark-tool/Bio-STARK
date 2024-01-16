@@ -142,23 +142,16 @@ public class BactChe {
     public static final int CheBp = 11;
     public static final int Xm = 12;
 
-
     public static final int TIME = 13;
 
     private static final int NUMBER_OF_VARIABLES = 14;
-
-    //public static final ArrayList<Double> tempi = new ArrayList<>();
-
-
-
-
 
     public static void main(String[] args) throws IOException {
         try {
 
             RandomGenerator rand = new DefaultRandomGenerator();
 
-            int size = 1;
+            int size = 100;
 
             Controller controller = new NilController();
 
@@ -178,6 +171,8 @@ public class BactChe {
 
             F.add(ds->ds.getTimeDelta());
 
+            F.add(ds->ds.getTimeReal());
+
             ArrayList<String> L = new ArrayList<>();
 
             L.add("L");
@@ -186,7 +181,11 @@ public class BactChe {
 
             L.add("CheYp");
 
-            printLData(new DefaultRandomGenerator(), L, F, system, 40, size);
+            L.add("time delta");
+
+            L.add("time real");
+
+            printLData(new DefaultRandomGenerator(), L, F, system, 1000, size);
 
 
         System.out.println("ciao");
@@ -214,7 +213,6 @@ public class BactChe {
     private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size){
         System.out.println(label);
         double[][] data = SystemState.sample(rg, F, s, steps, size);
-        //System.out.println("ciao");
         for (int i = 0; i < data.length; i++) {
             System.out.printf("%d>   ", i);
             for (int j = 0; j < data[i].length -1; j++) {
@@ -222,7 +220,6 @@ public class BactChe {
             }
             System.out.printf("%f\n", data[i][data[i].length -1]);
         }
-        //System.out.println("ciao");
     }
 
     private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, Perturbation p, SystemState s, int steps, int size) {
@@ -254,24 +251,23 @@ public class BactChe {
         return state.apply(updates);
     }
 
-
-
     public static double GillespieTime(RandomGenerator rg, DataState state){
         double rate = 0.0;
         double[] lambda = new double[14];
         for (int j=0; j<14; j++){
             double weight = 1.0;
             for (int i=0; i<13; i++){
-                weight = weight * Math.pow(state.get(i) , r_input[j][i]);
+                if(r_input[j][i] > 0) {
+                    weight = weight * Math.pow(state.get(i), r_input[j][i]);
+                }
             }
-            lambda[j] = r_k[j]* weight;
+            lambda[j] = r_k[j] * weight;
             rate = rate + lambda[j];
-            if(rate==0.0){System.out.println("KKKKKKKKKKKKKKKKK");}
         }
 
-        //System.out.println(rate);
-        Random random = new Random();
-        double rand = random.nextDouble();
+        if(rate==0.0){System.out.println("KKKKKKKKKKKKKKKKK");}
+
+        double rand = rg.nextDouble();
         double t = (1/rate)*Math.log(1/rand);
         return t;
     }
@@ -281,10 +277,11 @@ public class BactChe {
 
     public static List<DataStateUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
-        // double rate = 0.0;
+
         double[] lambda = new double[14];
         double[] lambdaParSum = new double[14];
         double lambdaSum = 0.0;
+
         for (int j=0; j<14; j++){
             double weight = 1.0;
             for (int i=0; i<13; i++){
@@ -293,11 +290,9 @@ public class BactChe {
             lambda[j] = r_k[j]* weight;
             lambdaSum = lambda[j]+lambdaSum;
             lambdaParSum[j] = lambdaSum;
-            // rate = rate + lambda[j];
         }
 
-        Random r = new Random();
-        double token = r.nextDouble();
+        double token = rg.nextDouble();
 
         int selReaction = 0;
 
@@ -307,10 +302,6 @@ public class BactChe {
 
         selReaction++;
 
-
-        // double e = Math.exp(-rate*state.getTimeDelta());
-
-        //if (token < (1-e)*lambda[0]/rate){
         if (selReaction == 1){
             for(int i = 0; i<13; i++){
                 double newArity = state.get(i) + r1_output[i] - r1_input[i];
@@ -409,8 +400,6 @@ public class BactChe {
             }
         }
 
-        //updates.add(new DataStateUpdate(Tinf, state.get(Tsup)));
-
         return updates;
     }
 
@@ -420,7 +409,7 @@ public class BactChe {
         Map<Integer, Double> values = new HashMap<>();
         values.put(X, 10.0);
         values.put(Xstar, 10.0);
-        values.put(L, 1.0);
+        values.put(L, 0.0);
         values.put(CheY, 10.0);
         values.put(Z, 1.0);
         values.put(CheYp, 1.0);
