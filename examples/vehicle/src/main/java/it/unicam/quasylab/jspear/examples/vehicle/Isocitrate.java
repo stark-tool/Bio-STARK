@@ -22,10 +22,7 @@
 
 package it.unicam.quasylab.jspear.examples.vehicle;
 
-import it.unicam.quasylab.jspear.DefaultRandomGenerator;
-import it.unicam.quasylab.jspear.EvolutionSequence;
-import it.unicam.quasylab.jspear.SystemState;
-import it.unicam.quasylab.jspear.TimedSystem;
+import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.NilController;
 import it.unicam.quasylab.jspear.distance.AtomicDistanceExpression;
@@ -89,6 +86,11 @@ public class Isocitrate {
     public static final int[] r6_output = {0,0,1,1,0}; // product: Ip and EIp
     public static final double r6_k = 0.1;
 
+    /*
+      Interesting question: is I robust to variations of E and Ip?
+      Our answer strategy: we perturb a system by changing the values for E and Ip and we check whether the distance
+      that depends on the value of I between the nominal system and the perturbed one is below a given threshold.
+    */
 
     public static final int[][] r_input = {r1_input,r2_input,r3_input,r4_input,r5_input,r6_input};
     public static final int[][] r_output = {r1_output,r2_output,r3_output,r4_output,r5_output,r6_output};
@@ -104,11 +106,16 @@ public class Isocitrate {
     public static final int EIpI = 4; // compound EIp + I
     private static final int NUMBER_OF_VARIABLES = 5;
 
-    public static final double THRESHOLD = 0.6;
+    public static final double THRESHOLD = 0.1;
 
-    public static final int LEFT_BOUND = 100;
+    public static final int LEFT_BOUND = 200;
 
     public static final int RIGHT_BOUND = 300;
+
+    public static final double MAX_RED_E = 10.0;
+    public static final double MAX_PUSH_E = 10.0;
+    public static final double MAX_RED_Ip = 10.0;
+    public static final double MAX_PUSH_Ip = 10.0;
 
 
 
@@ -119,18 +126,43 @@ public class Isocitrate {
 
             RandomGenerator rand = new DefaultRandomGenerator();
 
-            int size = 10;
+            int size = 30;
 
             Controller controller = new NilController();
 
+            /*
+            The <code>DataState</code> <code>state</code> will be the initial state of our system.
+            The value of variables is assigned by function <code>getInitialState</state>, which assigns to each variable
+            a random value chosen in a suitable interval.
+             */
             DataState state = getInitialState(rand,1.0,0.0,0.0,0.0);
 
-            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state, ds->GillespieTime(new DefaultRandomGenerator(),ds));
+            /* The <code>TimedSystem</code> <code>system</code> is a system starting in state <code>state</code>.
+            It's evolution is determined by Gillespie's algorithm:
+            <code>selectReactionTime</code> is a static method that selects the time of next reaction according to Gillespie algorithm.
+            <code>selectAndApplyReaction</code> is a static method that selects the reaction among the available ones and modifies the state accordingly.
+             */
+            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(new DefaultRandomGenerator(),ds));
 
+
+            /*
+            The <code>EvolutionSequence</code> <code>sequence</code> originates from <code>size</code> copies of <code>system</code>
+             */
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
 
-            // THE FOLLOWING INSTRUCTIONS SIMULATE <code>size*10</code>> RUNS CONISTING IN <code>RIGHT_BOUND</code> STEPS OF system.
-            // THE MINIMUM AND MAXIMUM VALUES ASSUMED BY EACH VARIABLE IN INTERVAL [LEFT_BOUND,RIGHT_BOUND] ARE STORED IN minMax[0] AND minMax[1], RESP.
+            /*
+            The <code>PerturbedSystem</code> <code>psystem</code> is <code>system</code> pertubed by perturbation <code>pertEandIp10</code>
+             */
+            PerturbedSystem psystem = new PerturbedSystem(system,pertEandIp10());
+
+            /* Given the system <code>system</code>, the following instructions simulate <code>size</code> runs consisting in
+              <code>RIGHT_BOUND</code> steps. At each step, the average value taken by each variable in the runs is printed out.
+              Then, for each variable the min and max value that are printed in the steps in the interval
+              [LEFT_BOUND,RIGHT_BOUND] are stored in arrays minMax[0] AND minMax[1], respectively.
+              Then, the same simulation is done for <code>psystem</code>.
+              Therefore, we can observe an evolution of both the nominal and the perturbed system.
+            */
+
             ArrayList<DataStateExpression> F = new ArrayList<>();
             F.add(ds->ds.get(E));
             F.add(ds->ds.get(I));
@@ -145,9 +177,13 @@ public class Isocitrate {
             L.add("Ip");
             L.add("EIp");
             L.add("EIpI");
-            double[][] minMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, system, RIGHT_BOUND, size*10, LEFT_BOUND, RIGHT_BOUND);
-            System.out.println(minMax[0][1]);
-            System.out.println(minMax[1][1]);
+
+            double[][] minMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+
+            double[][] pminMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, psystem, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+
+
+
 
             /* The following distance expression returns the maximum, in interval [LEFT_BOUND , RIGHT_BOUND], of the
             absolute value of the difference of the value assumed by variable I in the nominal and in the perturbed system,
@@ -163,13 +199,13 @@ public class Isocitrate {
 
             // ROBUSTNESS FORMULA
             /* The following formula tells us whether the difference expressed by <code>distance</cod> between the nominal
-            system and its version perturbed by <code>pertEandIp10</code> is bound by THRESHOLD
+            system and its version perturbed by <code>pertEandIp10</code> is bound by THRESHOLD. The result of the evaluation
+            of the formula is printed out by the subsequent two lines of code.
              */
-            RobustnessFormula robF = new AtomicRobustnessFormula(pertEandIp(),
+            RobustnessFormula robF = new AtomicRobustnessFormula(pertEandIp10(),
                     distance,
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     THRESHOLD);
-
 
             TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
             System.out.println("\n robF evaluation at 0: " + value1);
@@ -229,16 +265,17 @@ public class Isocitrate {
             System.out.printf("%f\n", data[i][data[i].length -1]);
         }
 
-        System.out.printf("%n", "min");
-        for(int j=0; j<NUMBER_OF_VARIABLES; j++){
-            System.out.printf("%f    ", min[j]);
+        System.out.printf("%s   ", "min:");
+        for(int j=0; j<NUMBER_OF_VARIABLES-1; j++){
+            System.out.printf("%f   ", min[j]);
         }
+        System.out.printf("%f\n", min[NUMBER_OF_VARIABLES-1]);
 
-        System.out.printf("%n", "max");
-        for(int j=0; j<NUMBER_OF_VARIABLES; j++){
+        System.out.printf("%s   ", "max:");
+        for(int j=0; j<NUMBER_OF_VARIABLES-1; j++){
             System.out.printf("%f   ", max[j]);
         }
-
+        System.out.printf("%f\n", max[NUMBER_OF_VARIABLES-1]);
         return result;
     }
 
@@ -265,19 +302,24 @@ public class Isocitrate {
     // FUNCTIONS SUPPORTING PERTURBATION
     /*
     The following function changes the values of E and Ip.
-    Each value v is mapped to a value in [v/10 , v*10].
+    For each variable x, each value v is mapped to a value in [v/MAX_RED_x , v*MAX_PUSH_x].
      */
     private static DataState changeEandIp(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(E, state.get(E)/10.0  + rg.nextDouble()*(state.get(E)*10.0 - state.get(E)/10.0 +1) ));
-        updates.add(new DataStateUpdate(Ip,state.get(Ip)/10.0 +  rg.nextDouble()*(state.get(Ip)*10.0 - state.get(Ip)/10.0 +1) ));
+        //updates.add(new DataStateUpdate(E, state.get(E)*30.0));
+        //updates.add(new DataStateUpdate(Ip, state.get(Ip)*30.0));
+        updates.add(new DataStateUpdate(E, state.get(E)/MAX_RED_E  + rg.nextDouble()*(state.get(E)*MAX_PUSH_E - state.get(E)/MAX_RED_E +1) ));
+        updates.add(new DataStateUpdate(Ip,state.get(Ip)/MAX_RED_Ip +  rg.nextDouble()*(state.get(Ip)*MAX_PUSH_Ip - state.get(Ip)/MAX_RED_Ip+1) ));
         return state.apply(updates);
     }
 
 
 
-    // GILLESPIE TIME COMPUTATION
-    public static double GillespieTime(RandomGenerator rg, DataState state){
+    /*
+    The following method selects the time of next reaction, according to Gillespie's algorithm.
+    */
+
+    public static double selectReactionTime(RandomGenerator rg, DataState state){
         double rate = 0.0;
         double[] lambda = new double[6];
         for (int j=0; j<6; j++){
@@ -297,9 +339,12 @@ public class Isocitrate {
     }
 
 
-    // ENVIRONMENT EVOLUTION
+    /*
+    The following method selects the next reaction, according to Gillespie's algorithm, and returns the updates that allow for
+     modifying the state accordingly.
+    */
 
-    public static List<DataStateUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
+    public static List<DataStateUpdate> selectAndApplyReaction(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
 
         double[] lambda = new double[6];
