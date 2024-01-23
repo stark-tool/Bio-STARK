@@ -76,7 +76,7 @@ public class BactChe {
 
     public static final int[] r6_input =  {0,1,1,0,0,0,0,0,0,0,0,0,0};
     public static final int[] r6_output = {0,0,1,0,0,0,0,0,0,1,0,0,0};
-    public static final double r6_k = 1.0;
+    public static final double r6_k = 10000.0;
 
     public static final int[] r7_input =  {0,0,0,0,0,0,0,0,0,0,0,1,0};
     public static final int[] r7_output = {0,0,0,0,0,0,0,0,0,0,1,0,0};
@@ -115,17 +115,7 @@ public class BactChe {
 
     public static final double[] r_k = {r1_k,r2_k,r3_k,r4_k,r5_k,r6_k,r7_k,r8_k,r9_k,r10_k,r11_k,r12_k,r13_k,r14_k};
 
-    public static final double H = 3000;
-    public static final double ETA_007 = 0.07;
-    public static final double ETA_005 = 0.05;
-    public static final double ETA_003 = 0.03;
 
-    public static final double ETA_012 = 0.12;
-    public static final double ETA_010 = 0.10;
-    public static final double ETA_001 = 0.01;
-
-    public static final double ETA_008 = 0.08;
-    public static final double ETA_002 = 0.02;
 
 
     public static final int X = 0;
@@ -151,7 +141,7 @@ public class BactChe {
 
             RandomGenerator rand = new DefaultRandomGenerator();
 
-            int size = 100;
+            int size = 1;
 
             Controller controller = new NilController();
 
@@ -163,11 +153,39 @@ public class BactChe {
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
 
+            F.add(ds->ds.get(X));
+
+            F.add(ds->ds.get(Xstar));
+
             F.add(ds->ds.get(L));
+
+            F.add(ds->ds.get(CheY));
+
+            F.add(ds->ds.get(Z));
+
+            F.add(ds->ds.get(CheYp));
+
+            F.add(ds->ds.get(XL));
+
+            F.add(ds->ds.get(Xstarm));
 
             F.add(ds->ds.get(CheR));
 
-            F.add(ds->ds.get(CheYp));
+            F.add(ds->ds.get(XY));
+
+            F.add(ds->ds.get(CheB));
+
+            F.add(ds->ds.get(CheBp));
+
+            F.add(ds->ds.get(Xm));
+
+
+
+
+
+
+
+
 
             F.add(ds->ds.getTimeDelta());
 
@@ -185,7 +203,7 @@ public class BactChe {
 
             L.add("time real");
 
-            printLData(new DefaultRandomGenerator(), L, F, system, 1000, size);
+            printLData(new DefaultRandomGenerator(), L, F, system, 20, size);
 
 
         System.out.println("ciao");
@@ -194,21 +212,7 @@ public class BactChe {
         }
     }
 
-    private static void printData(RandomGenerator rg, String label, DataStateExpression f, SystemState s, int steps, int size) {
-        System.out.println(label);
-        double[] data = SystemState.sample(rg, f, s, steps, size);
-        for (int i = 0; i < data.length; i++) {
-            System.out.printf("%d> %f\n", i, data[i]);
-        }
-    }
 
-    private static void printData(RandomGenerator rg, String label, DataStateExpression f, Perturbation p, SystemState s, int steps, int size) {
-        System.out.println(label);
-        double[] data = SystemState.sample(rg, f, p, s, steps, size);
-        for (int i = 0; i < data.length; i++) {
-            System.out.printf("%d> %f\n", i, data[i]);
-        }
-    }
 
     private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size){
         System.out.println(label);
@@ -222,34 +226,7 @@ public class BactChe {
         }
     }
 
-    private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, Perturbation p, SystemState s, int steps, int size) {
-        System.out.println(label);
-        double[][] data = SystemState.sample(rg, F, p, s, steps, size);
-        for (int i = 0; i < data.length; i++) {
-            System.out.printf("%d>   ", i);
-            for (int j = 0; j < data[i].length -1; j++) {
-                System.out.printf("%f   ", data[i][j]);
-            }
-            System.out.printf("%f\n", data[i][data[i].length -1]);
-        }
-    }
 
-    // PERTURBATIONS
-
-    public static Perturbation ItAddXY(){
-        return new IterativePerturbation(5,addXY());
-    }
-
-    public static Perturbation addXY(){
-        return new AtomicPerturbation(10, BactChe::changeXandY);
-    }
-
-    private static DataState changeXandY(RandomGenerator rg, DataState state) {
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(X, state.get(X) + 2500));
-        updates.add(new DataStateUpdate(X, state.get(X) + 10000));
-        return state.apply(updates);
-    }
 
     public static double GillespieTime(RandomGenerator rg, DataState state){
         double rate = 0.0;
@@ -409,7 +386,7 @@ public class BactChe {
         Map<Integer, Double> values = new HashMap<>();
         values.put(X, 10.0);
         values.put(Xstar, 10.0);
-        values.put(L, 0.0);
+        values.put(L, 100000.0);
         values.put(CheY, 10.0);
         values.put(Z, 1.0);
         values.put(CheYp, 1.0);

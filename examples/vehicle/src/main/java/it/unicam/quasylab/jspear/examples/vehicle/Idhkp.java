@@ -123,12 +123,15 @@ public class Idhkp {
 
             DataState state = getInitialState(1.0,0.0,0.0,0.0);
 
-            //TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)),state, ds->GillespieTime(new DefaultRandomGenerator(),ds));
-            ControlledSystem system2 = new ControlledSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)),state);
+            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)),state, ds->GillespieTime(new DefaultRandomGenerator(),ds));
+            //ControlledSystem system2 = new ControlledSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)),state);
 
-            //EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, size);
+            EvolutionSequence sequence = new EvolutionSequence(new DefaultRandomGenerator(), rg -> system, size);
 
-            //EvolutionSequence sequence2 = sequence.apply(addXY(),10,10);
+            EvolutionSequence sequence2 = sequence.apply(addXY(),10,10);
+
+
+
 
             ArrayList<String> L = new ArrayList<>();
 
@@ -142,7 +145,7 @@ public class Idhkp {
             //L.add("real time");
             L.add("time delta");
             L.add("TIME");
-            L.add("IS_IT");
+            //L.add("IS_IT");
             L.add("REAC_RATE");
             L.add("reverse REAC_RATE");
             //L.add("ESP");
@@ -165,21 +168,23 @@ public class Idhkp {
             //F.add(ds->ds.getTimeReal());
             F.add(ds->ds.getTimeDelta());
             F.add(ds->ds.get(TIME));
-            F.add(ds->ds.get(IS_IT));
+            //F.add(ds->ds.get(IS_IT));
             F.add(ds->ds.get(REAC_RATE));
             F.add(ds->1/ds.get(REAC_RATE));
             //F.add(ds->ds.get(ESP));
-            F.add(ds->ds.get(IS_IT)/ds.get(REAC_RATE));
+            //F.add(ds->ds.get(IS_IT)/ds.get(REAC_RATE));
             //F.add(ds->1.100512/2882.475500);
 
 //F.add(ds->ds.getTimeStep());
 
 //F.add(ds->ds.getGranularity());
 
-            //printLDataMin(new DefaultRandomGenerator(), L, F, system, 100, size*2);
+            printLDataMin(new DefaultRandomGenerator(), L, F, system, 100, size*2);
             //printLData(new DefaultRandomGenerator(), L, F, system, 100, size*2);
-            //printLDataMax(new DefaultRandomGenerator(), L, F, system, 100, size*2);
-            printLData(new DefaultRandomGenerator(), L, F, system2, 14500, size*2);
+            //printLDataMax(new DefaultRandomGenerator(), L, F, system, 100, size);
+            //printLData(new DefaultRandomGenerator(), L, F, system2, 14500, size*2);
+
+
 
 
 //            DistanceExpression distance = new MaxIntervalDistanceExpression(
@@ -490,16 +495,16 @@ public class Idhkp {
 
         updates.add(new DataStateUpdate(REAC_RATE, rate));
 
-        Random random = new Random();
-        double rand = random.nextDouble();
-        updates.add(new DataStateUpdate(IS_IT,Math.log(1/rand)));
-        double t = (1/rate)*Math.log(1/rand);
-        state.setTimeDelta(t);
-        double newTime = state.get(TIME) + t;
-        updates.add(new DataStateUpdate(TIME, newTime));
+        //Random random = new Random();
+        //double rand = random.nextDouble();
+       // updates.add(new DataStateUpdate(IS_IT,Math.log(1/rand)));
+        //double t = (1/rate)*Math.log(1/rand);
+        //state.setTimeDelta(t);
+        //double newTime = state.get(TIME) + t;
+        updates.add(new DataStateUpdate(TIME,state.getTimeReal()));
 
-        double e = Math.exp(-rate*t);
-        //double e = Math.exp(-rate*state.getTimeDelta());
+        //double e = Math.exp(-rate*t);
+        double e = Math.exp(-rate*state.getTimeDelta());
 
         updates.add(new DataStateUpdate(ESP,e));
 

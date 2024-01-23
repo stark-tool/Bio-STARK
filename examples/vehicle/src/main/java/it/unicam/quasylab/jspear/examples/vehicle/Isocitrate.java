@@ -106,7 +106,7 @@ public class Isocitrate {
     public static final int EIpI = 4; // compound EIp + I
     private static final int NUMBER_OF_VARIABLES = 5;
 
-    public static final double THRESHOLD = 0.1;
+    public static final double THRESHOLD = 0.2;
 
     public static final int LEFT_BOUND = 200;
 
@@ -136,24 +136,36 @@ public class Isocitrate {
             a random value chosen in a suitable interval.
              */
             DataState state = getInitialState(rand,1.0,0.0,0.0,0.0);
+            /*
+            The <code>DataState</code> <code>stateC</code> is the initial state of another system, whose initial values
+            are the same as in [Milazzo].
+            The value of variables is assigned by function <code>getInitialStateC</state>.
+            */
+            DataState stateC = getInitialStateC(rand,1.0,0.0,0.0,0.0);
 
             /* The <code>TimedSystem</code> <code>system</code> is a system starting in state <code>state</code>.
             It's evolution is determined by Gillespie's algorithm:
             <code>selectReactionTime</code> is a static method that selects the time of next reaction according to Gillespie algorithm.
             <code>selectAndApplyReaction</code> is a static method that selects the reaction among the available ones and modifies the state accordingly.
              */
-            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
+            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(new DefaultRandomGenerator(),ds));
+            /*
+            The <code>TimedSystem</code> <code>systemC</code> is a system starting in state <code>stateC</code>.
+             */
+            TimedSystem systemC = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), stateC, ds->selectReactionTime(new DefaultRandomGenerator(),ds));
 
 
             /*
             The <code>EvolutionSequence</code> <code>sequence</code> originates from <code>size</code> copies of <code>system</code>
              */
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
+            EvolutionSequence sequenceC = new EvolutionSequence(rand, rg -> systemC, size);
 
             /*
             The <code>PerturbedSystem</code> <code>psystem</code> is <code>system</code> pertubed by perturbation <code>pertEandIp10</code>
              */
             PerturbedSystem psystem = new PerturbedSystem(system,pertEandIp10());
+            PerturbedSystem psystemC = new PerturbedSystem(systemC,pertEandIpC());
 
             /* Given the system <code>system</code>, the following instructions simulate <code>size</code> runs consisting in
               <code>RIGHT_BOUND</code> steps. At each step, the average value taken by each variable in the runs is printed out.
@@ -178,9 +190,11 @@ public class Isocitrate {
             L.add("EIp");
             L.add("EIpI");
 
-            double[][] minMax = printLMinMaxData(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            double[][] minMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            double[][] pminMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, psystem, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
 
-            double[][] pminMax = printLMinMaxData(rand, L, F, psystem, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            double[][] minMaxC = printLMinMaxData(new DefaultRandomGenerator(), L, F, systemC, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            double[][] pminMaxC = printLMinMaxData(new DefaultRandomGenerator(), L, F, psystemC, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
 
 
 
@@ -196,6 +210,11 @@ public class Isocitrate {
                     LEFT_BOUND,
                     RIGHT_BOUND);
 
+            DistanceExpression distanceC = new MaxIntervalDistanceExpression(
+                    new AtomicDistanceExpression(ds->ds.get(I)/(minMaxC[1][I]*1.1-minMaxC[0][I]*0.9),(v1, v2) -> Math.abs(v2-v1)),
+                    LEFT_BOUND,
+                    RIGHT_BOUND);
+
 
             // ROBUSTNESS FORMULA
             /* The following formula tells us whether the difference expressed by <code>distance</cod> between the nominal
@@ -207,8 +226,16 @@ public class Isocitrate {
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     THRESHOLD);
 
+            RobustnessFormula robFC = new AtomicRobustnessFormula(pertEandIpC(),
+                    distance,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    THRESHOLD);
+
             TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
             System.out.println("\n robF evaluation at 0: " + value1);
+
+            TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robFC).eval(5, 0, sequenceC);
+            System.out.println("\n robF evaluation at 0: " + value2);
 
 
         } catch (RuntimeException e) {
@@ -291,6 +318,10 @@ public class Isocitrate {
         return new AtomicPerturbation(0,Isocitrate::changeEandIp );
     }
 
+    public static Perturbation pertEandIpC(){
+        return new AtomicPerturbation(1,Isocitrate::changeEandIpC );
+    }
+
     public static Perturbation pertEandIpIter(){
         return new IterativePerturbation(5,pertEandIp10());
     }
@@ -313,6 +344,12 @@ public class Isocitrate {
         return state.apply(updates);
     }
 
+    private static DataState changeEandIpC(RandomGenerator rg, DataState state) {
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(E, 10) );
+        updates.add(new DataStateUpdate(Ip,100));
+        return state.apply(updates);
+    }
 
 
     /*
@@ -430,13 +467,26 @@ public class Isocitrate {
         double initIp = Math.ceil(100 * rand.nextDouble());
         double initEIp = Math.ceil(100 * rand.nextDouble());
         double initEIpI = Math.ceil(100 * rand.nextDouble());
-
         values.put(E, initE);
         values.put(I, initI);
         values.put(Ip, initIp);
         values.put(EIp, initEIp);
         values.put(EIpI, initEIpI);
+        return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN), gran, Tstep, Treal, Tdelta);
+    }
 
+    public static DataState getInitialStateC(RandomGenerator rand, double gran, double Tstep, double Treal, double Tdelta) {
+        Map<Integer, Double> values = new HashMap<>();
+        double initE = 0;
+        double initI = 100;
+        double initIp = 10000.0;
+        double initEIp = 10;
+        double initEIpI = 0.0;
+        values.put(E, initE);
+        values.put(I, initI);
+        values.put(Ip, initIp);
+        values.put(EIp, initEIp);
+        values.put(EIpI, initEIpI);
         return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN), gran, Tstep, Treal, Tdelta);
     }
 
