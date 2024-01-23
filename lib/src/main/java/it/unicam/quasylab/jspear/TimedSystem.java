@@ -43,7 +43,7 @@ public class TimedSystem implements SystemState {
     /**
      * Creates a system with the given controller and the given state.
      *  @param controller system controller.
-     * @param environment
+     * @param environment environment
      * @param state current data state.
      */
     public TimedSystem(Controller controller, DataStateFunction environment, DataState state, DataStateExpression generateNextTime) {

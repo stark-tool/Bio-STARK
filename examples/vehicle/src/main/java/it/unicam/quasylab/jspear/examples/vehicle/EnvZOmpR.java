@@ -25,6 +25,7 @@ package it.unicam.quasylab.jspear.examples.vehicle;
 import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.NilController;
+import it.unicam.quasylab.jspear.distance.*;
 import it.unicam.quasylab.jspear.distance.AtomicDistanceExpression;
 import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.distance.MaxIntervalDistanceExpression;
@@ -133,16 +134,53 @@ public class EnvZOmpR {
 
             DataState state = getInitialState(1.0,0.0,0.0,0.0);
 
-            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)),state, ds->GillespieTime(new DefaultRandomGenerator(),ds));
+            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)),state, ds->GillespieTime(rand,ds));
 
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
-            EvolutionSequence sequence2 = sequence.apply(addXY(),10,10);
+            EvolutionSequence sequence_50_300 = sequence.apply(ItAddXY(5,50,300),0,10);
+            EvolutionSequence sequence_250_1000 = sequence.apply(addXY(250,1000),0,10);
+            EvolutionSequence sequence_500_2000 = sequence.apply(addXY(500,2000),0,10);
+
+            DistanceExpression atomica = new AtomicDistanceExpression(ds->ds.get(YP)/50,(v1, v2) -> Math.abs(v2-v1));
+
+
+            double[] direct_evaluation_50_300 = atomica.compute(0,500, sequence, sequence_50_300);
+
+            for (int i = 0; i<direct_evaluation_50_300.length; i++){
+                System.out.printf("%d> %f\n", i, direct_evaluation_50_300[i]);
+            }
+
+
+            double[] direct_evaluation_250_1000 = atomica.compute(0,500, sequence, sequence_250_1000);
+
+            for (int i = 0; i<direct_evaluation_250_1000.length; i++){
+               System.out.printf("%d> %f\n", i, direct_evaluation_250_1000[i]);
+            }
+
+
+            double[] direct_evaluation_500_2000 = atomica.compute(0,500, sequence, sequence_500_2000);
+
+            for (int i = 0; i<direct_evaluation_500_2000.length; i++){
+                System.out.printf("%d> %f\n", i, direct_evaluation_500_2000[i]);
+            }
+
+
 
             DistanceExpression distance = new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpression(ds->ds.get(YP)/40,(v1, v2) -> Math.abs(v2-v1)),
-                    200,
-                    300);
+                    new AtomicDistanceExpression(ds->ds.get(YP)/50,(v1, v2) -> Math.abs(v2-v1)),
+                    450,
+                    500);
+            DistanceExpression distance2 = new MaxIntervalDistanceExpression(
+                    new AtomicDistanceExpression(ds->ds.get(YP)/50,(v1, v2) -> Math.abs(v2-v1)),
+                    400,
+                    450);
+            DistanceExpression distance3 = new MaxIntervalDistanceExpression(
+                    new AtomicDistanceExpression(ds->ds.get(YP)/50,(v1, v2) -> Math.abs(v2-v1)),
+                    350,
+                    400);
 
+
+            /*
             RobustnessFormula Phi_007 = new AtomicRobustnessFormula(addXY(),
                             distance,
                             RelationOperator.LESS_OR_EQUAL_THAN,
@@ -158,15 +196,15 @@ public class EnvZOmpR {
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     ETA_003);
 
-            RobustnessFormula Phi_012 = new AtomicRobustnessFormula(addXY(),
-                    distance,
+            RobustnessFormula Phi_005_2 = new AtomicRobustnessFormula(addXY(),
+                    distance2,
                     RelationOperator.LESS_OR_EQUAL_THAN,
-                    ETA_012);
+                    ETA_005);
 
-            RobustnessFormula Phi_010 = new AtomicRobustnessFormula(addXY(),
-                    distance,
+            RobustnessFormula Phi_005_3 = new AtomicRobustnessFormula(addXY(),
+                    distance3,
                     RelationOperator.LESS_OR_EQUAL_THAN,
-                    ETA_010);
+                    ETA_005);
 
             RobustnessFormula Phi_001 = new AtomicRobustnessFormula(addXY(),
                     distance,
@@ -185,16 +223,18 @@ public class EnvZOmpR {
 
 
 
+             */
+
             //double[][] val_200_007 = new double[10][1];
             //double[][] val_200_005 = new double[10][1];
             //double[][] val_200_003 = new double[10][1];
 
-            TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_012).eval(10, 0, sequence);
-            System.out.println("Phi_012 evaluation at 0: " + value1);
-            TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_010).eval(10, 0, sequence);
-            System.out.println("Phi_010 evaluation at 0: " + value2);
-            //TruthValues value3 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_001).eval(10, 0, sequence);
-            //System.out.println("Phi_001 evaluation at 0: " + value3);
+            //TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_005_3).eval(10, 0, sequence);
+            //System.out.println("Phi_005_3 evaluation at 0: " + value1);
+            //TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_005_2).eval(10, 0, sequence);
+            //System.out.println("Phi_005_2 evaluation at 0: " + value2);
+            //TruthValues value3 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_005).eval(10, 0, sequence);
+            //System.out.println("Phi_005 evaluation at 0: " + value3);
 
             /*
             for(int i = 0; i<10; i++) {
@@ -240,10 +280,8 @@ public class EnvZOmpR {
             Util.writeToCSV("./eta_005.csv",val_200_005);
             Util.writeToCSV("./eta_003.csv",val_200_003);
 
-             */
 
 
-            /*
 
             ArrayList<String> L = new ArrayList<>();
 
@@ -253,9 +291,9 @@ public class EnvZOmpR {
 
             L.add("X");
 
-            //L.add("Tempo step");
+            L.add("Tempo step");
 
-            //L.add("Granularity");
+            L.add("Tempo real");
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
 
@@ -265,11 +303,15 @@ public class EnvZOmpR {
 
             F.add(ds->ds.get(X));
 
-            //F.add(ds->ds.getTimeStep());
+            F.add(ds->ds.getTimeStep());
 
-            //F.add(ds->ds.getGranularity());
+            F.add(ds->ds.getTimeReal());
 
-            //printLData(new DefaultRandomGenerator(), L, F, addXY(), system, 500, size*10);
+            printLData(new DefaultRandomGenerator(), L, F, addXY(), system, 500, size);
+
+
+
+
 
 
             //double[] test = sequence2.evalPenaltyFunction(F.get(2),19);
@@ -356,7 +398,7 @@ public class EnvZOmpR {
 
     private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, Perturbation p, SystemState s, int steps, int size) {
         System.out.println(label);
-        double[][] data = SystemState.sample(rg, F, p, s, steps, size);
+        double[][] data = SystemState.sample_max(rg, F, p, s, steps, size);
         for (int i = 0; i < data.length; i++) {
             System.out.printf("%d>   ", i);
             for (int j = 0; j < data[i].length -1; j++) {
@@ -368,21 +410,19 @@ public class EnvZOmpR {
 
     // PERTURBATIONS
 
-    public static Perturbation ItAddXY(){
-        return new IterativePerturbation(5,addXY());
+    public static Perturbation ItAddXY(int replica, int x, int y){
+        return new IterativePerturbation(replica,addXY(x,y));
     }
 
-    public static Perturbation addXY(){
-        return new AtomicPerturbation(10, EnvZOmpR::changeXandY);
+    public static Perturbation addXY(int x, int y){
+        return new AtomicPerturbation(10, (rg,ds)->ds.apply(changeXandY(rg,ds,x,y)));
     }
 
-    private static DataState changeXandY(RandomGenerator rg, DataState state) {
+    private static List<DataStateUpdate> changeXandY(RandomGenerator rg, DataState state, int x, int y) {
         List<DataStateUpdate> updates = new LinkedList<>();
-        //double randX = rg.nextDouble()*250;
-        //double randY = rg.nextDouble()*1000;
-        updates.add(new DataStateUpdate(X, state.get(X) + 2500));
-        updates.add(new DataStateUpdate(Y, state.get(Y) + 10000));
-        return state.apply(updates);
+        updates.add(new DataStateUpdate(X, state.get(X) + x));
+        updates.add(new DataStateUpdate(Y, state.get(Y) + y));
+        return updates;
     }
 
 
@@ -399,11 +439,8 @@ public class EnvZOmpR {
             lambda[j] = r_k[j]* weight;
             rate = rate + lambda[j];
         }
-
-        Random random = new Random();
-        double rand = random.nextDouble();
-        double t = (1/rate)*Math.log(1/rand);
-        return t;
+        if(rate==0.0){System.out.println("No reaction available");}
+        return (1/rate)*Math.log(1/rg.nextDouble());
     }
 
 
@@ -411,25 +448,19 @@ public class EnvZOmpR {
 
     public static List<DataStateUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
-        double rate = 0.0;
         double[] lambda = new double[11];
+        double[] lambdaParSum = new double[11];
+        double lambdaSum = 0.0;
         for (int j=0; j<11; j++){
             double weight = 1.0;
             for (int i=0; i<8; i++){
                 weight = weight* Math.pow(state.get(i),r_input[j][i]);
             }
             lambda[j] = r_k[j]* weight;
-            rate = rate + lambda[j];
+            lambdaSum = lambdaSum + lambda[j];
+            lambdaParSum[j] = lambdaSum;
         }
-
-        //Random random = new Random();
-        //double rand = random.nextDouble();
-        //double t = (1/rate)*Math.log(1/rand);
-
-        //double newTime = state.get(TIME) + t;
-
-        //updates.add(new DataStateUpdate(TIME, newTime));
-
+        /*
         double e = Math.exp(-rate*state.getTimeDelta());
 
         Random r = new Random();
@@ -510,9 +541,94 @@ public class EnvZOmpR {
                 }
             }
         }
-        //updates.add(new DataStateUpdate(Tinf, state.get(Tsup)));
+
+         */
+        double token = rg.nextDouble();
+
+        int selReaction = 0;
+            while(lambdaParSum[selReaction] <= token * lambdaSum){
+            selReaction++;
+        }
+        selReaction++;
+        if (selReaction == 1){
+            for(int i = 0; i<8; i++){
+                double newArity = state.get(i) + r1_output[i] - r1_input[i];
+                updates.add(new DataStateUpdate(i, newArity));
+            }
+        }
+
+        if (selReaction == 2){
+            for(int i = 0; i<8; i++){
+                double newArity = state.get(i) + r2_output[i] - r2_input[i];
+                updates.add(new DataStateUpdate(i, newArity));
+            }
+        }
+
+        if (selReaction == 3){
+            for(int i = 0; i<8; i++){
+                double newArity = state.get(i) + r3_output[i] - r3_input[i];
+                updates.add(new DataStateUpdate(i, newArity));
+            }
+        }
+
+        if (selReaction == 4){
+            for(int i = 0; i<8; i++){
+                double newArity = state.get(i) + r4_output[i] - r4_input[i];
+                updates.add(new DataStateUpdate(i, newArity));
+            }
+        }
+
+        if (selReaction == 5){
+            for(int i = 0; i<8; i++){
+                double newArity = state.get(i) + r5_output[i] - r5_input[i];
+                updates.add(new DataStateUpdate(i, newArity));
+            }
+        }
+
+        if (selReaction == 6){
+            for(int i = 0; i<8; i++){
+                double newArity = state.get(i) + r6_output[i] - r6_input[i];
+                updates.add(new DataStateUpdate(i, newArity));
+            }
+        }
+
+        if (selReaction == 7){
+            for(int i = 0; i<8; i++){
+                double newArity = state.get(i) + r7_output[i] - r7_input[i];
+                updates.add(new DataStateUpdate(i, newArity));
+            }
+        }
+
+        if (selReaction == 8){
+            for(int i = 0; i<8; i++){
+                double newArity = state.get(i) + r8_output[i] - r8_input[i];
+                updates.add(new DataStateUpdate(i, newArity));
+            }
+        }
+
+        if (selReaction == 9){
+            for(int i = 0; i<8; i++){
+                double newArity = state.get(i) + r9_output[i] - r9_input[i];
+                updates.add(new DataStateUpdate(i, newArity));
+            }
+        }
+
+        if (selReaction == 10){
+            for(int i = 0; i<8; i++){
+                double newArity = state.get(i) + r10_output[i] - r10_input[i];
+                updates.add(new DataStateUpdate(i, newArity));
+            }
+        }
+
+        if (selReaction == 11){
+            for(int i = 0; i<8; i++){
+                double newArity = state.get(i) + r11_output[i] - r11_input[i];
+                updates.add(new DataStateUpdate(i, newArity));
+            }
+        }
 
         return updates;
+
     }
 
     // INITIALISATION OF DATA STATE

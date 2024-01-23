@@ -142,7 +142,7 @@ public class Isocitrate {
             <code>selectReactionTime</code> is a static method that selects the time of next reaction according to Gillespie algorithm.
             <code>selectAndApplyReaction</code> is a static method that selects the reaction among the available ones and modifies the state accordingly.
              */
-            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(new DefaultRandomGenerator(),ds));
+            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
 
 
             /*
@@ -178,9 +178,9 @@ public class Isocitrate {
             L.add("EIp");
             L.add("EIpI");
 
-            double[][] minMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            double[][] minMax = printLMinMaxData(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
 
-            double[][] pminMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, psystem, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            double[][] pminMax = printLMinMaxData(rand, L, F, psystem, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
 
 
 
