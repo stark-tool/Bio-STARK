@@ -22,9 +22,6 @@ param COOL_ATTACK = 1.8;
 param ZETA_1 = 0.5;
 param ZETA_2 = 0.3;
 
-/*type speed_value = LOW|HALF|FULL;
-type warning_value = OK|HOT;*/
-
 variables {
   real p1 range [MIN_TEMP, MAX_TEMP] = INITIAL_TEMP;
   real p2 range [MIN_TEMP, MAX_TEMP] = INITIAL_TEMP;
@@ -133,11 +130,8 @@ component Engine{
 }
 
 environment {
-  let
-    deltaTemp = temperatureUpdateInOneStep(cool, speed)
-  in
-    temp' = temp + deltaTemp;
-    ch_temp' = ch_temp + deltaTemp;
+    temp' = temp + temperatureUpdateInOneStep(cool, speed);
+    ch_temp' = ch_temp + temperatureUpdateInOneStep(cool, speed);
     fn' = (time_step*fn + max(0.0, stress - ch_wrn))/(1+time_step);
     time_step' = time_step + 1;
     p1' = temp;
@@ -189,7 +183,7 @@ distance until_dist = condition_1 \U[0,TAU+K+10] condition_2;
 
 perturbation fake_temperature = [ch_temp <- temp * TEMP_OFFSET * R[0,1]]@0;
 
-perturbation it_fake_temperature = fake_temperature^K;
+perturbation it_fake_temperature = [fn <- fn]^100;fake_temperature^K;
 
 perturbation fake_cooling = ([cool <- pert_cool(temp,cool)]@0)^K;
 
