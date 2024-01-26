@@ -31,9 +31,7 @@ import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.distance.MaxIntervalDistanceExpression;
 import it.unicam.quasylab.jspear.distance.MinIntervalDistanceExpression;
 import it.unicam.quasylab.jspear.ds.*;
-import it.unicam.quasylab.jspear.perturbation.AtomicPerturbation;
-import it.unicam.quasylab.jspear.perturbation.IterativePerturbation;
-import it.unicam.quasylab.jspear.perturbation.Perturbation;
+import it.unicam.quasylab.jspear.perturbation.*;
 import it.unicam.quasylab.jspear.robtl.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -340,7 +338,9 @@ public class Main {
     }
 
     private static Perturbation getPerturbation() {
-        return new IterativePerturbation(N, new AtomicPerturbation(0, Main::perturbationFunction));
+        //return new IterativePerturbation(N, new AtomicPerturbation(0, Main::perturbationFunction));
+        return new AfterPerturbation(100,
+                new IterativePerturbation(N, new AtomicPerturbation(0, Main::perturbationFunction)));
     }
 
     private static DataState perturbationFunction(RandomGenerator rg, DataState state) {
