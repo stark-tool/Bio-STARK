@@ -183,7 +183,7 @@ distance until_dist = condition_1 \U[0,TAU+K+10] condition_2;
 
 perturbation fake_temperature = [ch_temp <- temp * TEMP_OFFSET * R[0,1]]@0;
 
-perturbation it_fake_temperature = [fn <- fn]^100;fake_temperature^K;
+perturbation it_fake_temperature = [fn <- fn]@100;fake_temperature^K;
 
 perturbation fake_cooling = ([cool <- pert_cool(temp,cool)]@0)^K;
 

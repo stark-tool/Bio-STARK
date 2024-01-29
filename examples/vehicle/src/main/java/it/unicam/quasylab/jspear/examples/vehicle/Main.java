@@ -37,7 +37,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 import java.io.IOException;
 import java.util.*;
 
-public class Main {
+public class
+Main {
 
     public final static String[] VARIABLES =
             new String[]{"p_speed_V1", "s_speed_V1", "p_distance_V1", "s_distance_V1", "accel_V1", "timer_V1",
