@@ -41,7 +41,7 @@ public class EnvZOmpR {
 
     public final static String[] VARIABLES =
             new String[]{
-                    "X", "Y", "XT", "XP", "XPY", "YP", "XDYP", "XD", "TIME"
+                    "X", "Y", "XT", "XP", "XPY", "YP", "XDYP", "XD"
             };
 
     public static final int[] r1_input = {0,0,0,0,0,0,0,1};
@@ -94,16 +94,8 @@ public class EnvZOmpR {
     public static final double[] r_k = {r1_k,r2_k,r3_k,r4_k,r5_k,r6_k,r7_k,r8_k,r9_k,r10_k,r11_k};
 
     public static final double H = 3000;
-    public static final double ETA_007 = 0.07;
-    public static final double ETA_005 = 0.05;
-    public static final double ETA_003 = 0.03;
-
-    public static final double ETA_012 = 0.12;
-    public static final double ETA_010 = 0.10;
-    public static final double ETA_001 = 0.01;
-
-    public static final double ETA_008 = 0.08;
-    public static final double ETA_002 = 0.02;
+    public static final double ETA1 = 0.2;
+    public static final double ETA2 = 0.05;
 
 
     public static final int X = 0;
@@ -114,11 +106,11 @@ public class EnvZOmpR {
     public static final int YP = 5;
     public static final int XDYP = 6;
     public static final int XD = 7;
-    public static final int TIME = 8;
 
-    private static final int NUMBER_OF_VARIABLES = 9;
 
-    //public static final ArrayList<Double> tempi = new ArrayList<>();
+    private static final int NUMBER_OF_VARIABLES = 8;
+
+
 
 
 
@@ -137,35 +129,202 @@ public class EnvZOmpR {
             TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)),state, ds->GillespieTime(rand,ds));
 
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
-            EvolutionSequence sequence_50_300 = sequence.apply(ItAddXY(5,50,300),0,10);
+            EvolutionSequence sequence_25_150 = sequence.apply(addXY(25,150),0,10);
             EvolutionSequence sequence_250_1000 = sequence.apply(addXY(250,1000),0,10);
-            EvolutionSequence sequence_500_2000 = sequence.apply(addXY(500,2000),0,10);
+            EvolutionSequence sequence_100_400 = sequence.apply(addXY(100,400),0,10);
+            EvolutionSequence sequence_150_100 = sequence.apply(addXY(150,100),0,10);
+            EvolutionSequence sequence_50_200 = sequence.apply(addXY(50,200),0,10);
+            EvolutionSequence sequence_500_0 = sequence.apply(addXY(500,0),0,10);
+
+            DistanceExpression initial = new MaxIntervalDistanceExpression(
+                    new AtomicDistanceExpression(ds->ds.get(YP)/50,(v1, v2) -> Math.abs(v2-v1)),
+                    20,
+                    25
+            );
+
+            DistanceExpression second = new MaxIntervalDistanceExpression(
+                    new AtomicDistanceExpression(ds->ds.get(YP)/50,(v1, v2) -> Math.abs(v2-v1)),
+                    100,
+                    300
+            );
+
 
             DistanceExpression atomica = new AtomicDistanceExpression(ds->ds.get(YP)/50,(v1, v2) -> Math.abs(v2-v1));
 
+            double[][] direct_evaluation_25_150 = new double[300][1];
+            double[][] direct_evaluation_250_1000 = new double[300][1];
+            double[][] direct_evaluation_100_400 = new double[300][1];
+            double[][] direct_evaluation_150_100 = new double[300][1];
+            double[][] direct_evaluation_50_200 = new double[300][1];
+            double[][] direct_evaluation_500_0 = new double[300][1];
 
-            double[] direct_evaluation_50_300 = atomica.compute(0,500, sequence, sequence_50_300);
-
-            for (int i = 0; i<direct_evaluation_50_300.length; i++){
-                System.out.printf("%d> %f\n", i, direct_evaluation_50_300[i]);
+            for (int i = 0; i<300; i++){
+                direct_evaluation_25_150[i][0] = atomica.compute(i, sequence, sequence_25_150);
+                direct_evaluation_250_1000[i][0] = atomica.compute(i, sequence, sequence_250_1000);
+                direct_evaluation_100_400[i][0] = atomica.compute(i, sequence, sequence_100_400);
+                direct_evaluation_150_100[i][0] = atomica.compute(i, sequence, sequence_150_100);
+                direct_evaluation_50_200[i][0] = atomica.compute(i, sequence, sequence_50_200);
+                direct_evaluation_500_0[i][0] = atomica.compute(i, sequence, sequence_500_0);
             }
 
+            Util.writeToCSV("./25_150.csv",direct_evaluation_25_150);
+            Util.writeToCSV("./250_1000.csv",direct_evaluation_250_1000);
+            Util.writeToCSV("./100_400.csv",direct_evaluation_100_400);
+            Util.writeToCSV("./150_100.csv",direct_evaluation_150_100);
+            Util.writeToCSV("./50_200.csv",direct_evaluation_50_200);
+            Util.writeToCSV("./500_0.csv",direct_evaluation_500_0);
 
-            double[] direct_evaluation_250_1000 = atomica.compute(0,500, sequence, sequence_250_1000);
+            System.out.println("Max distance "+second.compute(0,sequence,sequence_25_150));
+            System.out.println("Max distance "+second.compute(0,sequence,sequence_250_1000));
+            System.out.println("Max distance "+second.compute(0,sequence,sequence_100_400));
+            System.out.println("Max distance "+second.compute(0,sequence,sequence_150_100));
+            System.out.println("Max distance "+second.compute(0,sequence,sequence_50_200));
+            System.out.println("Max distance "+second.compute(0,sequence,sequence_500_0));
 
-            for (int i = 0; i<direct_evaluation_250_1000.length; i++){
-               System.out.printf("%d> %f\n", i, direct_evaluation_250_1000[i]);
-            }
+            RobustnessFormula first_25_150 = new AtomicRobustnessFormula(
+                    addXY(25,150),
+                    initial,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA1
+            );
+
+            RobustnessFormula first_250_1000 = new AtomicRobustnessFormula(
+                    addXY(250,1000),
+                    initial,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA1
+            );
+
+            RobustnessFormula first_100_400 = new AtomicRobustnessFormula(
+                    addXY(100,400),
+                    initial,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA1
+            );
+
+            RobustnessFormula first_150_100 = new AtomicRobustnessFormula(
+                    addXY(150,100),
+                    initial,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA1
+            );
+
+            RobustnessFormula first_50_200 = new AtomicRobustnessFormula(
+                    addXY(50,200),
+                    initial,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA1
+            );
+
+            RobustnessFormula second_25_150 = new AtomicRobustnessFormula(
+                    addXY(25,150),
+                    second,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA2
+            );
+
+            RobustnessFormula second_250_1000 = new AtomicRobustnessFormula(
+                    addXY(250,1000),
+                    second,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA2
+            );
+
+            RobustnessFormula second_100_400 = new AtomicRobustnessFormula(
+                    addXY(100,400),
+                    second,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA2
+            );
+
+            RobustnessFormula second_150_100 = new AtomicRobustnessFormula(
+                    addXY(150,100),
+                    second,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA2
+            );
+
+            RobustnessFormula second_50_200 = new AtomicRobustnessFormula(
+                    addXY(50,200),
+                    second,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA2
+            );
+
+            RobustnessFormula implication_25_150 = new ImplicationRobustnessFormula(
+                    first_25_150,
+                    second_25_150
+            );
+
+            RobustnessFormula implication_250_1000 = new ImplicationRobustnessFormula(
+                    first_250_1000,
+                    second_250_1000
+            );
+
+            RobustnessFormula implication_100_400 = new ImplicationRobustnessFormula(
+                    first_100_400,
+                    second_100_400
+            );
+
+            RobustnessFormula implication_150_100 = new ImplicationRobustnessFormula(
+                    first_150_100,
+                    second_150_100
+            );
+
+            RobustnessFormula implication_50_200 = new ImplicationRobustnessFormula(
+                    first_50_200,
+                    second_50_200
+            );
+
+            RobustnessFormula rob_property = new ConjunctionRobustnessFormula(
+                    implication_25_150,
+                    new ConjunctionRobustnessFormula(
+                            implication_100_400,
+                            new ConjunctionRobustnessFormula(
+                                    implication_250_1000,
+                                    new ConjunctionRobustnessFormula(
+                                            implication_150_100,
+                                            implication_50_200
+                                    )
+                            )
+                    )
+            );
+
+            RobustnessFormula temporal = new AlwaysRobustnessFormula(
+                    second_100_400,
+                    0,
+                    300
+            );
+
+            int test_step = 0;
+
+            RobustnessFormula vero = new TrueRobustnessFormula();
+
+            BooleanSemanticsVisitor BoolEvaluator = new BooleanSemanticsVisitor();
+
+            //System.out.println("Evaluation of first_25_150 at step "+test_step+": "+BoolEvaluator.eval(first_25_150).eval(size, test_step, sequence));
+            //System.out.println("Evaluation of second_25_150 at step "+test_step+": "+BoolEvaluator.eval(second_25_150).eval(size, test_step, sequence));
+
+            //System.out.println("Evaluation of first_250_1000 at step "+test_step+": "+BoolEvaluator.eval(first_250_1000).eval(size, test_step, sequence));
+            //System.out.println("Evaluation of second_250_1000 at step "+test_step+": "+BoolEvaluator.eval(second_250_1000).eval(size, test_step, sequence));
+
+            //System.out.println("Evaluation of first_50_200 at step "+test_step+": "+BoolEvaluator.eval(first_50_200).eval(size, test_step, sequence));
+            //System.out.println("Evaluation of second_50_200 at step "+test_step+": "+BoolEvaluator.eval(second_50_200).eval(size, test_step, sequence));
+
+            //System.out.println("Evaluation of first_100_400 at step "+test_step+": "+BoolEvaluator.eval(first_100_400).eval(size, test_step, sequence));
+            //System.out.println("Evaluation of second_100_400 at step "+test_step+": "+BoolEvaluator.eval(second_100_400).eval(size, test_step, sequence));
+
+            //System.out.println("Evaluation of first_150_100 at step "+test_step+": "+BoolEvaluator.eval(first_150_100).eval(size, test_step, sequence));
+            //System.out.println("Evaluation of second_150_100 at step "+test_step+": "+BoolEvaluator.eval(second_150_100).eval(size, test_step, sequence));
+
+            //System.out.println("Evaluation of implication_250_1000 at step "+test_step+": "+BoolEvaluator.eval(implication_250_1000).eval(size, test_step, sequence));
+            //System.out.println("Evaluation of rob_property at step "+test_step+": "+BoolEvaluator.eval(rob_property).eval(size, test_step, sequence));
+            //System.out.println("Evaluation of temporal at step 0: "+BoolEvaluator.eval(temporal).eval(size, test_step, sequence));
 
 
-            double[] direct_evaluation_500_2000 = atomica.compute(0,500, sequence, sequence_500_2000);
-
-            for (int i = 0; i<direct_evaluation_500_2000.length; i++){
-                System.out.printf("%d> %f\n", i, direct_evaluation_500_2000[i]);
-            }
 
 
-
+/*
             DistanceExpression distance = new MaxIntervalDistanceExpression(
                     new AtomicDistanceExpression(ds->ds.get(YP)/50,(v1, v2) -> Math.abs(v2-v1)),
                     450,
@@ -178,6 +337,31 @@ public class EnvZOmpR {
                     new AtomicDistanceExpression(ds->ds.get(YP)/50,(v1, v2) -> Math.abs(v2-v1)),
                     350,
                     400);
+
+            ArrayList<String> L = new ArrayList<>();
+
+            L.add("X");
+
+            L.add("Y");
+
+            L.add("YP");
+
+
+
+            ArrayList<DataStateExpression> F = new ArrayList<>();
+
+            F.add(ds->ds.get(X));
+
+            F.add(ds->ds.get(Y));
+
+            F.add(ds->ds.get(YP));
+
+
+
+            printLData(new DefaultRandomGenerator(), L, F, addXY(0,0), system, 1000, size);
+
+
+             */
 
 
             /*
@@ -280,40 +464,6 @@ public class EnvZOmpR {
             Util.writeToCSV("./eta_005.csv",val_200_005);
             Util.writeToCSV("./eta_003.csv",val_200_003);
 
-
-
-
-            ArrayList<String> L = new ArrayList<>();
-
-            L.add("YP");
-
-            L.add("Y");
-
-            L.add("X");
-
-            L.add("Tempo step");
-
-            L.add("Tempo real");
-
-            ArrayList<DataStateExpression> F = new ArrayList<>();
-
-            F.add(ds->ds.get(YP));
-
-            F.add(ds->ds.get(Y));
-
-            F.add(ds->ds.get(X));
-
-            F.add(ds->ds.getTimeStep());
-
-            F.add(ds->ds.getTimeReal());
-
-            printLData(new DefaultRandomGenerator(), L, F, addXY(), system, 500, size);
-
-
-
-
-
-
             //double[] test = sequence2.evalPenaltyFunction(F.get(2),19);
             //double[] test2 = sequence2.evalPenaltyFunction(F.get(2),20);
             //double[] test3 = sequence2.evalPenaltyFunction(F.get(2),21);
@@ -398,7 +548,7 @@ public class EnvZOmpR {
 
     private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, Perturbation p, SystemState s, int steps, int size) {
         System.out.println(label);
-        double[][] data = SystemState.sample_max(rg, F, p, s, steps, size);
+        double[][] data = SystemState.sample(rg, F, p, s, steps, size);
         for (int i = 0; i < data.length; i++) {
             System.out.printf("%d>   ", i);
             for (int j = 0; j < data[i].length -1; j++) {
@@ -415,7 +565,7 @@ public class EnvZOmpR {
     }
 
     public static Perturbation addXY(int x, int y){
-        return new AtomicPerturbation(10, (rg,ds)->ds.apply(changeXandY(rg,ds,x,y)));
+        return new AtomicPerturbation(3, (rg,ds)->ds.apply(changeXandY(rg,ds,x,y)));
     }
 
     private static List<DataStateUpdate> changeXandY(RandomGenerator rg, DataState state, int x, int y) {
@@ -643,7 +793,6 @@ public class EnvZOmpR {
         values.put(YP, 10.0);
         values.put(XDYP, 0.0);
         values.put(XD, 50.0);
-        values.put(TIME, 0.0);
 
         return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN), gran, Tstep, Treal, Tdelta);
     }
