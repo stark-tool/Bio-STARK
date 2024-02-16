@@ -44,15 +44,6 @@ import java.util.*;
 public class BNEnvzOmpr {
 
 
-    // Array with the names of the 8 species
-
-    // public final static String[] VARIABLES =
-    //        new String[]{
-    //                "X", "Y", "XT", "XP", "XPY", "YP", "XDYP", "XD"
-    //        };
-
-
-
     // The specification of the 11 reactions:
 
     public static final int[] r1_input = {0,0,0,0,0,0,0,1};
@@ -106,8 +97,7 @@ public class BNEnvzOmpr {
 
     public static final int H = 600;
 
-    public static final double ETA_25_100 = 0.05;
-    public static final double ETA_250_1000 = 0.01;
+    public static final double ETA = 0.15;
 
 
     // The 8 variables, one for each species
@@ -124,13 +114,6 @@ public class BNEnvzOmpr {
 
     private static final int NUMBER_OF_VARIABLES = 8;
 
-    public static final int LEFT_BOUND = 500;
-
-    public static final int RIGHT_BOUND = 600;
-
-
-
-
 
 
     // MAIN PROGRAM
@@ -143,50 +126,21 @@ public class BNEnvzOmpr {
 
             Controller controller = new NilController();
 
-            /*
-            state è lo stato iniziale del sistema di cui vogliamo controllare la robustezza.
-            I valori di X e Y sono X=25, Y=150, come nel paper di Paolo Milazzo
-             */
             DataState state = getInitialState(rand,1.0,0.0,0.0,0.0);
-
-            /*
-            quelli di seguito sono gli stati iniziali dei sistemi "taroccati" alla Paolo: le concentrazioni iniziali di X e Y
-            sono 10, 50 e 250, 1000. In soldoni, questi sono i sistemi taroccati che esamina Paolo.
-            Nota: si tarocca solo al primo passo, poi non si fa nulla.
-            */
             DataState state10_50 = getInitialState10_50(rand,1.0,0.0,0.0,0.0);
-
             DataState state250_1000 = getInitialState250_1000(rand,1.0,0.0,0.0,0.0);
-
-            /*
-            Il sistema system ha lo stato iniziale state, quindi è il sistema "originale" di Paolo.
-            I sistemi system10_50 e system250_1000 hanno gli stati iniziali taroccati, quindi sono i
-            sistemi di Paolo taroccati.
-             */
 
             TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(new DefaultRandomGenerator(),ds));
             TimedSystem system10_50 = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state10_50, ds->selectReactionTime(new DefaultRandomGenerator(),ds));
             TimedSystem system250_1000 = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state250_1000, ds->selectReactionTime(new DefaultRandomGenerator(),ds));
 
-            /*
-            Partendo da system creo il traccione sequence.
-            Taroccando system con addXY(25,150) e addXY(250,1000) creo due traccioni taroccati,
-            impostando (X,Y) a (25,150) e (250,1000) allo step 1.
-            Dovrebbero assomigliare al traccione che creerei se usassi il costruttore TimedSystem passando
-            sysetm10_50 e system250,1000 come sistema di partenza.
-            */
-
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
-            EvolutionSequence sequence_25_150 = sequence.apply(addXY(25,150),0,10);
+            EvolutionSequence sequence_10_50 = sequence.apply(addXY(10,50),0,10);
             EvolutionSequence sequence_250_1000 = sequence.apply(addXY(250,1000),0,10);
-
-
-
-
-
-
-            // quel che segue mi serve per osservare un po' di esecuzioni
-
+            EvolutionSequence sequence_100_400 = sequence.apply(addXY(100,400),0,10);
+            EvolutionSequence sequence_150_100 = sequence.apply(addXY(150,100),0,10);
+            EvolutionSequence sequence_500_200 = sequence.apply(addXY(500,200),0,10);
+            EvolutionSequence sequence_70_30 = sequence.apply(addXY(70,30),0,10);
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
             F.add(ds->ds.get(X));
@@ -209,30 +163,15 @@ public class BNEnvzOmpr {
             L.add("XDYP");
             L.add("XD");
 
-
-
-            //la printLMinMaxData serve per stampare i valori medi di ogni variabile in tutti i passi da 0 a 600.
-            //Inoltre, per ogni variabile mi memorizzo il minimo e il massimo dei 600 valori medi.
-            //Quindi quando stamperemo gli array che seguono ci rendiamo conto di come evolvono i 3 sistemi
-
             double[][] minMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, system, H+1, size, 0, H+1);
 
             double[][] minMax10_50 = printLMinMaxData(new DefaultRandomGenerator(), L, F, system10_50, H+1, size, 0, H+1);
 
             double[][] minMax250_1000 = printLMinMaxData(new DefaultRandomGenerator(), L, F, system250_1000, H+1, size, 0, H+1);
 
-
-
-            // la distanza di nome atomica usa come penalità il valore di YP normalizzato rispetto al minimo e massimo valore di YP
-            // osservato nelle simulazioni della printLMinmaxData. In pratica, prima simulo i sistemi per
-            // avere i valori su cui normalizzare, poi definisco la distanza sfruttando tali valori.
-
             DistanceExpression atomica = new AtomicDistanceExpression(ds->ds.get(YP)/(minMax[1][YP]*1.1-minMax[0][YP]*0.9),(v1, v2) -> Math.abs(v2-v1));
 
-            // il codice che segue mi serve per stampare le distanze passo-passo secondo atomica
-            // tra il traccione originale sequence e ognuno dei due perturbati.
-            // ho notato che vengono stampati valori tra il molto piccolo e 0.12/0.13 al max al peggio.
-
+            /*
             double[][] direct_evaluation_25_150 = new double[600][1];
             double[][] direct_evaluation_250_1000 = new double[600][1];
 
@@ -249,37 +188,130 @@ public class BNEnvzOmpr {
                 System.out.println(direct_evaluation_250_1000[i][0]);
             }
 
+             */
 
-            // la distanza distance assomiglia ad atomica ma considera l'intervallo 300-600.
+            // Pointwise evaluation of distances
+
+            double[][] direct_evaluation_10_50 = new double[600][1];
+            double[][] direct_evaluation_250_1000 = new double[600][1];
+            double[][] direct_evaluation_100_400 = new double[600][1];
+            double[][] direct_evaluation_150_100 = new double[600][1];
+            double[][] direct_evaluation_500_200 = new double[600][1];
+            double[][] direct_evaluation_70_30 = new double[600][1];
+
+            for (int i = 0; i<600; i++){
+                direct_evaluation_10_50[i][0] = atomica.compute(i, sequence, sequence_10_50);
+                direct_evaluation_250_1000[i][0] = atomica.compute(i, sequence, sequence_250_1000);
+                direct_evaluation_100_400[i][0] = atomica.compute(i, sequence, sequence_100_400);
+                direct_evaluation_150_100[i][0] = atomica.compute(i, sequence, sequence_150_100);
+                direct_evaluation_500_200[i][0] = atomica.compute(i, sequence, sequence_500_200);
+                direct_evaluation_70_30[i][0] = atomica.compute(i, sequence, sequence_70_30);
+            }
+
+            Util.writeToCSV("./10_50.csv",direct_evaluation_10_50);
+            Util.writeToCSV("./250_1000.csv",direct_evaluation_250_1000);
+            Util.writeToCSV("./100_400.csv",direct_evaluation_100_400);
+            Util.writeToCSV("./150_100.csv",direct_evaluation_150_100);
+            Util.writeToCSV("./500_200.csv",direct_evaluation_500_200);
+            Util.writeToCSV("./70_30.csv",direct_evaluation_70_30);
+
+            // Formulae for robustness
+
             DistanceExpression distance = new MaxIntervalDistanceExpression(
                     new AtomicDistanceExpression(ds->ds.get(YP)/(minMax[1][YP]*1.1-minMax[0][YP]*0.9),(v1, v2) -> Math.abs(v2-v1)),
-                    300,
+                    200,
                     600
             );
 
-            // a partire dalla distanza distance creo due formule di robustezza. di fatto mi diranno  se il traccione originale
-            // sequence fa il bravo quando lo perturbo con le due perturbazioni.
             RobustnessFormula robustness_10_50 = new AtomicRobustnessFormula(
                     addXY(10,50),
                     distance,
                     RelationOperator.LESS_OR_EQUAL_THAN,
-                    ETA_25_100
+                    ETA
             );
 
             RobustnessFormula robustness_250_1000 = new AtomicRobustnessFormula(
                     addXY(250,1000),
                     distance,
                     RelationOperator.LESS_OR_EQUAL_THAN,
-                    ETA_25_100
+                    ETA
+            );
+
+            RobustnessFormula robustness_100_400 = new AtomicRobustnessFormula(
+                    addXY(100,400),
+                    distance,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA
+            );
+
+            RobustnessFormula robustness_150_100 = new AtomicRobustnessFormula(
+                    addXY(150,100),
+                    distance,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA
+            );
+
+            RobustnessFormula robustness_500_200 = new AtomicRobustnessFormula(
+                    addXY(500,200),
+                    distance,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA
+            );
+
+            RobustnessFormula robustness_70_30 = new AtomicRobustnessFormula(
+                    addXY(70,30),
+                    distance,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    ETA
+            );
+
+            RobustnessFormula always_10_50 = new AlwaysRobustnessFormula(
+                    robustness_10_50,
+                    0,
+                    300
+            );
+
+            RobustnessFormula always_250_1000 = new AlwaysRobustnessFormula(
+                    robustness_250_1000,
+                    0,
+                    300
+            );
+
+            RobustnessFormula always_100_400 = new AlwaysRobustnessFormula(
+                    robustness_100_400,
+                    0,
+                    300
+            );
+
+            RobustnessFormula always_150_100 = new AlwaysRobustnessFormula(
+                    robustness_150_100,
+                    0,
+                    300
+            );
+
+            RobustnessFormula always_500_200 = new AlwaysRobustnessFormula(
+                    robustness_500_200,
+                    0,
+                    300
+            );
+
+            RobustnessFormula always_70_30 = new AlwaysRobustnessFormula(
+                    robustness_70_30,
+                    0,
+                    300
             );
 
 
-            //ora valutiamo se il traccione sequence fa il bravo: lo fa se gli ETA sono sotto 0.2,
-            //non lo fa se sono molto piccoli, ovviamente con ETA intorno a 0.1 a volte vinci e a volte perdi.
             BooleanSemanticsVisitor BoolEvaluator = new BooleanSemanticsVisitor();
 
-            System.out.println("Evaluation of first_25_150 at step "+0+": "+BoolEvaluator.eval(robustness_10_50).eval(size, 0, sequence));
-            System.out.println("Evaluation of first_25_150 at step "+0+": "+BoolEvaluator.eval(robustness_250_1000).eval(size, 0, sequence));
+            System.out.println("Evaluation of always_10_50 at step "+0+": "+BoolEvaluator.eval(always_10_50).eval(size, 0, sequence));
+            System.out.println("Evaluation of always_250_1000 at step "+0+": "+BoolEvaluator.eval(always_250_1000).eval(size, 0, sequence));
+            System.out.println("Evaluation of always_100_40 at step "+0+": "+BoolEvaluator.eval(always_100_400).eval(size, 0, sequence));
+            System.out.println("Evaluation of always_150_100 at step "+0+": "+BoolEvaluator.eval(always_150_100).eval(size, 0, sequence));
+            System.out.println("Evaluation of always_500_200 at step "+0+": "+BoolEvaluator.eval(always_500_200).eval(size, 0, sequence));
+            System.out.println("Evaluation of always_70_30 at step "+0+": "+BoolEvaluator.eval(always_70_30).eval(size, 0, sequence));
+
+
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
@@ -287,7 +319,7 @@ public class BNEnvzOmpr {
 
 
     public static Perturbation addXY(int x, int y){
-        return new AtomicPerturbation(1, (rg,ds)->ds.apply(changeXandY(rg,ds,x,y)));
+        return new AtomicPerturbation(0, (rg,ds)->ds.apply(changeXandY(rg,ds,x,y)));
     }
 
     private static List<DataStateUpdate> changeXandY(RandomGenerator rg, DataState state, int x, int y) {
