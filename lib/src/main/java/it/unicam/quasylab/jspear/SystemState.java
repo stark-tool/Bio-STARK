@@ -166,6 +166,15 @@ public interface SystemState {
     static double[][] sample_max(RandomGenerator rg, ArrayList<DataStateExpression> F, Perturbation p, SystemState system, int steps, int size) {
         return sample_max(rg, F, p, r -> system, steps, size);
     }
+
+    static double[][] sample_min(RandomGenerator rg, ArrayList<DataStateExpression> F, SystemState system, int steps, int size) {
+        return sample_min(rg, F, new NonePerturbation(), r -> system, steps, size);
+    }
+
+    static double[][] sample_max(RandomGenerator rg, ArrayList<DataStateExpression> F, SystemState system, int steps, int size) {
+        return sample_max(rg, F, new NonePerturbation(), r -> system, steps, size);
+    }
+
     static double[][] sample(RandomGenerator rg, ArrayList<DataStateExpression> F, SystemState system, int steps, int size) {
         return sample(rg, F, new NonePerturbation(), r -> system, steps, size);
     }

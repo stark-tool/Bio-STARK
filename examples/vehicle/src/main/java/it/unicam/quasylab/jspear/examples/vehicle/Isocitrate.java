@@ -35,10 +35,7 @@ import it.unicam.quasylab.jspear.ds.RelationOperator;
 import it.unicam.quasylab.jspear.perturbation.AtomicPerturbation;
 import it.unicam.quasylab.jspear.perturbation.IterativePerturbation;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
-import it.unicam.quasylab.jspear.robtl.AtomicRobustnessFormula;
-import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
-import it.unicam.quasylab.jspear.robtl.ThreeValuedSemanticsVisitor;
-import it.unicam.quasylab.jspear.robtl.TruthValues;
+import it.unicam.quasylab.jspear.robtl.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.IOException;
@@ -106,11 +103,11 @@ public class Isocitrate {
     public static final int EIpI = 4; // compound EIp + I
     private static final int NUMBER_OF_VARIABLES = 5;
 
-    public static final double THRESHOLD = 0.2;
+    public static final double THRESHOLD = 0.04;
 
-    public static final int LEFT_BOUND = 200;
+    public static final int LEFT_BOUND = 700;
 
-    public static final int RIGHT_BOUND = 300;
+    public static final int RIGHT_BOUND = 1000;
 
     public static final double MAX_RED_E = 10.0;
     public static final double MAX_PUSH_E = 10.0;
@@ -126,7 +123,7 @@ public class Isocitrate {
 
             RandomGenerator rand = new DefaultRandomGenerator();
 
-            int size = 30;
+            int size = 100;
 
             Controller controller = new NilController();
 
@@ -144,15 +141,15 @@ public class Isocitrate {
             DataState stateC = getInitialStateC(rand,1.0,0.0,0.0,0.0);
 
             /* The <code>TimedSystem</code> <code>system</code> is a system starting in state <code>state</code>.
-            It's evolution is determined by Gillespie's algorithm:
+            Its evolution is determined by Gillespie's algorithm:
             <code>selectReactionTime</code> is a static method that selects the time of next reaction according to Gillespie algorithm.
             <code>selectAndApplyReaction</code> is a static method that selects the reaction among the available ones and modifies the state accordingly.
              */
-            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(new DefaultRandomGenerator(),ds));
+            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
             /*
             The <code>TimedSystem</code> <code>systemC</code> is a system starting in state <code>stateC</code>.
              */
-            TimedSystem systemC = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), stateC, ds->selectReactionTime(new DefaultRandomGenerator(),ds));
+            TimedSystem systemC = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), stateC, ds->selectReactionTime(rand,ds));
 
 
             /*
@@ -190,13 +187,15 @@ public class Isocitrate {
             L.add("EIp");
             L.add("EIpI");
 
-            double[][] minMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
-            double[][] pminMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, psystem, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
-
-            double[][] minMaxC = printLMinMaxData(new DefaultRandomGenerator(), L, F, systemC, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
-            double[][] pminMaxC = printLMinMaxData(new DefaultRandomGenerator(), L, F, psystemC, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            //double[][] minMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            //double[][] pminMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, psystem, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            //double[][] pminMaxC = printLMinMaxData(new DefaultRandomGenerator(), L, F, psystemC, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
 
 
+            double[][] minMax = printLMinMaxData(rand, L, F, systemC, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+
+
+            double[][] minMaxC_2 = printPerturbed(rand, L, F, systemC, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,badilate());
 
 
             /* The following distance expression returns the maximum, in interval [LEFT_BOUND , RIGHT_BOUND], of the
@@ -205,37 +204,59 @@ public class Isocitrate {
             [LEFT_BOUND , RIGHT_BOUND]. More precisely, if the interval is [m,M], the normalisation consists in dividing by
             1.1M - 0.9m.
             * */
+
+            double normalisation = Math.max(minMax[1][I],minMaxC_2[1][I])*1.1;
+
+
             DistanceExpression distance = new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpression(ds->ds.get(I)/(minMax[1][I]*1.1-minMax[0][I]*0.9),(v1, v2) -> Math.abs(v2-v1)),
-                    LEFT_BOUND,
+                    new AtomicDistanceExpression(ds->ds.get(I)/normalisation,(v1, v2) -> Math.abs(v2-v1)),
+                    400,
                     RIGHT_BOUND);
 
-            DistanceExpression distanceC = new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpression(ds->ds.get(I)/(minMaxC[1][I]*1.1-minMaxC[0][I]*0.9),(v1, v2) -> Math.abs(v2-v1)),
-                    LEFT_BOUND,
-                    RIGHT_BOUND);
+            //DistanceExpression distanceC = new MaxIntervalDistanceExpression(
+            //        new AtomicDistanceExpression(ds->ds.get(I)/(minMaxC[1][I]*1.1-minMaxC[0][I]*0.9),(v1, v2) -> Math.abs(v2-v1)),
+            //        LEFT_BOUND,
+            //        RIGHT_BOUND);
 
 
             // ROBUSTNESS FORMULA
             /* The following formula tells us whether the difference expressed by <code>distance</cod> between the nominal
             system and its version perturbed by <code>pertEandIp10</code> is bound by THRESHOLD. The result of the evaluation
             of the formula is printed out by the subsequent two lines of code.
-             */
-            RobustnessFormula robF = new AtomicRobustnessFormula(pertEandIp10(),
+            */
+
+            RobustnessFormula robF = new AtomicRobustnessFormula(badilate(),
                     distance,
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     THRESHOLD);
 
-            RobustnessFormula robFC = new AtomicRobustnessFormula(pertEandIpC(),
-                    distance,
-                    RelationOperator.LESS_OR_EQUAL_THAN,
-                    THRESHOLD);
+            RobustnessFormula always_robF = new AlwaysRobustnessFormula(
+                    robF,
+                    0,
+                    200
+            );
+
+            //DistanceExpression atomica = new AtomicDistanceExpression(ds->ds.get(I)/normalisation,(v1, v2) -> Math.abs(v2-v1));
+            //double[][] direct_evaluation = new double[3][3];
+
+            //EvolutionSequence sequence_2 = sequence.apply(badilate(),0,10);
+            //for (int i = 0; i<3; i++){
+            //    double[] partial = atomica.evalCI(rand,i+400, sequence, sequence_2,3,1.96);
+            //    direct_evaluation[i][0] = partial[0];
+            //    direct_evaluation[i][1] = partial[1];
+            //    direct_evaluation[i][2] = partial[2];
+            //    System.out.println(direct_evaluation[i][0]+ " " +direct_evaluation[i][1]+ " " +direct_evaluation[i][2]);
+                //System.out.println(direct_evaluation[i][1]);
+                //System.out.println(direct_evaluation[i][2]);
+            //}
+
 
             TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
             System.out.println("\n robF evaluation at 0: " + value1);
 
-            TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robFC).eval(5, 0, sequenceC);
-            System.out.println("\n robF evaluation at 0: " + value2);
+            //TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robFC).eval(5, 0, sequenceC);
+            //System.out.println("\n robF evaluation at 0: " + value2);
+
 
 
         } catch (RuntimeException e) {
@@ -267,37 +288,52 @@ public class Isocitrate {
     private static double[][] printLMinMaxData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
         double[][] result = new double[2][NUMBER_OF_VARIABLES];
         System.out.println(label);
-        double[][] data = SystemState.sample(rg, F, s, steps, size);
-        double[] min = new double[NUMBER_OF_VARIABLES];
+        double[][] data_av = SystemState.sample(rg, F, s, steps, size);
+        double[][] data_max = SystemState.sample_max(rg, F, s, steps, size);
         double[] max = new double[NUMBER_OF_VARIABLES];
-        for(int i = 0; i < NUMBER_OF_VARIABLES ; i++){
-            min[i]=Double.POSITIVE_INFINITY;
-            max[i]=Double.NEGATIVE_INFINITY;
-        }
-        for (int i = 0; i < data.length; i++) {
+        Arrays.fill(max, Double.NEGATIVE_INFINITY);
+        for (int i = 0; i < data_av.length; i++) {
             System.out.printf("%d>   ", i);
-            for (int j = 0; j < data[i].length -1 ; j++) {
-                System.out.printf("%f   ", data[i][j]);
+            for (int j = 0; j < data_av[i].length -1 ; j++) {
+                System.out.printf("%f   ", data_av[i][j]);
                 if (j<NUMBER_OF_VARIABLES & leftbound <= i & i <= rightbound) {
-                    if (min[j] > data[i][j]) {
-                        min[j] = data[i][j];
-                        result[0][j] = data[i][j];
-                    }
-                    if (max[j] < data[i][j]) {
-                        max[j] = data[i][j];
-                        result[1][j]=data[i][j];
+                    if (max[j] < data_max[i][j]) {
+                        max[j] = data_max[i][j];
+                        result[1][j]=data_max[i][j];
                     }
                 }
             }
-            System.out.printf("%f\n", data[i][data[i].length -1]);
+            System.out.printf("%f\n", data_av[i][data_av[i].length -1]);
         }
-
-        System.out.printf("%s   ", "min:");
+        System.out.printf("%s   ", "max:");
         for(int j=0; j<NUMBER_OF_VARIABLES-1; j++){
-            System.out.printf("%f   ", min[j]);
+            System.out.printf("%f   ", max[j]);
         }
-        System.out.printf("%f\n", min[NUMBER_OF_VARIABLES-1]);
+        System.out.printf("%f\n", max[NUMBER_OF_VARIABLES-1]);
+        return result;
+    }
 
+
+    private static double[][] printPerturbed(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound, Perturbation perturbation){
+        double[][] result = new double[2][NUMBER_OF_VARIABLES];
+        System.out.println(label);
+        double[][] data_av = SystemState.sample(rg, F, perturbation, s, steps, size);
+        double[][] data_max = SystemState.sample_max(rg, F, perturbation, s, steps, size);
+        double[] max = new double[NUMBER_OF_VARIABLES];
+        Arrays.fill(max, Double.NEGATIVE_INFINITY);
+        for (int i = 0; i < data_av.length; i++) {
+            System.out.printf("%d>   ", i);
+            for (int j = 0; j < data_av[i].length -1 ; j++) {
+                System.out.printf("%f   ", data_av[i][j]);
+                if (j<NUMBER_OF_VARIABLES & leftbound <= i & i <= rightbound) {
+                    if (max[j] < data_max[i][j]) {
+                        max[j] = data_max[i][j];
+                        result[1][j]=data_max[i][j];
+                    }
+                }
+            }
+            System.out.printf("%f\n", data_av[i][data_av[i].length -1]);
+        }
         System.out.printf("%s   ", "max:");
         for(int j=0; j<NUMBER_OF_VARIABLES-1; j++){
             System.out.printf("%f   ", max[j]);
@@ -314,6 +350,11 @@ public class Isocitrate {
     10th computation step.
     Perturbation <code>pertEandIp10Iter</code> applies <code>pertEandIp10</code> for 5 times.
     */
+
+    public static Perturbation badilate(){
+        return new IterativePerturbation(10,new AtomicPerturbation(30,Isocitrate::moreIp));
+    }
+
     public static Perturbation pertEandIp(){
         return new AtomicPerturbation(0,Isocitrate::changeEandIp );
     }
@@ -335,6 +376,14 @@ public class Isocitrate {
     The following function changes the values of E and Ip.
     For each variable x, each value v is mapped to a value in [v/MAX_RED_x , v*MAX_PUSH_x].
      */
+
+    private static DataState moreIp(RandomGenerator rg, DataState state){
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(E,state.get(E) + 100.0));
+        updates.add(new DataStateUpdate(Ip, state.get(Ip) + 100.0));
+        return state.apply(updates);
+    }
+
     private static DataState changeEandIp(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
         //updates.add(new DataStateUpdate(E, state.get(E)*30.0));
@@ -404,7 +453,7 @@ public class Isocitrate {
 
             int selReaction = 0;
 
-            while (lambdaParSum[selReaction] <= token * lambdaSum) {
+            while (lambdaParSum[selReaction] < token * lambdaSum) {
                 selReaction++;
             }
 
@@ -451,6 +500,8 @@ public class Isocitrate {
                     updates.add(new DataStateUpdate(i, newArity));
                 }
             }
+        } else {
+            System.out.println("Missing reagents");
         }
 
         return updates;
@@ -477,10 +528,10 @@ public class Isocitrate {
 
     public static DataState getInitialStateC(RandomGenerator rand, double gran, double Tstep, double Treal, double Tdelta) {
         Map<Integer, Double> values = new HashMap<>();
-        double initE = 0;
-        double initI = 100;
+        double initE = 0.0;
+        double initI = 100.0;
         double initIp = 10000.0;
-        double initEIp = 10;
+        double initEIp = 10.0;
         double initEIpI = 0.0;
         values.put(E, initE);
         values.put(I, initI);

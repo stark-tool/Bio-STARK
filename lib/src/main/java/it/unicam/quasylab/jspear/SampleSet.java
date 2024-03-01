@@ -27,6 +27,7 @@ import it.unicam.quasylab.jspear.ds.DataStateFunction;
 import org.apache.commons.math3.random.RandomGenerator;
 import it.unicam.quasylab.jspear.penalty.*;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.*;
@@ -265,8 +266,8 @@ public class SampleSet<T extends SystemState> {
         double[] thisData = this.evalPenaltyFunction(f);
         double[] otherData = other.evalPenaltyFunction(f);
         for (int i = 0; i<m; i++){
-            double[] thisBootstrapData = IntStream.range(0, thisData.length).mapToDouble(j -> thisData[rg.nextInt(thisData.length)]).toArray();
-            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> otherData[rg.nextInt(otherData.length)]).toArray();
+            double[] thisBootstrapData = IntStream.range(0, thisData.length).mapToDouble(j -> thisData[rg.nextInt(thisData.length)]).sorted().toArray();
+            double[] otherBootstrapData = IntStream.range(0, otherData.length).mapToDouble(j -> otherData[rg.nextInt(otherData.length)]).sorted().toArray();
             W[i] = distanceFunction.applyAsDouble(thisBootstrapData, otherBootstrapData);
             WSum += W[i];
         }

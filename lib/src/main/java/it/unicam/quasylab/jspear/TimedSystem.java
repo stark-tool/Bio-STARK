@@ -67,22 +67,22 @@ public class TimedSystem implements SystemState {
 
     @Override
     public SystemState sampleNext(RandomGenerator rg) {
-        TimedSystem next = this;
-        DataState ds = this.state;
-        double t = this.generateNextTime.eval(ds);
+        TimedSystem next = new TimedSystem(this.controller,this.environment,this.state,this.generateNextTime);
+        DataState ds = next.state;
+        double t = next.generateNextTime.eval(ds);
         double sum_t = t + ds.getTimeReal();
         while(sum_t < ds.getTimeStep() + ds.getGranularity()){
-            ds.setTimeDelta(t);
-            ds.setTimeReal(t + ds.getTimeReal());
             next = next.sampleNextMicro(rg);
             ds = next.getDataState();
+            ds.setTimeDelta(t);
+            ds.setTimeReal(t + ds.getTimeReal());
             t = next.generateNextTime.eval(ds);
             sum_t = sum_t + t;
         }
-        ds.setTimeDelta(t);
-        ds.setTimeReal(t + ds.getTimeReal());
         next = next.sampleNextMicro(rg);
         ds = next.getDataState();
+        ds.setTimeDelta(t);
+        ds.setTimeReal(t + ds.getTimeReal());
         ds.setTimeStep(ds.getTimeStep() + ds.getGranularity());
         return next;
     }
