@@ -230,7 +230,7 @@ public class StarkInterpreter {
     private StarkCommandExecutionResult setSize(int size) {
         try {
             this.starkEnvironment.setSize(size);
-            return new StarkCommandExecutionResult(StarkMessages.doneMessage(), true);
+            return new StarkCommandExecutionResult(StarkMessages.doneMessage("size correctly set"), true);
         } catch (StarkCommandExecutionException e) {
             return new StarkCommandExecutionResult(e.getMessage(), e.getReasons(), false);
         }
