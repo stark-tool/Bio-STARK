@@ -249,7 +249,6 @@ public class Main {
             EvolutionSequence sequence_pert_temp_2 = sequence.apply(perturbation_temp(TEMP_OFFSET_2),0, 100);
             EvolutionSequence sequence_pert_cool = sequence.apply(perturbation_cool(COOL_OFFSET),TAU2, 100);
 
-            /*
             System.out.println("Starting tests on temperature");
             Util.writeToCSV("./testTemperature.csv", Util.evalDistanceExpression(sequence, sequence_pert_temp_1, 90, 300, temp_expr));
             Util.writeToCSV("./testTemperature_l1.csv", Util.evalDistanceExpression(sequence, sequence_pert_temp_15, 90, 300, temp_expr));
@@ -262,8 +261,10 @@ public class Main {
             Util.writeToCSV("./testStress_l2.csv", Util.evalDistanceExpression(sequence, sequence_pert_temp_2, 90, 220, stress_atomic));
             System.out.println("Tests on stress completed");
 
-            System.out.println("Starting tests on warning/stress");
             int l = 50;
+
+            System.out.println("Starting tests on warning/stress");
+
             double[][] warn = new double[l][1];
             double[][] st = new double[l][1];
             for(int i=0; i<l; i++){
@@ -273,13 +274,16 @@ public class Main {
             }
             Util.writeToCSV("./testIntervalWarn.csv",warn);
             Util.writeToCSV("./testIntervalSt.csv",st);
+
             System.out.println("Tests on warning/stress ended");
 
-            System.out.println("Starting tests on 50 bootstrap");
+            // BOOTSTRAP
             double[][] CI_left_50 = new double[l][1];
             double[][] CI_right_50 = new double[l][1];
             double[][] CI_left_100 = new double[l][1];
             double[][] CI_right_100 = new double[l][1];
+
+            System.out.println("Starting tests on 50 bootstrap");
 
             for(int i=0; i<l; i++) {
                 double[] testBoost_50 = warning_always.evalCI(rand,i,sequence,sequence_pert_temp_15,50,1.96);
@@ -300,8 +304,8 @@ public class Main {
             Util.writeToCSV("./testBootstrapR_50.csv",CI_right_50);
             Util.writeToCSV("./testBootstrapL_100.csv",CI_left_100);
             Util.writeToCSV("./testBootstrapR_100.csv",CI_right_100);
-             */
 
+            // FORMULAE
             RobustnessFormula Phi_003 = new AtomicRobustnessFormula(perturbation_temp(TEMP_OFFSET_15),
                     warning_always,
                     RelationOperator.LESS_OR_EQUAL_THAN,
@@ -328,23 +332,6 @@ public class Main {
             double[][] val_005 = new double[50][1];
             double[][] val_006 = new double[50][1];
 
-            for(int i = 0; i<50; i++) {
-                TruthValues value = new ThreeValuedSemanticsVisitor(rand, 50, 1.96).eval(Phi_005).eval(60, i, sequence);
-                System.out.println("Phi_005 evaluation at step " + i + ": " + value);
-                if (value == TruthValues.TRUE) {
-                    val_005[i][0] = 1;
-                } else {
-                    if (value == TruthValues.UNKNOWN) {
-                        val_005[i][0] = 0;
-                    } else {
-                        val_005[i][0] = -1;
-                    }
-                }
-            }
-
-            Util.writeToCSV("./additional_testThreeValue.csv",val_005);
-
-            /*
             System.out.println("Starting tests on 3-valued");
             for(int i = 0; i<50; i++) {
                 TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_003).eval(60, i, sequence);
@@ -369,12 +356,23 @@ public class Main {
                         val_004[i][0] = -1;
                     }
                 }
-                TruthValues value3 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_006).eval(60, i, sequence);
-                System.out.println("Phi_005 evaluation at step "+i+": " + value3);
+                TruthValues value3 = new ThreeValuedSemanticsVisitor(rand, 50, 1.96).eval(Phi_005).eval(60, i, sequence);
+                System.out.println("Phi_005 evaluation at step " + i + ": " + value3);
                 if (value3 == TruthValues.TRUE) {
-                    val_006[i][0] = 1;
+                    val_005[i][0] = 1;
                 } else {
                     if (value3 == TruthValues.UNKNOWN) {
+                        val_005[i][0] = 0;
+                    } else {
+                        val_005[i][0] = -1;
+                    }
+                }
+                TruthValues value4 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_006).eval(60, i, sequence);
+                System.out.println("Phi_006 evaluation at step "+i+": " + value4);
+                if (value4 == TruthValues.TRUE) {
+                    val_006[i][0] = 1;
+                } else {
+                    if (value4 == TruthValues.UNKNOWN) {
                         val_006[i][0] = 0;
                     } else {
                         val_006[i][0] = -1;
@@ -383,15 +381,10 @@ public class Main {
             }
             System.out.println("Tests on 3-valued ended");
 
-
-
             Util.writeToCSV("./new_testThreeValue1.csv",val_003);
             Util.writeToCSV("./new_testThreeValue2.csv",val_004);
+            Util.writeToCSV("./additional_testThreeValue.csv",val_005);
             Util.writeToCSV("./new_testThreeValue3.csv",val_006);
-
-             */
-
-
 
         } catch (RuntimeException e) {
             e.printStackTrace();
