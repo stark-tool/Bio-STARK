@@ -79,21 +79,47 @@ public class Repressilator {
 
     // LIST OF ALL REACTIONS
 
+    /*
+    For each reaction ri, we have two arrays:
+    -ri_input: position j is 1 if the variable #j is a reactant of the reaction
+    -ro_output: position j is 1 if the variable #j is a product of the reaction
+    */
+
+
+    /*
+    reaction r1 models the activation of gene 1: G1 is the reactant, AG1 is the product.
+    */
     public static final int[] r1_input = {1,0,0,0,0,0,0,0,0,0,0,0};
     public static final int[] r1_output = {0,1,0,0,0,0,0,0,0,0,0,0};
 
+    /*
+    reaction r2 models the deactivation of gene 1: AG1 is the reactant, G1 is the product.
+    */
     public static final int[] r2_input =  {0,1,0,0,0,0,0,0,0,0,0,0};
     public static final int[] r2_output = {1,0,0,0,0,0,0,0,0,0,0,0};
 
+    /*
+    reaction r3 models the transcription of gene 1: AG1 is the reactant, AG1 and X1 are the products.
+    */
     public static final int[] r3_input =  {0,1,0,0,0,0,0,0,0,0,0,0};
     public static final int[] r3_output = {0,1,1,0,0,0,0,0,0,0,0,0};
 
+    /*
+    reaction r4 models the translation of gene 1: X1 is the reactant, Z1 is the products.
+    */
     public static final int[] r4_input =  {0,0,1,0,0,0,0,0,0,0,0,0};
     public static final int[] r4_output = {0,0,0,1,0,0,0,0,0,0,0,0};
 
+
+    /*
+    reaction r5 models mRNA degradation for gene1: X1 is the reactant, there is no product.
+    */
     public static final int[] r5_input =  {0,0,1,0,0,0,0,0,0,0,0,0};
     public static final int[] r5_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
+    /*
+    reaction r6 models protein degradation for gene1: Z1 is the reactant, there is no product.
+    */
     public static final int[] r6_input =  {0,0,0,1,0,0,0,0,0,0,0,0};
     public static final int[] r6_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
