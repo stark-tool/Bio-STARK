@@ -46,11 +46,26 @@ import java.util.*;
 
 public class Repressilator {
 
-    /* The isocitrate dehydrogenase regulatory system (IDHKPIDH) of E. Coli controls the partioning of
-    carbon flux and it is useful when the bacterium of E. coli grows on substances, like for example
-    acetate, which contains only a small quantity of carbon. Without this regulation system, in fact,
-    the organism would not have enough carbon available for biosynthesis of cell constituents.
-    */
+    /*
+    The "repressilator" network consist in 3 genes forming a directed cycle of "negative interactions".
+    We consider the "two state model" of gene expression: the gene promoter can be either active or inactive.
+    Then, we consider mRNA molecules, which can be transcribed only during the active period, and proteins,
+    which are produced by mRNA molecules at a constant rate. For i=1,2,3 we have the following variables:
+    - Gi: models the inactive promoter, Gi is 1 if the promoter is inactive, otherwise Gi is 0.
+    - AGi: models the active promoter, AGi is 1 if the promoter is active, otherwise AGi is 0.
+      It always holds that: Gi + AGi = 1.
+    - Xi: amount of mRNA molecules.
+    - Zi: amount of proteins.
+    - koni: rate constant of gene i activation
+    - koffi: rate constant of gene i deactivation.
+    - s0i: rate constant of transcription
+    - s1i: rate constant of translation
+    - d0i: rate constant of mRNA degradation
+    - d1i: rate constant of protein degradation.
+    It holds koffi >> koni and koffi >> d0i, so that mRNA is transcribed in "burst", and d0i >> d1i, namely
+    mRNA degrades faster than proteins.
+
+     */
 
     /*
     public final static String[] VARIABLES =
@@ -123,7 +138,7 @@ public class Repressilator {
 
 
     // LIST OF SPECIES
-    public static final int G1 = 0;
+    public static final int G1 = 0; //
     public static final int AG1 = 1;
     public static final int X1 = 2;
     public static final int Z1 = 3;
