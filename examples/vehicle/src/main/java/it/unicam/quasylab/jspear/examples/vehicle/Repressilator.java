@@ -51,7 +51,7 @@ public class Repressilator {
     We adopt the "two state model" of gene expression: the gene promoter can be either active or inactive.
     Then, we consider mRNA molecules, which can be transcribed only during the active period, and proteins,
     which are produced by mRNA molecules at a constant rate. For i=1,2,3 we have the following variables that
-    will allo us to model such a kind of system:
+    will allow us to model the status of such a kind of system:
     - Gi: models the inactive promoter, Gi is 1 if the promoter is inactive, otherwise Gi is 0.
     - AGi: models the active promoter, AGi is 1 if the promoter is active, otherwise AGi is 0.
       It always holds that: Gi + AGi = 1.
@@ -63,135 +63,136 @@ public class Repressilator {
     - s1i: rate constant of translation
     - d0i: rate constant of mRNA degradation
     - d1i: rate constant of protein degradation.
-    It holds koffi >> koni and koffi >> d0i, so that mRNA is transcribed in "burst".
+    It holds that koffi >> koni and koffi >> d0i, so that mRNA is transcribed in "burst".
     */
 
 
     /*
-    We use reactions to specify the repressilator in the two state model approach.
+    We use chemical reactions to specify the repressilator in the two state model approach.
     In particular, reactions model the following dynamics:
-    - activation of the promoter, modelled by reaction Gi --> AGi with rate constant omitted for now,
-    - deactivation of the promoter, AGi --> Gi,
-    - transcritpion, AGi --> Xi + AGi,
-    - translation, Xi --> Xi + Zi,
-    - mRNA degradation, Xi --> empty set,
-    - protein degradation, zi --> empty set.
+    - activation of the promoter, modelled by reaction Gi --koni--> AGi
+    - deactivation of the promoter, modelled by reaction AGi --koffi--> Gi,
+    - transcritpion, modelled by reaction AGi --s0i--> Xi + AGi,
+    - translation, modelled by reaction Xi --s1i--> Xi + Zi,
+    - mRNA degradation, modelled by reaction Xi --d0i--> empty set,
+    - protein degradation, modelled by reaction Zi --d1i--> empty set.
     Therefore, for each gene we have 6 reactions.
+    The value of Z1,Z2,Z3 will impact on kon1,kon2,kon3,koff1,koff2,koff3 thus realising gene interaction.
     For each of the 18 reactions, we define two arrays.
     Each of these arrays has 12 positions, which are associated to active promoters, inactive promoters and molecules.
     In particular, the 12 positions are for: G1, AG1, X1, Z1, G2, AG2, X2, Z2, G3, AG3, X3, Z3.
     Then, the two arrays for each reaction ri, with i=1,..,18, are:
-    - ri_input: position j is 1 if the variable corrisponding to position j is a reactant of the reaction
+    - ri_input: position j is 1 if the variable corresponding to position j is a reactant of the reaction
     - ro_output: position j is 1 if the variable corresponding to j is a product of the reaction
     The arrays are defined below.
     */
 
 
     /*
-    reaction r1 models the activation of gene 1: G1 is the reactant, AG1 is the product.
+    Reaction r1 models the activation of gene 1: G1 is the reactant, AG1 is the product.
     */
     public static final int[] r1_input = {1,0,0,0,0,0,0,0,0,0,0,0};
     public static final int[] r1_output = {0,1,0,0,0,0,0,0,0,0,0,0};
 
     /*
-    reaction r2 models the deactivation of gene 1: AG1 is the reactant, G1 is the product.
+    Reaction r2 models the deactivation of gene 1: AG1 is the reactant, G1 is the product.
     */
     public static final int[] r2_input =  {0,1,0,0,0,0,0,0,0,0,0,0};
     public static final int[] r2_output = {1,0,0,0,0,0,0,0,0,0,0,0};
 
     /*
-    reaction r3 models the transcription of gene 1: AG1 is the reactant, AG1 and X1 are the products.
+    Reaction r3 models the transcription of gene 1: AG1 is the reactant, AG1 and X1 are the products.
     */
     public static final int[] r3_input =  {0,1,0,0,0,0,0,0,0,0,0,0};
     public static final int[] r3_output = {0,1,1,0,0,0,0,0,0,0,0,0};
 
     /*
-    reaction r4 models the translation of gene 1: X1 is the reactant, X1 and Z1 are the products.
+    Reaction r4 models the translation of gene 1: X1 is the reactant, X1 and Z1 are the products.
     */
     public static final int[] r4_input =  {0,0,1,0,0,0,0,0,0,0,0,0};
     public static final int[] r4_output = {0,0,1,1,0,0,0,0,0,0,0,0};
 
 
     /*
-    reaction r5 models mRNA degradation for gene1: X1 is the reactant, there is no product.
+    Reaction r5 models mRNA degradation for gene1: X1 is the reactant, there is no product.
     */
     public static final int[] r5_input =  {0,0,1,0,0,0,0,0,0,0,0,0};
     public static final int[] r5_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
     /*
-    reaction r6 models protein degradation for gene1: Z1 is the reactant, there is no product.
+    Reaction r6 models protein degradation for gene1: Z1 is the reactant, there is no product.
     */
     public static final int[] r6_input =  {0,0,0,1,0,0,0,0,0,0,0,0};
     public static final int[] r6_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
     /*
-    reaction r7 models the activation of gene 2: G2 is the reactant, AG2 is the product.
+    Reaction r7 models the activation of gene 2: G2 is the reactant, AG2 is the product.
     */
     public static final int[] r7_input =  {0,0,0,0,1,0,0,0,0,0,0,0};
     public static final int[] r7_output = {0,0,0,0,0,1,0,0,0,0,0,0};
 
     /*
-    reaction r8 models the deactivation of gene 2: AG2 is the reactant, G2 is the product.
+    Reaction r8 models the deactivation of gene 2: AG2 is the reactant, G2 is the product.
     */
     public static final int[] r8_input =  {0,0,0,0,0,1,0,0,0,0,0,0};
     public static final int[] r8_output = {0,0,0,0,1,0,0,0,0,0,0,0};
 
     /*
-    reaction r9 models the transcription of gene 2: AG2 is the reactant, AG2 and X2 are the products.
+    Reaction r9 models the transcription of gene 2: AG2 is the reactant, AG2 and X2 are the products.
     */
     public static final int[] r9_input =  {0,0,0,0,0,1,0,0,0,0,0,0};
     public static final int[] r9_output = {0,0,0,0,0,1,1,0,0,0,0,0};
 
     /*
-    reaction r10 models the translation of gene 2: X2 is the reactant, X2 and Z2 are the products.
+    Reaction r10 models the translation of gene 2: X2 is the reactant, X2 and Z2 are the products.
     */
     public static final int[] r10_input =  {0,0,0,0,0,0,1,0,0,0,0,0};
     public static final int[] r10_output = {0,0,0,0,0,0,1,1,0,0,0,0};
 
     /*
-    reaction r11 models mRNA degradation for gene2: X2 is the reactant, there is no product.
+    Reaction r11 models mRNA degradation for gene2: X2 is the reactant, there is no product.
     */
     public static final int[] r11_input =  {0,0,0,0,0,0,1,0,0,0,0,0};
     public static final int[] r11_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
     /*
-    reaction r12 models protein degradation for gene2: Z2 is the reactant, there is no product.
+    Reaction r12 models protein degradation for gene2: Z2 is the reactant, there is no product.
     */
     public static final int[] r12_input =  {0,0,0,0,0,0,0,1,0,0,0,0};
     public static final int[] r12_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
     /*
-    reaction r13 models the activation of gene 3: G3 is the reactant, AG3 is the product.
+    Reaction r13 models the activation of gene 3: G3 is the reactant, AG3 is the product.
     */
     public static final int[] r13_input =  {0,0,0,0,0,0,0,0,1,0,0,0};
     public static final int[] r13_output = {0,0,0,0,0,0,0,0,0,1,0,0};
 
     /*
-    reaction r14 models the deactivation of gene 3: AG3 is the reactant, G3 is the product.
+    Reaction r14 models the deactivation of gene 3: AG3 is the reactant, G3 is the product.
     */
     public static final int[] r14_input =  {0,0,0,0,0,0,0,0,0,1,0,0};
     public static final int[] r14_output = {0,0,0,0,0,0,0,0,1,0,0,0};
 
     /*
-    reaction r15 models the transcription of gene 3: AG3 is the reactant, AG3 and X3 are the products.
+    Reaction r15 models the transcription of gene 3: AG3 is the reactant, AG3 and X3 are the products.
     */
     public static final int[] r15_input =  {0,0,0,0,0,0,0,0,0,1,0,0};
     public static final int[] r15_output = {0,0,0,0,0,0,0,0,0,1,1,0};
 
     /*
-    reaction r16 models the translation of gene 3: X3 is the reactant, X3 and Z3 are the products.
+    Reaction r16 models the translation of gene 3: X3 is the reactant, X3 and Z3 are the products.
     */
     public static final int[] r16_input =  {0,0,0,0,0,0,0,0,0,0,1,0};
     public static final int[] r16_output = {0,0,0,0,0,0,0,0,0,0,1,1};
 
     /*
-    reaction r17 models mRNA degradation for gene3: X3 is the reactant, there is no product.
+    Reaction r17 models mRNA degradation for gene3: X3 is the reactant, there is no product.
     */
     public static final int[] r17_input =  {0,0,0,0,0,0,0,0,0,0,1,0};
     public static final int[] r17_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
     /*
-    reaction r18 models protein degradation for gene3: Z3 is the reactant, there is no product.
+    Reaction r18 models protein degradation for gene3: Z3 is the reactant, there is no product.
     */
     public static final int[] r18_input =  {0,0,0,0,0,0,0,0,0,0,0,1};
     public static final int[] r18_output = {0,0,0,0,0,0,0,0,0,0,0,0};
@@ -201,7 +202,7 @@ public class Repressilator {
 
 
     /*
-    Below the list of 30 variables, the idea being that the value of these 30 variables gives a data state, namely an
+    Below a list of 30 variables, the idea being that the value of these 30 variables gives a data state, namely an
     instance of class <code>DataState</code> representing the status of all quantities of the system.
     We have variables for active and inactive promoters, mRNA, proteins and reaction rates. Reaction rates can vary
     since promoter parameters, i.e. the rates of promoter activation and deactivation, depend on the amount of proteins.
@@ -290,8 +291,8 @@ public class Repressilator {
             /*
             Variable <code>size</code> gives the number of runs that are used to obtain an evolution sequence.
             More in detail, an evolution sequence, modelled by class <code>EvolutionSequence</code>, is a sequence of
-            sample sets of system configurations, where configurations are modelled by class <code>TimedSystem</code> and
-            sample sets by class <code>SampleSet</code>.
+            sample sets of system configurations, where configurations are modelled by class <code>TimedSystem</code>
+            and sample sets by class <code>SampleSet</code>.
             In this context, <code>size</code> is the cardinality of those sample sets.
             */
             int size = 100;
@@ -310,32 +311,37 @@ public class Repressilator {
             which models the state of the data.
             Instances of <code>DataState</code> contains variables representing the quantities of the system and four
             values allowing us to model the evolution of time: gran, Tstep, Treal, Tdelta.
-            The initial state <code>state</code> is constructed by the following method, which will be defined later
-            and assigns the initial value to all 30 variables defined above.
+            The initial state <code>state</code> is constructed by the following static method, which will be defined
+            later and assigns the initial value to all 30 variables defined above.
              */
             DataState state = getInitialState(rand,1.0,0.0,0.0,0.0);
 
             /*
-            We define <code>system</code>, which will be the starting configuration from which the evolution sequence
-            will be constructed.
+            We define the <code>TimedSystem</code> <code>system</code>, which will be the starting configuration from
+            which the evolution sequence will be constructed.
             This configuration consists of:
             - the controller <code>controller</code> defined above,
             - the data state <code>state</state> defined above,
             - a random function over data states, which implements interface <code>DataStateFunction</code> and maps a
             random generator <code>rg</code> and a data state <code>ds</code> to the data state obtained by updating
             <code>ds</code> with the list of changes given by method <code><selectAndApplyReaction>/code>. Essentially,
-            this method, defined later, selects the reaction according to Gillespie algorithm.
+            this static method, defined later, selects the reaction according to Gillespie algorithm and returns
+            the changes on variables that are consequence of the selected reactions, i.e. reactant should be removed and
+            products should be added,
             - an expression over data states, which implements interface <code>DataStateExpression</code> and maps a
             data state <code>ds</code> to the time of next reaction.
              */
             TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
 
             /*
-            The evolution sequence <code>sequence></code> will consists in a sequence of sample sets of configurations
-            of cardinality <code>size</size>, where the first sample of the list consists in <code>size</size> copies of
-            configuration <code>system</code>.
+            The evolution sequence <code>sequence></code> created by the following instruction consists in a sequence of
+            sample sets of configurations of cardinality <code>size</size>, where the first sample of the list consists
+            in <code>size</size> copies of configuration <code>system</code>.
+            Notice that <code>sequence></code> contains initially only this first sample, the subsequent ones will be
+            created "on demand".
              */
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
+
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
             F.add(ds->ds.get(G1));
@@ -358,14 +364,23 @@ public class Repressilator {
             Here we introduce some code allowing us to perform some simulations.
             In particular, we generate two evolution sequences, both consisting in a list of 2000 sample sets of
             configurations of cardinality <code>size</code>, with the first sample set consisting in <code>size</code>
-            copies of configuration <code>system</code> defined above.
+            copies of the configuration <code>system</code> defined above.
             The second evolution sequence is perturbed by applying a perturbation, which is returned by function
             <code>p_rate()</code> defined later. Essentially, such a perturbation will slow down the rate of the
             degradation of the protein obtained from the first gene. Since promoter parameters depend on the amount of
-            proteins, this impact on the dynamics of the whole system
+            proteins, this impact on the dynamics of the whole system.
+             */
 
+            /*
+            The following instruction generates the first evolution sequence and returns the array <code>minMax</code>
+            of size 2 x 30, where minMax[0,i] and minMax[1,i] contain the minimal value and maximal value, respectively,
+            assumed by the variable of index i over all configurations of all sample sets.
              */
             double[][] minMax = printLMinMaxData(rand, L, F, system, 2000, size, 0, 2000);
+
+            /*
+            The following instruction is analogous but works on the perturbed sequence
+             */
             double[][] minMax_p = printPerturbed(rand, L, F, system, 2000, size, 0, 2000,p_rate());
 
             double[][] plot_z1 = new double[1000][1];
@@ -412,10 +427,25 @@ public class Repressilator {
         }
     }
 
+    /*
+    The following method
+     */
     private static double[][] printLMinMaxData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
         double[][] result = new double[2][NUMBER_OF_VARIABLES];
         System.out.println(label);
+        /*
+        The following instruction creates an evolution sequence consisting in a sequence of <code>steps</code> sample
+        sets of cardinality <size>.
+        The first sample set contains <code>size</code> copies of configuration <code>s</code>.
+        The subsequent sample sets are derived by simulating the dynamics.
+        Finally, for each step from 1 to <code>steps</code> and for each variable, the average value taken by the
+        variable in the elements of the sample set is stored.
+         */
         double[][] data_av = SystemState.sample(rg, F, s, steps, size);
+        /*
+        The following instruction is similar, but for each step from 1 to <code>steps</code> and for each variable, the
+        max value taken by the variable in the elements of the sample set is stored.
+         */
         double[][] data_max = SystemState.sample_max(rg, F, s, steps, size);
         double[] max = new double[NUMBER_OF_VARIABLES];
         Arrays.fill(max, Double.NEGATIVE_INFINITY);
