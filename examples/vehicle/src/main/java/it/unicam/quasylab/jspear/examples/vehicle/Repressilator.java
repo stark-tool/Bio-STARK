@@ -50,7 +50,8 @@ public class Repressilator {
     The "repressilator" network consists in 3 genes forming a directed cycle of "negative interactions".
     We adopt the "two state model" of gene expression: the gene promoter can be either active or inactive.
     Then, we consider mRNA molecules, which can be transcribed only during the active period, and proteins,
-    which are produced by mRNA molecules at a constant rate. For i=1,2,3 we have the following variables:
+    which are produced by mRNA molecules at a constant rate. For i=1,2,3 we have the following variables that
+    will allo us to model such a kind of system:
     - Gi: models the inactive promoter, Gi is 1 if the promoter is inactive, otherwise Gi is 0.
     - AGi: models the active promoter, AGi is 1 if the promoter is active, otherwise AGi is 0.
       It always holds that: Gi + AGi = 1.
@@ -68,8 +69,8 @@ public class Repressilator {
 
     /*
     We use reactions to specify the repressilator in the two state model approach.
-    Reactions model the following dynamics:
-    - activation of the promoter, Gi --> AGi if we abstract from the rate constant,
+    In particular, reactions model the following dynamics:
+    - activation of the promoter, modelled by reaction Gi --> AGi with rate constant omitted for now,
     - deactivation of the promoter, AGi --> Gi,
     - transcritpion, AGi --> Xi + AGi,
     - translation, Xi --> Xi + Zi,
@@ -79,9 +80,10 @@ public class Repressilator {
     For each of the 18 reactions, we define two arrays.
     Each of these arrays has 12 positions, which are associated to active promoters, inactive promoters and molecules.
     In particular, the 12 positions are for: G1, AG1, X1, Z1, G2, AG2, X2, Z2, G3, AG3, X3, Z3.
-    Then, the two arrays for reaction ri, with i=1,..18, are:
+    Then, the two arrays for each reaction ri, with i=1,..,18, are:
     - ri_input: position j is 1 if the variable corrisponding to position j is a reactant of the reaction
     - ro_output: position j is 1 if the variable corresponding to j is a product of the reaction
+    The arrays are defined below.
     */
 
 
@@ -199,10 +201,11 @@ public class Repressilator {
 
 
     /*
-    Below a list of 30 variables. The idea is that the value of these 30 variables gives a data state, namely an
+    Below the list of 30 variables, the idea being that the value of these 30 variables gives a data state, namely an
     instance of class <code>DataState</code> representing the status of all quantities of the system.
-    We have variables for active and inactive promoters, mRNA, proteins and reaction rates. Reaction rates are variables
+    We have variables for active and inactive promoters, mRNA, proteins and reaction rates. Reaction rates can vary
     since promoter parameters, i.e. the rates of promoter activation and deactivation, depend on the amount of proteins.
+    Each variable is associated with an index, from 0 to 29.
     */
     public static final int G1 = 0; // G1 is 1 if the promoter of gene 1 is inactive, o.w. G1 is 0
     public static final int AG1 = 1; // AG1 is 1 if the promoter of gene 1 is active, o.w. G1 is 1. Then, G1+AG1 is always 1.
@@ -258,6 +261,9 @@ public class Repressilator {
     //public static double BETA3 = 5;
     //public static double THETA3 = - 10;
 
+    /*
+    The following constants will be used to define the rate of the reactions.
+     */
     public static final double K01 = 0.0;
     public static double K11 = 2.0;
     public static double BETA1 = 5;
@@ -278,6 +284,7 @@ public class Repressilator {
     public static void main(String[] args) throws IOException {
         try {
 
+
             RandomGenerator rand = new DefaultRandomGenerator();
 
             /*
@@ -293,28 +300,33 @@ public class Repressilator {
             One of the elements of a system configuration is the "controller", i.e. an instance of <code>Controller</code>.
             In this example we do not need controllers, therefore we use a controller that does nothing, i.e. an instance
             of <code>NilController</code>.
+            In other examples, controllers may be used in order to control the activity of a system.
+            For instance, a scheduling of a therapy may be modelled by a controller.
              */
             Controller controller = new NilController();
 
             /*
             Another element of a system configuration is the "data state", i.e. an instance of <code>DataState</code>,
             which models the state of the data.
-            The initial state <code>state</code> is constructed by method getInitialState, which assigns the initial
-            value to all 30 variables. Moreover, time granularity is set to 1.0,
+            Instances of <code>DataState</code> contains variables representing the quantities of the system and four
+            values allowing us to model the evolution of time: gran, Tstep, Treal, Tdelta.
+            The initial state <code>state</code> is constructed by the following method, which will be defined later
+            and assigns the initial value to all 30 variables defined above.
              */
             DataState state = getInitialState(rand,1.0,0.0,0.0,0.0);
 
             /*
-            <code>system</code> will be the starting configuration from which the evolution sequence will be constructed.
+            We define <code>system</code>, which will be the starting configuration from which the evolution sequence
+            will be constructed.
             This configuration consists of:
             - the controller <code>controller</code> defined above,
             - the data state <code>state</state> defined above,
             - a random function over data states, which implements interface <code>DataStateFunction</code> and maps a
-            random generator <code>rg</code> and a data state <code>ds>/code> to the data state obtained by updating
+            random generator <code>rg</code> and a data state <code>ds</code> to the data state obtained by updating
             <code>ds</code> with the list of changes given by method <code><selectAndApplyReaction>/code>. Essentially,
-            this method selects the reaction according to Gillespie algorithm.
+            this method, defined later, selects the reaction according to Gillespie algorithm.
             - an expression over data states, which implements interface <code>DataStateExpression</code> and maps a
-            data state <code>ds>/code> to the time of next reaction.
+            data state <code>ds</code> to the time of next reaction.
              */
             TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
 
@@ -342,6 +354,17 @@ public class Repressilator {
             F.add(ds->ds.getTimeReal());
             ArrayList<String> L = new ArrayList<>();
 
+            /*
+            Here we introduce some code allowing us to perform some simulations.
+            In particular, we generate two evolution sequences, both consisting in a list of 2000 sample sets of
+            configurations of cardinality <code>size</code>, with the first sample set consisting in <code>size</code>
+            copies of configuration <code>system</code> defined above.
+            The second evolution sequence is perturbed by applying a perturbation, which is returned by function
+            <code>p_rate()</code> defined later. Essentially, such a perturbation will slow down the rate of the
+            degradation of the protein obtained from the first gene. Since promoter parameters depend on the amount of
+            proteins, this impact on the dynamics of the whole system
+
+             */
             double[][] minMax = printLMinMaxData(rand, L, F, system, 2000, size, 0, 2000);
             double[][] minMax_p = printPerturbed(rand, L, F, system, 2000, size, 0, 2000,p_rate());
 
