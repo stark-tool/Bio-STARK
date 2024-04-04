@@ -47,8 +47,8 @@ import java.util.*;
 public class Repressilator {
 
     /*
-    The "repressilator" network consist in 3 genes forming a directed cycle of "negative interactions".
-    We consider the "two state model" of gene expression: the gene promoter can be either active or inactive.
+    The "repressilator" network consists in 3 genes forming a directed cycle of "negative interactions".
+    We adopt the "two state model" of gene expression: the gene promoter can be either active or inactive.
     Then, we consider mRNA molecules, which can be transcribed only during the active period, and proteins,
     which are produced by mRNA molecules at a constant rate. For i=1,2,3 we have the following variables:
     - Gi: models the inactive promoter, Gi is 1 if the promoter is inactive, otherwise Gi is 0.
@@ -57,23 +57,31 @@ public class Repressilator {
     - Xi: amount of mRNA molecules.
     - Zi: amount of proteins.
     - koni: rate constant of gene i activation
-    - koffi: rate constant of gene i deactivation.
+    - koffi: rate constant of gene i deactivation
     - s0i: rate constant of transcription
     - s1i: rate constant of translation
     - d0i: rate constant of mRNA degradation
     - d1i: rate constant of protein degradation.
-    It holds koffi >> koni and koffi >> d0i, so that mRNA is transcribed in "burst", and d0i >> d1i, namely
-    mRNA degrades faster than proteins.
+    It holds koffi >> koni and koffi >> d0i, so that mRNA is transcribed in "burst".
     */
 
 
-
-    // LIST OF ALL REACTIONS
-
     /*
-    For each reaction ri, we have two arrays:
-    - ri_input: position j is 1 if the variable #j is a reactant of the reaction
-    - ro_output: position j is 1 if the variable #j is a product of the reaction
+    We use reactions to specify the repressilator in the two state model approach.
+    Reactions model the following dynamics:
+    - activation of the promoter, Gi --> AGi if we abstract from the rate constant,
+    - deactivation of the promoter, AGi --> Gi,
+    - transcritpion, AGi --> Xi + AGi,
+    - translation, Xi --> Xi + Zi,
+    - mRNA degradation, Xi --> empty set,
+    - protein degradation, zi --> empty set.
+    Therefore, for each gene we have 6 reactions.
+    For each of the 18 reactions, we define two arrays.
+    Each of these arrays has 12 positions, which are associated to active promoters, inactive promoters and molecules.
+    In particular, the 12 positions are for: G1, AG1, X1, Z1, G2, AG2, X2, Z2, G3, AG3, X3, Z3.
+    Then, the two arrays for reaction ri, with i=1,..18, are:
+    - ri_input: position j is 1 if the variable corrisponding to position j is a reactant of the reaction
+    - ro_output: position j is 1 if the variable corresponding to j is a product of the reaction
     */
 
 
@@ -190,7 +198,12 @@ public class Repressilator {
 
 
 
-    // LIST OF SPECIES
+    /*
+    Below a list of 30 variables. The idea is that the value of these 30 variables gives a data state, namely an
+    instance of class <code>DataState</code> representing the status of all quantities of the system.
+    We have variables for active and inactive promoters, mRNA, proteins and reaction rates. Reaction rates are variables
+    since promoter parameters, i.e. the rates of promoter activation and deactivation, depend on the amount of proteins.
+    */
     public static final int G1 = 0; // G1 is 1 if the promoter of gene 1 is inactive, o.w. G1 is 0
     public static final int AG1 = 1; // AG1 is 1 if the promoter of gene 1 is active, o.w. G1 is 1. Then, G1+AG1 is always 1.
     public static final int X1 = 2; // amount of mRNA molecules for gene 1.
