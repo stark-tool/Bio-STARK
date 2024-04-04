@@ -64,25 +64,16 @@ public class Repressilator {
     - d1i: rate constant of protein degradation.
     It holds koffi >> koni and koffi >> d0i, so that mRNA is transcribed in "burst", and d0i >> d1i, namely
     mRNA degrades faster than proteins.
-
-     */
-
-    /*
-    public final static String[] VARIABLES =
-           new String[]{
-               "G1", "AG1", "X1", "Z1"
-               "G2", "AG2", "X2", "Z2",
-               "G3", "AG3", "X3", "Z3"
-           };
     */
+
 
 
     // LIST OF ALL REACTIONS
 
     /*
     For each reaction ri, we have two arrays:
-    -ri_input: position j is 1 if the variable #j is a reactant of the reaction
-    -ro_output: position j is 1 if the variable #j is a product of the reaction
+    - ri_input: position j is 1 if the variable #j is a reactant of the reaction
+    - ro_output: position j is 1 if the variable #j is a product of the reaction
     */
 
 
@@ -105,10 +96,10 @@ public class Repressilator {
     public static final int[] r3_output = {0,1,1,0,0,0,0,0,0,0,0,0};
 
     /*
-    reaction r4 models the translation of gene 1: X1 is the reactant, Z1 is the products.
+    reaction r4 models the translation of gene 1: X1 is the reactant, X1 and Z1 are the products.
     */
     public static final int[] r4_input =  {0,0,1,0,0,0,0,0,0,0,0,0};
-    public static final int[] r4_output = {0,0,0,1,0,0,0,0,0,0,0,0};
+    public static final int[] r4_output = {0,0,1,1,0,0,0,0,0,0,0,0};
 
 
     /*
@@ -123,39 +114,75 @@ public class Repressilator {
     public static final int[] r6_input =  {0,0,0,1,0,0,0,0,0,0,0,0};
     public static final int[] r6_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
+    /*
+    reaction r7 models the activation of gene 2: G2 is the reactant, AG2 is the product.
+    */
     public static final int[] r7_input =  {0,0,0,0,1,0,0,0,0,0,0,0};
     public static final int[] r7_output = {0,0,0,0,0,1,0,0,0,0,0,0};
 
+    /*
+    reaction r8 models the deactivation of gene 2: AG2 is the reactant, G2 is the product.
+    */
     public static final int[] r8_input =  {0,0,0,0,0,1,0,0,0,0,0,0};
     public static final int[] r8_output = {0,0,0,0,1,0,0,0,0,0,0,0};
 
+    /*
+    reaction r9 models the transcription of gene 2: AG2 is the reactant, AG2 and X2 are the products.
+    */
     public static final int[] r9_input =  {0,0,0,0,0,1,0,0,0,0,0,0};
     public static final int[] r9_output = {0,0,0,0,0,1,1,0,0,0,0,0};
 
+    /*
+    reaction r10 models the translation of gene 2: X2 is the reactant, X2 and Z2 are the products.
+    */
     public static final int[] r10_input =  {0,0,0,0,0,0,1,0,0,0,0,0};
-    public static final int[] r10_output = {0,0,0,0,0,0,0,1,0,0,0,0};
+    public static final int[] r10_output = {0,0,0,0,0,0,1,1,0,0,0,0};
 
+    /*
+    reaction r11 models mRNA degradation for gene2: X2 is the reactant, there is no product.
+    */
     public static final int[] r11_input =  {0,0,0,0,0,0,1,0,0,0,0,0};
     public static final int[] r11_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
+    /*
+    reaction r12 models protein degradation for gene2: Z2 is the reactant, there is no product.
+    */
     public static final int[] r12_input =  {0,0,0,0,0,0,0,1,0,0,0,0};
     public static final int[] r12_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
+    /*
+    reaction r13 models the activation of gene 3: G3 is the reactant, AG3 is the product.
+    */
     public static final int[] r13_input =  {0,0,0,0,0,0,0,0,1,0,0,0};
     public static final int[] r13_output = {0,0,0,0,0,0,0,0,0,1,0,0};
 
+    /*
+    reaction r14 models the deactivation of gene 3: AG3 is the reactant, G3 is the product.
+    */
     public static final int[] r14_input =  {0,0,0,0,0,0,0,0,0,1,0,0};
     public static final int[] r14_output = {0,0,0,0,0,0,0,0,1,0,0,0};
 
+    /*
+    reaction r15 models the transcription of gene 3: AG3 is the reactant, AG3 and X3 are the products.
+    */
     public static final int[] r15_input =  {0,0,0,0,0,0,0,0,0,1,0,0};
     public static final int[] r15_output = {0,0,0,0,0,0,0,0,0,1,1,0};
 
+    /*
+    reaction r16 models the translation of gene 3: X3 is the reactant, X3 and Z3 are the products.
+    */
     public static final int[] r16_input =  {0,0,0,0,0,0,0,0,0,0,1,0};
-    public static final int[] r16_output = {0,0,0,0,0,0,0,0,0,0,0,1};
+    public static final int[] r16_output = {0,0,0,0,0,0,0,0,0,0,1,1};
 
+    /*
+    reaction r17 models mRNA degradation for gene3: X3 is the reactant, there is no product.
+    */
     public static final int[] r17_input =  {0,0,0,0,0,0,0,0,0,0,1,0};
     public static final int[] r17_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
+    /*
+    reaction r18 models protein degradation for gene3: Z3 is the reactant, there is no product.
+    */
     public static final int[] r18_input =  {0,0,0,0,0,0,0,0,0,0,0,1};
     public static final int[] r18_output = {0,0,0,0,0,0,0,0,0,0,0,0};
 
@@ -164,41 +191,41 @@ public class Repressilator {
 
 
     // LIST OF SPECIES
-    public static final int G1 = 0; //
-    public static final int AG1 = 1;
-    public static final int X1 = 2;
-    public static final int Z1 = 3;
+    public static final int G1 = 0; // G1 is 1 if the promoter of gene 1 is inactive, o.w. G1 is 0
+    public static final int AG1 = 1; // AG1 is 1 if the promoter of gene 1 is active, o.w. G1 is 1. Then, G1+AG1 is always 1.
+    public static final int X1 = 2; // amount of mRNA molecules for gene 1.
+    public static final int Z1 = 3; // amount of proteins produced by gene 1.
 
-    public static final int G2 = 4;
-    public static final int AG2 = 5;
-    public static final int X2 = 6;
-    public static final int Z2 = 7;
+    public static final int G2 = 4; // G2 is 1 if the promoter of gene 2 is inactive, o.w. G2 is 0
+    public static final int AG2 = 5; // AG2 is 1 if the promoter of gene 2 is active, o.w. G2 is 1. Then, G2+AG2 is always 1.
+    public static final int X2 = 6; // amount of mRNA molecules for gene 2.
+    public static final int Z2 = 7; // amount of proteins produced by gene 2.
 
-    public static final int G3 = 8;
-    public static final int AG3 = 9;
-    public static final int X3 = 10;
-    public static final int Z3 = 11;
+    public static final int G3 = 8; // G3 is 1 if the promoter of gene 3 is inactive, o.w. G3 is 0
+    public static final int AG3 = 9; // AG3 is 1 if the promoter of gene 3 is active, o.w. G3 is 1. Then, G3+AG3 is always 1.
+    public static final int X3 = 10; // amount of mRNA molecules for gene 3.
+    public static final int Z3 = 11; // amount of proteins produced by gene 3.
 
-    public static final int kon1 = 12;
-    public static final int koff1 = 13;
-    public static final int s01 = 14;
-    public static final int s11 = 15;
-    public static final int d01 = 16;
-    public static final int d11 = 17;
+    public static final int kon1 = 12; // rate constant of gene 1 activation
+    public static final int koff1 = 13; // rate constant of gene 1 deactivation
+    public static final int s01 = 14; // rate constant of gene 1 transcription
+    public static final int s11 = 15; // rate constant of gene 1 translation
+    public static final int d01 = 16; // rate constant of mRNA produced by gene 1 degradation
+    public static final int d11 = 17; // rate constant of protein produced by gene 1 degradation
 
-    public static final int kon2 = 18;
-    public static final int koff2 = 19;
-    public static final int s02 = 20;
-    public static final int s12 = 21;
-    public static final int d02 = 22;
-    public static final int d12 = 23;
+    public static final int kon2 = 18; // rate constant of gene 2 activation
+    public static final int koff2 = 19; // rate constant of gene 2 deactivation
+    public static final int s02 = 20; // rate constant of gene 2 transcription
+    public static final int s12 = 21; // rate constant of gene 2 translation
+    public static final int d02 = 22; // rate constant of mRNA produced by gene 2 degradation
+    public static final int d12 = 23; // rate constant of protein produced by gene 2 degradation
 
-    public static final int kon3 = 24;
-    public static final int koff3 = 25;
-    public static final int s03 = 26;
-    public static final int s13 = 27;
-    public static final int d03 = 28;
-    public static final int d13 = 29;
+    public static final int kon3 = 24; // rate constant of gene 3 activation
+    public static final int koff3 = 25; // rate constant of gene 3 deactivation
+    public static final int s03 = 26; // rate constant of gene 3 transcription
+    public static final int s13 = 27; // rate constant of gene 3 translation
+    public static final int d03 = 28; // rate constant of mRNA produced by gene 3 degradation
+    public static final int d13 = 29; // rate constant of protein produced by gene 3 degradation
 
 
     private static final int NUMBER_OF_VARIABLES = 30;
@@ -240,14 +267,49 @@ public class Repressilator {
 
             RandomGenerator rand = new DefaultRandomGenerator();
 
+            /*
+            Variable <code>size</code> gives the number of runs that are used to obtain an evolution sequence.
+            More in detail, an evolution sequence, modelled by class <code>EvolutionSequence</code>, is a sequence of
+            sample sets of system configurations, where configurations are modelled by class <code>TimedSystem</code> and
+            sample sets by class <code>SampleSet</code>.
+            In this context, <code>size</code> is the cardinality of those sample sets.
+            */
             int size = 100;
 
+            /*
+            One of the elements of a system configuration is the "controller", i.e. an instance of <code>Controller</code>.
+            In this example we do not need controllers, therefore we use a controller that does nothing, i.e. an instance
+            of <code>NilController</code>.
+             */
             Controller controller = new NilController();
 
+            /*
+            Another element of a system configuration is the "data state", i.e. an instance of <code>DataState</code>,
+            which models the state of the data.
+            The initial state <code>state</code> is constructed by method getInitialState, which assigns the initial
+            value to all 30 variables. Moreover, time granularity is set to 1.0,
+             */
             DataState state = getInitialState(rand,1.0,0.0,0.0,0.0);
 
+            /*
+            <code>system</code> will be the starting configuration from which the evolution sequence will be constructed.
+            This configuration consists of:
+            - the controller <code>controller</code> defined above,
+            - the data state <code>state</state> defined above,
+            - a random function over data states, which implements interface <code>DataStateFunction</code> and maps a
+            random generator <code>rg</code> and a data state <code>ds>/code> to the data state obtained by updating
+            <code>ds</code> with the list of changes given by method <code><selectAndApplyReaction>/code>. Essentially,
+            this method selects the reaction according to Gillespie algorithm.
+            - an expression over data states, which implements interface <code>DataStateExpression</code> and maps a
+            data state <code>ds>/code> to the time of next reaction.
+             */
             TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
 
+            /*
+            The evolution sequence <code>sequence></code> will consists in a sequence of sample sets of configurations
+            of cardinality <code>size</size>, where the first sample of the list consists in <code>size</size> copies of
+            configuration <code>system</code>.
+             */
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
@@ -286,6 +348,14 @@ public class Repressilator {
 
             double normalisation = Math.max(minMax[1][Z1],minMax_p[1][Z1])*1.1;
 
+            /*
+            The evolution sequence <code>sequence_p</code> is obtained from the evolution sequence <code>sequence</code>
+            by applying a perturbation, where:
+            - the perturbation is returned by method <code>p_rate()</code> defined below
+            - the perturbation is applied at step 0
+            - the sample sets of configurations in <code>sequence_p</code> have a cardinality which corresponds to that
+            of <code>sequence</code> multiplied by 10
+            */
             EvolutionSequence sequence_p = sequence.apply(p_rate(),0,10);
 
             DistanceExpression phases = new MaxIntervalDistanceExpression(
@@ -362,10 +432,21 @@ public class Repressilator {
         return result;
     }
 
+    /*
+    The following method returns a perturbation. In particular this is an atomic perturbation, i.e. an instance of
+    <code>AtomicPerturbation</code>. It consists of two elements:
+    - a random function over data states, i.e. an instance of <code>DataStateFunction</code>, which is returned by
+    method <code>p_rate()>/code>.
+    - the number of steps after which the random function will be applied, which is 0 in this case.
+     */
     public static Perturbation p_rate(){
         return new AtomicPerturbation(0,Repressilator::slow);
     }
 
+    /*
+    Method <code>slow>/code> perturbs a data state by modifying the rate constant of degratation of protein constructed
+    from gene 1
+     */
     private static DataState slow(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)-3,0)));
@@ -375,6 +456,9 @@ public class Repressilator {
     }
 
 
+    /*
+    The following method selects the time of next reaction according to Gillespie algorithm.
+     */
     public static double selectReactionTime(RandomGenerator rg, DataState state){
         double rate = 0.0;
         double[] lambda = new double[18];
@@ -395,8 +479,10 @@ public class Repressilator {
 
 
     /*
-    The following method selects the next reaction, according to Gillespie's algorithm, and returns the updates that allow for
-     modifying the state accordingly.
+    The following method selects the next reaction, according to Gillespie's algorithm, and returns the updates that
+    allow for modifying the data state accordingly: these updates will remove the reactants used by the selected reaction
+    from the data state, will add the products, and will tune the rate constant of promoters' activation according to the
+    new value of proteins.
     */
 
     public static List<DataStateUpdate> selectAndApplyReaction(RandomGenerator rg, DataState state) {
@@ -553,9 +639,13 @@ public class Repressilator {
 
     }
 
-
+    /*
+    Method getInitialState assigns the initial value to all variables
+    */
     public static DataState getInitialState(RandomGenerator rand, double gran, double Tstep, double Treal, double Tdelta) {
         Map<Integer, Double> values = new HashMap<>();
+
+        // the system starts with all promoters inactive, no mRNA molecule and no protein
 
         values.put(G1, 1.0);
         values.put(AG1, 0.0);
