@@ -47,14 +47,17 @@ import java.util.*;
 public class Repressilator {
 
     /*
+
+    THE TWO STATE MODEL OF THE REPRISSILATOR
+
     The "repressilator" network consists in 3 genes forming a directed cycle of "negative interactions".
-    We adopt the "two state model" of gene expression: the gene promoter can be either active or inactive.
-    Then, we consider mRNA molecules, which can be transcribed only during the active period, and proteins,
-    which are produced by mRNA molecules at a constant rate. For i=1,2,3 we have the following variables that
-    will allow us to model the status of such a kind of system:
+    As in "Herbach et al. BMC Systems Biology (2017) 11:105", we adopt the "two state model" of gene expression,
+    where the gene promoter can be either active or inactive, and we consider both  mRNA molecules, which can be
+    transcribed only during the active period, and proteins, which are produced by mRNA molecules at a constant rate.
+    For i=1,2,3 we have the following variables that will allow us to model the status of such a kind of system:
     - Gi: models the inactive promoter, Gi is 1 if the promoter is inactive, otherwise Gi is 0.
     - AGi: models the active promoter, AGi is 1 if the promoter is active, otherwise AGi is 0.
-      It always holds that: Gi + AGi = 1.
+      Clearly, it always holds that: Gi + AGi = 1.
     - Xi: amount of mRNA molecules.
     - Zi: amount of proteins.
     - koni: rate constant of gene i activation
@@ -64,11 +67,17 @@ public class Repressilator {
     - d0i: rate constant of mRNA degradation
     - d1i: rate constant of protein degradation.
     It holds that koffi >> koni and koffi >> d0i, so that mRNA is transcribed in "burst".
+
     */
 
 
+
     /*
-    We use chemical reactions to specify the repressilator in the two state model approach.
+
+    SPECIFYING THE TWO STATE MODEL OF THE REPRISSILATOR WITH CHEMICAL REACTIONS
+
+    As in "Herbach et al. BMC Systems Biology (2017) 11:105",
+    we use chemical reactions to specify the repressilator in the two state model approach.
     In particular, reactions model the following dynamics:
     - activation of the promoter, modelled by reaction Gi --koni--> AGi
     - deactivation of the promoter, modelled by reaction AGi --koffi--> Gi,
@@ -78,7 +87,13 @@ public class Repressilator {
     - protein degradation, modelled by reaction Zi --d1i--> empty set.
     Therefore, for each gene we have 6 reactions.
     The value of Z1,Z2,Z3 will impact on kon1,kon2,kon3,koff1,koff2,koff3 thus realising gene interaction.
-    For each of the 18 reactions, we define two arrays.
+
+    */
+
+
+    /*
+
+    Techincally, for each of the 18 reactions, we define two arrays.
     Each of these arrays has 12 positions, which are associated to active promoters, inactive promoters and molecules.
     In particular, the 12 positions are for: G1, AG1, X1, Z1, G2, AG2, X2, Z2, G3, AG3, X3, Z3.
     Then, the two arrays for each reaction ri, with i=1,..,18, are:
@@ -301,7 +316,7 @@ public class Repressilator {
             One of the elements of a system configuration is the "controller", i.e. an instance of <code>Controller</code>.
             In this example we do not need controllers, therefore we use a controller that does nothing, i.e. an instance
             of <code>NilController</code>.
-            In other examples, controllers may be used in order to control the activity of a system.
+            In other examples, controllers may be used to control the activity of a system.
             For instance, a scheduling of a therapy may be modelled by a controller.
              */
             Controller controller = new NilController();
@@ -309,25 +324,26 @@ public class Repressilator {
             /*
             Another element of a system configuration is the "data state", i.e. an instance of <code>DataState</code>,
             which models the state of the data.
-            Instances of <code>DataState</code> contains variables representing the quantities of the system and four
-            values allowing us to model the evolution of time: gran, Tstep, Treal, Tdelta.
-            The initial state <code>state</code> is constructed by the following static method, which will be defined
-            later and assigns the initial value to all 30 variables defined above.
+            Instances of <code>DataState</code> contains values for variables representing the quantities of the
+            system and four values allowing us to model the evolution of time: gran, Tstep, Treal, Tdelta.
+            The initial state <code>state</code> is constructed by exploiting the static method
+            <code>getInitialState</code>, which will be defined later and assigns the initial value to all 30
+            variables defined above.
              */
             DataState state = getInitialState(rand,1.0,0.0,0.0,0.0);
 
             /*
             We define the <code>TimedSystem</code> <code>system</code>, which will be the starting configuration from
             which the evolution sequence will be constructed.
-            This configuration consists of:
+            This configuration consists of 4 elements:
             - the controller <code>controller</code> defined above,
             - the data state <code>state</state> defined above,
             - a random function over data states, which implements interface <code>DataStateFunction</code> and maps a
             random generator <code>rg</code> and a data state <code>ds</code> to the data state obtained by updating
             <code>ds</code> with the list of changes given by method <code><selectAndApplyReaction>/code>. Essentially,
-            this static method, defined later, selects the reaction according to Gillespie algorithm and returns
-            the changes on variables that are consequence of the selected reactions, i.e. reactant should be removed and
-            products should be added,
+            this static method, defined later, selects the next reaction among the 18 available according to Gillespie
+            algorithm and realises the changes on variables that are consequence of the firing of the selected reactions,
+            i.e. reactants are removed from <code>ds</code> and products are added to <code>ds</code>,
             - an expression over data states, which implements interface <code>DataStateExpression</code> and maps a
             data state <code>ds</code> to the time of next reaction.
              */
@@ -336,7 +352,7 @@ public class Repressilator {
             /*
             The evolution sequence <code>sequence></code> created by the following instruction consists in a sequence of
             sample sets of configurations of cardinality <code>size</size>, where the first sample of the list consists
-            in <code>size</size> copies of configuration <code>system</code>.
+            in <code>size</size> copies of configuration <code>system</code> defined above.
             Notice that <code>sequence></code> contains initially only this first sample, the subsequent ones will be
             created "on demand".
              */
@@ -356,15 +372,36 @@ public class Repressilator {
             F.add(ds->ds.get(AG3));
             F.add(ds->ds.get(X3));
             F.add(ds->ds.get(Z3));
-            F.add(ds->ds.getTimeDelta());
-            F.add(ds->ds.getTimeReal());
+            // F.add(ds->ds.getTimeDelta());
+            // F.add(ds->ds.getTimeReal());
             ArrayList<String> L = new ArrayList<>();
+            L.add("G1      ");
+            L.add("AG1     ");
+            L.add("X1      ");
+            L.add("Z1      ");
+            L.add("G2      ");
+            L.add("AG2     ");
+            L.add("X2      ");
+            L.add("Z2      ");
+            L.add("G3      ");
+            L.add("AG3     ");
+            L.add("X3      ");
+            L.add("Z3      ");
+
+
 
             /*
-            Here we introduce some code allowing us to perform some simulations.
-            In particular, we generate two evolution sequences, both consisting in a list of 2000 sample sets of
-            configurations of cardinality <code>size</code>, with the first sample set consisting in <code>size</code>
-            copies of the configuration <code>system</code> defined above.
+
+            ESTIMATING MIN/MAX VALUES FOR VARIABLES BY MEANS OF SIMULATIONS
+
+            Here we introduce some code allowing us to perform two simulations, where simulating a system consists
+            in generating an evolution sequence from an initial distribution of configurations.
+            The target of these two simulations is to allow us to estimate the min and max value that can be taken by
+            all 30 variables.
+            In particular, both evolution sequences will consist of a sequence of 2000 sample sets of configurations
+            of cardinality <code>size</code>, with the first sample set consisting in <code>size</code>
+            copies of the configuration <code>system</code> defined above. This sample set represents the initial
+            distribution of the system, which is clearly a point (or Dirac) distribution.
             The second evolution sequence is perturbed by applying a perturbation, which is returned by function
             <code>p_rate()</code> defined later. Essentially, such a perturbation will slow down the rate of the
             degradation of the protein obtained from the first gene. Since promoter parameters depend on the amount of
@@ -372,32 +409,53 @@ public class Repressilator {
              */
 
             /*
-            The following instruction generates the first evolution sequence and returns the array <code>minMax</code>
-            of size 2 x 30, where minMax[0,i] and minMax[1,i] contain the minimal value and maximal value, respectively,
-            assumed by the variable of index i over all configurations of all sample sets.
+            The following instruction generates the first evolution sequence and returns the array <code>vMax</code>
+            of size 12, where vMax[i] contains the  maximal value  assumed by the variable of index i over all
+            configurations of all sample sets.
              */
-            double[][] minMax = printLMinMaxData(rand, L, F, system, 2000, size, 0, 2000);
+            double[] vMax = printLMaxData(rand, L, F, system, 2000, size, 0, 2000);
 
             /*
             The following instruction is analogous but works on the perturbed sequence
              */
-            double[][] minMax_p = printPerturbed(rand, L, F, system, 2000, size, 0, 2000,p_rate());
+            double[] vMax_p = printPerturbed(rand, L, F, system, 2000, size, 0, 2000,p_rate());
 
-            double[][] plot_z1 = new double[1000][1];
-            double[][] plot_z2 = new double[1000][1];
-            double[][] plot_z3 = new double[1000][1];
-            double[][] data = SystemState.sample(rand, F, system, 1000, size);
-            for (int i = 0; i<1000; i++){
+            /*
+            The maximum value for variable Z1 that has been obtained through previous simulations is used to compute a
+            normalisation factor that will be used later.
+            */
+
+            double normalisation = Math.max(vMax[Z1],vMax_p[Z1])*1.1;
+
+
+
+
+
+            /*
+
+
+            The following instructions create an evolution sequence of 1000 sample sets of configurations, where the first
+            sample set contains <code>size</code> copies of configuration <code>system<code>.
+            The average values obtained at each step over the <code>size</code> for the amount of proteins Z1, Z2,m Z3
+            are samples are plotted.
+            */
+
+
+
+            double[][] plot_z1 = new double[100][1];
+            double[][] plot_z2 = new double[100][1];
+            double[][] plot_z3 = new double[100][1];
+            double[][] data = SystemState.sample(rand, F, system, 100, size);
+            for (int i = 0; i<100; i++){
                 plot_z1[i][0] = data[i][3];
                 plot_z2[i][0] = data[i][7];
                 plot_z3[i][0] = data[i][11];
             }
-
             Util.writeToCSV("./new_plotZ1.csv",plot_z1);
             Util.writeToCSV("./new_plotZ2.csv",plot_z2);
             Util.writeToCSV("./new_plotZ3.csv",plot_z3);
 
-            double normalisation = Math.max(minMax[1][Z1],minMax_p[1][Z1])*1.1;
+
 
             /*
             The evolution sequence <code>sequence_p</code> is obtained from the evolution sequence <code>sequence</code>
@@ -408,6 +466,21 @@ public class Repressilator {
             of <code>sequence</code> multiplied by 10
             */
             EvolutionSequence sequence_p = sequence.apply(p_rate(),0,10);
+
+
+            /*
+            The following code first defines a distance between evolution sequences, named <code>phases</code>.
+            Then, this distance is evaluated over evolution sequence <code>sequence</code> and its perturbed
+            version <code>sequence_p</code>.
+            In detail, <code>phases</code> is constructed starting from an atomic distance, namely an instance of class
+            <code>AtomicDistanceExpression</code>.
+            Here, an atomic distance consists in a data state expression, which maps a data state to a number, and a
+            binary operator. In this case, the idea is that given two configurations, the data state expression allow us
+            to get the normalised value of protein Z1, which is a value in [0,1], from both configuration, and the binary
+            operator gives us their difference.
+            This distance will be lifted to two sample sets of configurations, those obtained from <code>sequence</code>
+            and <code>sequence_p</code> at the same step.
+            */
 
             DistanceExpression phases = new MaxIntervalDistanceExpression(
                     new MinIntervalDistanceExpression(
@@ -422,80 +495,96 @@ public class Repressilator {
             System.out.println(phases.compute(0, sequence, sequence_p));
 
 
+
+
+
+
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
     }
 
     /*
-    The following method
+    The following method generates an evolution sequence consisting of a sequence of <code>steps</code> sample sets
+    of cardinality <code>size</code>, with the first sample set consisting in <code>size</code> copies of configuration
+    <code>s</code>. For each configuration in each sample set, all expressions over data states in <code>F</code> are
+    evaluated. the method returns the max evaluation that each expression in <code>F</code> gives in all sample sets
+    that are in the sequence in between positions <code>leftbound</code> and <code>rightbound</code>
      */
-    private static double[][] printLMinMaxData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
-        double[][] result = new double[2][NUMBER_OF_VARIABLES];
+    private static double[] printLMaxData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
+
+        System.out.println("Simulation of NON perturbed system");
         System.out.println(label);
+
         /*
         The following instruction creates an evolution sequence consisting in a sequence of <code>steps</code> sample
         sets of cardinality <size>.
         The first sample set contains <code>size</code> copies of configuration <code>s</code>.
         The subsequent sample sets are derived by simulating the dynamics.
-        Finally, for each step from 1 to <code>steps</code> and for each variable, the average value taken by the
+        Finally, for each step from 1 to <code>steps</code> and for each variable, the maximal value taken by the
         variable in the elements of the sample set is stored.
          */
-        double[][] data_av = SystemState.sample(rg, F, s, steps, size);
-        /*
-        The following instruction is similar, but for each step from 1 to <code>steps</code> and for each variable, the
-        max value taken by the variable in the elements of the sample set is stored.
-         */
         double[][] data_max = SystemState.sample_max(rg, F, s, steps, size);
-        double[] max = new double[NUMBER_OF_VARIABLES];
+        double[] max = new double[F.size()];
         Arrays.fill(max, Double.NEGATIVE_INFINITY);
-        for (int i = 0; i < data_av.length; i++) {
+        for (int i = 0; i < data_max.length; i++) {
             System.out.printf("%d>   ", i);
-            for (int j = 0; j < data_av[i].length -1 ; j++) {
-                System.out.printf("%f   ", data_av[i][j]);
-                if (j<NUMBER_OF_VARIABLES & leftbound <= i & i <= rightbound) {
+            for (int j = 0; j < data_max[i].length -1 ; j++) {
+                System.out.printf("%f   ", data_max[i][j]);
+                if (leftbound <= i & i <= rightbound) {
                     if (max[j] < data_max[i][j]) {
                         max[j] = data_max[i][j];
-                        result[1][j]=data_max[i][j];
                     }
                 }
             }
-            System.out.printf("%f\n", data_av[i][data_av[i].length -1]);
+            System.out.printf("%f\n", data_max[i][data_max[i].length -1]);
+            if (leftbound <= i & i <= rightbound) {
+                if (max[data_max[i].length -1] < data_max[i][data_max[i].length -1]) {
+                    max[data_max[i].length -1] = data_max[i][data_max[i].length -1];
+                }
+            }
         }
-        System.out.printf("%s   ", "max:");
-        for(int j=0; j<NUMBER_OF_VARIABLES-1; j++){
+        System.out.println("Maximal values taken by variables in 2000 steps by the non perturbed system:");
+        for(int j=0; j<max.length-1; j++){
             System.out.printf("%f   ", max[j]);
         }
-        System.out.printf("%f\n", max[NUMBER_OF_VARIABLES-1]);
-        return result;
+        System.out.printf("%f\n", max[max.length-1]);
+        return max;
     }
 
-    private static double[][] printPerturbed(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound, Perturbation perturbation){
-        double[][] result = new double[2][NUMBER_OF_VARIABLES];
+    private static double[] printPerturbed(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound, Perturbation perturbation){
+        System.out.println("Simulation of perturbed system");
         System.out.println(label);
-        double[][] data_av = SystemState.sample(rg, F, perturbation, s, steps, size);
+
+        double[] max = new double[F.size()];
+
+
         double[][] data_max = SystemState.sample_max(rg, F, perturbation, s, steps, size);
-        double[] max = new double[NUMBER_OF_VARIABLES];
         Arrays.fill(max, Double.NEGATIVE_INFINITY);
-        for (int i = 0; i < data_av.length; i++) {
+        for (int i = 0; i < data_max.length; i++) {
             System.out.printf("%d>   ", i);
-            for (int j = 0; j < data_av[i].length -1 ; j++) {
-                System.out.printf("%f   ", data_av[i][j]);
-                if (j<NUMBER_OF_VARIABLES & leftbound <= i & i <= rightbound) {
+            for (int j = 0; j < data_max[i].length -1 ; j++) {
+                System.out.printf("%f   ", data_max[i][j]);
+                if (leftbound <= i & i <= rightbound) {
                     if (max[j] < data_max[i][j]) {
                         max[j] = data_max[i][j];
-                        result[1][j]=data_max[i][j];
                     }
                 }
             }
-            System.out.printf("%f\n", data_av[i][data_av[i].length -1]);
+            System.out.printf("%f\n", data_max[i][data_max[i].length -1]);
+            if (leftbound <= i & i <= rightbound) {
+                if (max[data_max[i].length -1] < data_max[i][data_max[i].length -1]) {
+                    max[data_max[i].length -1] = data_max[i][data_max[i].length -1];
+                }
+            }
         }
-        System.out.printf("%s   ", "max:");
-        for(int j=0; j<NUMBER_OF_VARIABLES-1; j++){
+        System.out.println("Maximal values taken by variables in 2000 steps by the perturbed system::");
+        for(int j=0; j<max.length-1; j++){
             System.out.printf("%f   ", max[j]);
         }
-        System.out.printf("%f\n", max[NUMBER_OF_VARIABLES-1]);
-        return result;
+        System.out.printf("%f\n", max[max.length-1]);
+        return max;
+
     }
 
     /*
