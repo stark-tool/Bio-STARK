@@ -36,9 +36,7 @@ import it.unicam.quasylab.jspear.ds.RelationOperator;
 import it.unicam.quasylab.jspear.perturbation.AtomicPerturbation;
 import it.unicam.quasylab.jspear.perturbation.IterativePerturbation;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
-import it.unicam.quasylab.jspear.robtl.AlwaysRobustnessFormula;
-import it.unicam.quasylab.jspear.robtl.AtomicRobustnessFormula;
-import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
+import it.unicam.quasylab.jspear.robtl.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.IOException;
@@ -446,19 +444,28 @@ public class Repressilator {
             for the amount of proteins Z1, Z2 and Z3.
             */
 
-            int N = 1000;
+            int N = 10000;
             double[][] plot_z1 = new double[N][1];
             double[][] plot_z2 = new double[N][1];
             double[][] plot_z3 = new double[N][1];
+            double[][] plot_x1 = new double[N][1];
+            double[][] plot_x2 = new double[N][1];
+            double[][] plot_x3 = new double[N][1];
             double[][] data = SystemState.sample(rand, F, system, N, size);
             for (int i = 0; i<N; i++){
                 plot_z1[i][0] = data[i][3];
                 plot_z2[i][0] = data[i][7];
                 plot_z3[i][0] = data[i][11];
+                plot_x1[i][0] = data[i][2];
+                plot_x2[i][0] = data[i][6];
+                plot_x3[i][0] = data[i][10];
             }
             Util.writeToCSV("./new_plotZ1.csv",plot_z1);
             Util.writeToCSV("./new_plotZ2.csv",plot_z2);
             Util.writeToCSV("./new_plotZ3.csv",plot_z3);
+            Util.writeToCSV("./new_plotX1.csv",plot_x1);
+            Util.writeToCSV("./new_plotX2.csv",plot_x2);
+            Util.writeToCSV("./new_plotX3.csv",plot_x3);
 
             /*
 
@@ -502,6 +509,24 @@ public class Repressilator {
             System.out.println(" ");
             System.out.printf("%s \n", "The behavioural distance between the nominal and the perturbed sequence is: ");
             System.out.println(phases.compute(0, sequence, sequence_p));
+
+
+            RobustnessFormula robF = new AtomicRobustnessFormula(p_rate(),
+                    phases,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    0.040);
+
+            /*
+            RobustnessFormula always_robF = new AlwaysRobustnessFormula(
+                    robF,
+                    0,
+                    200
+            );
+             */
+
+            TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
+            System.out.println(" ");
+            System.out.println("\n robF evaluation at 0: " + value1);
 
 
 
