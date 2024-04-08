@@ -238,21 +238,21 @@ public class Repressilator {
     public static final int X3 = 10; // amount of mRNA molecules for gene 3.
     public static final int Z3 = 11; // amount of proteins produced by gene 3.
 
-    public static final int kon1 = 12; // rate constant of gene 1 activation
+    public static final int kon1 = 12; // rate constant of gene 1 activation, also called "burst frequency" for gene 1
     public static final int koff1 = 13; // rate constant of gene 1 deactivation
     public static final int s01 = 14; // rate constant of gene 1 transcription
     public static final int s11 = 15; // rate constant of gene 1 translation
     public static final int d01 = 16; // rate constant of mRNA produced by gene 1 degradation
     public static final int d11 = 17; // rate constant of protein produced by gene 1 degradation
 
-    public static final int kon2 = 18; // rate constant of gene 2 activation
+    public static final int kon2 = 18; // rate constant of gene 2 activation, also called "burst frequency" for gene 2
     public static final int koff2 = 19; // rate constant of gene 2 deactivation
     public static final int s02 = 20; // rate constant of gene 2 transcription
     public static final int s12 = 21; // rate constant of gene 2 translation
     public static final int d02 = 22; // rate constant of mRNA produced by gene 2 degradation
     public static final int d12 = 23; // rate constant of protein produced by gene 2 degradation
 
-    public static final int kon3 = 24; // rate constant of gene 3 activation
+    public static final int kon3 = 24; // rate constant of gene 3 activation, also called "burst frequency" for gene 3
     public static final int koff3 = 25; // rate constant of gene 3 deactivation
     public static final int s03 = 26; // rate constant of gene 3 transcription
     public static final int s13 = 27; // rate constant of gene 3 translation
@@ -278,20 +278,24 @@ public class Repressilator {
     //public static double THETA3 = - 10;
 
     /*
-    The following constants will be used to define the rate of the reactions.
+    The following constants will be used to derive the burst frequency of gene 1, gene 2 and gene 3 from
+    the amount of proteins Z1, Z2, Z3.
+    The values are taken from
+    "Ulysse Herbach: ''Harissa: Stochastic Simulation and Inference of Gene Regulatory Networks Based on Transcriptional
+    Bursting''. Proc. CMSB 2023".
      */
-    public static final double K01 = 0.0;
-    public static double K11 = 2.0;
-    public static double BETA1 = 5;
-    public static double THETA1 = - 10;
-    public static final double K02 = 0.0;
-    public static double K12 = 2.0;
-    public static double BETA2 = 5;
-    public static double THETA2 = - 10;
-    public static final double K03 = 0.0;
-    public static double K13 = 2.0;
-    public static double BETA3 = 5;
-    public static double THETA3 = - 10;
+    public static final double K01 = 0.0; // minimal burst frequency
+    public static double K11 = 2.0; // maximal burst frequency
+    public static double BETA1 = 5; // basal activity gene 1
+    public static double THETA1 = - 10; // interation gene 1 --> gene i for i= 1,2,3
+    public static final double K02 = 0.0; // minimal burst frequency
+    public static double K12 = 2.0; // maximal  burst frequency
+    public static double BETA2 = 5; // basal activity gene 2
+    public static double THETA2 = - 10; // interation gene 2 --> gene i for i= 1,2,3
+    public static final double K03 = 0.0; // minimal burst frequency
+    public static double K13 = 2.0; // maximal burst frequency
+    public static double BETA3 = 5; // basal activity gene 3
+    public static double THETA3 = - 10; // interation gene 1 --> gene i for i= 1,2,3
 
 
 
@@ -397,12 +401,12 @@ public class Repressilator {
             Here we introduce some code allowing us to perform two simulations, where simulating a system consists
             in generating an evolution sequence from an initial distribution of configurations.
             The target of these two simulations is to allow us to estimate the min and max value that can be taken by
-            all 30 variables.
-            In particular, both evolution sequences will consist of a sequence of 2000 sample sets of configurations
+            variables Gi, AGi, Xi, Zi, i=1,2,3. In particular, we will exploit later the max value taken by Z1.
+            Both evolution sequences will consist of a sequence of 2000 sample sets of configurations
             of cardinality <code>size</code>, with the first sample set consisting in <code>size</code>
             copies of the configuration <code>system</code> defined above. This sample set represents the initial
             distribution of the system, which is clearly a point (or Dirac) distribution.
-            The second evolution sequence is perturbed by applying a perturbation, which is returned by function
+            The second evolution sequence is perturbed by applying a perturbation, which is returned by static method
             <code>p_rate()</code> defined later. Essentially, such a perturbation will slow down the rate of the
             degradation of the protein obtained from the first gene. Since promoter parameters depend on the amount of
             proteins, this impact on the dynamics of the whole system.
@@ -410,13 +414,13 @@ public class Repressilator {
 
             /*
             The following instruction generates the first evolution sequence and returns the array <code>vMax</code>
-            of size 12, where vMax[i] contains the  maximal value  assumed by the variable of index i over all
+            of size 12, where vMax[i] contains the maximal value assumed by the variable of index i over all
             configurations of all sample sets.
              */
             double[] vMax = printLMaxData(rand, L, F, system, 2000, size, 0, 2000);
 
             /*
-            The following instruction is analogous but works on the perturbed sequence
+            The following instruction is analogous, but works on the perturbed sequence
              */
             double[] vMax_p = printPerturbed(rand, L, F, system, 2000, size, 0, 2000,p_rate());
 
@@ -433,20 +437,21 @@ public class Repressilator {
 
             /*
 
+            SIMULATION OF THE NETWORK
 
-            The following instructions create an evolution sequence of 1000 sample sets of configurations, where the first
-            sample set contains <code>size</code> copies of configuration <code>system<code>.
-            The average values obtained at each step over the <code>size</code> for the amount of proteins Z1, Z2,m Z3
-            are samples are plotted.
+            The following instructions create an evolution sequence consisting of a sequence of <code>N</code> sample
+            sets of configurations, where each sample set has cardinality <code>size</code>.
+            The first sample set contains <code>size</code> copies of configuration <code>system</code>.
+            Then, we plot the average values obtained at each step over the <code>size</code> configurations
+            for the amount of proteins Z1, Z2 and Z3.
             */
 
-
-
-            double[][] plot_z1 = new double[100][1];
-            double[][] plot_z2 = new double[100][1];
-            double[][] plot_z3 = new double[100][1];
-            double[][] data = SystemState.sample(rand, F, system, 100, size);
-            for (int i = 0; i<100; i++){
+            int N = 1000;
+            double[][] plot_z1 = new double[N][1];
+            double[][] plot_z2 = new double[N][1];
+            double[][] plot_z3 = new double[N][1];
+            double[][] data = SystemState.sample(rand, F, system, N, size);
+            for (int i = 0; i<N; i++){
                 plot_z1[i][0] = data[i][3];
                 plot_z2[i][0] = data[i][7];
                 plot_z3[i][0] = data[i][11];
@@ -455,12 +460,13 @@ public class Repressilator {
             Util.writeToCSV("./new_plotZ2.csv",plot_z2);
             Util.writeToCSV("./new_plotZ3.csv",plot_z3);
 
-
-
             /*
-            The evolution sequence <code>sequence_p</code> is obtained from the evolution sequence <code>sequence</code>
-            by applying a perturbation, where:
-            - the perturbation is returned by method <code>p_rate()</code> defined below
+
+            ESTIMATING BEHAVIOURAL DIFFERENCES BETWEEN NOMINAL AND PERTURBED EVOLUTION SEQUENCES
+
+            The following instruction allows us to create the evolution sequence <code>sequence_p</code>, which is
+            obtained from the evolution sequence <code>sequence</code> by applying a perturbation, where:
+            - the perturbation is returned by static method <code>p_rate()</code> defined later
             - the perturbation is applied at step 0
             - the sample sets of configurations in <code>sequence_p</code> have a cardinality which corresponds to that
             of <code>sequence</code> multiplied by 10
@@ -469,7 +475,7 @@ public class Repressilator {
 
 
             /*
-            The following code first defines a distance between evolution sequences, named <code>phases</code>.
+            The following lines of code first defines a distance between evolution sequences, named <code>phases</code>.
             Then, this distance is evaluated over evolution sequence <code>sequence</code> and its perturbed
             version <code>sequence_p</code>.
             In detail, <code>phases</code> is constructed starting from an atomic distance, namely an instance of class
@@ -480,6 +486,7 @@ public class Repressilator {
             operator gives us their difference.
             This distance will be lifted to two sample sets of configurations, those obtained from <code>sequence</code>
             and <code>sequence_p</code> at the same step.
+            Finally, bla bla bla
             */
 
             DistanceExpression phases = new MaxIntervalDistanceExpression(
@@ -492,6 +499,8 @@ public class Repressilator {
                     1000
             );
 
+            System.out.println(" ");
+            System.out.printf("%s \n", "The behavioural distance between the nominal and the perturbed sequence is: ");
             System.out.println(phases.compute(0, sequence, sequence_p));
 
 
@@ -512,8 +521,9 @@ public class Repressilator {
     that are in the sequence in between positions <code>leftbound</code> and <code>rightbound</code>
      */
     private static double[] printLMaxData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
-
+        System.out.println("");
         System.out.println("Simulation of NON perturbed system");
+        System.out.println("");
         System.out.println(label);
 
         /*
@@ -544,16 +554,21 @@ public class Repressilator {
                 }
             }
         }
+        System.out.println(" ");
         System.out.println("Maximal values taken by variables in 2000 steps by the non perturbed system:");
         for(int j=0; j<max.length-1; j++){
             System.out.printf("%f   ", max[j]);
         }
         System.out.printf("%f\n", max[max.length-1]);
+        System.out.println("");
+        System.out.println("");
         return max;
     }
 
     private static double[] printPerturbed(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound, Perturbation perturbation){
+        System.out.println("");
         System.out.println("Simulation of perturbed system");
+        System.out.println("");
         System.out.println(label);
 
         double[] max = new double[F.size()];
@@ -578,11 +593,13 @@ public class Repressilator {
                 }
             }
         }
-        System.out.println("Maximal values taken by variables in 2000 steps by the perturbed system::");
+        System.out.println("");
+        System.out.println("Maximal values taken by variables in 2000 steps by the perturbed system:");
         for(int j=0; j<max.length-1; j++){
             System.out.printf("%f   ", max[j]);
         }
         System.out.printf("%f\n", max[max.length-1]);
+        System.out.println("");
         return max;
 
     }
@@ -668,6 +685,8 @@ public class Repressilator {
             }
 
             selReaction++;
+
+
 
             switch(selReaction){
                 case 1:
@@ -785,8 +804,10 @@ public class Repressilator {
 
         double new_kon1 = (K01 + K11 * Math.exp(BETA1 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)))/(1+Math.exp(BETA1 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)));
         updates.add(new DataStateUpdate(kon1,new_kon1));
+
         double new_kon2 = (K02 + K12 * Math.exp(BETA2 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)))/(1+Math.exp(BETA2 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)));
         updates.add(new DataStateUpdate(kon2,new_kon2));
+
         double new_kon3 = (K03 + K13 * Math.exp(BETA3 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)))/(1+Math.exp(BETA3 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)));
         updates.add(new DataStateUpdate(kon3,new_kon3));
 
