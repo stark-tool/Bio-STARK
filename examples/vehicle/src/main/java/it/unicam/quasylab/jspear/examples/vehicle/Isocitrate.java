@@ -103,7 +103,7 @@ public class Isocitrate {
     public static final int EIpI = 4; // compound EIp + I
     private static final int NUMBER_OF_VARIABLES = 5;
 
-    public static final double THRESHOLD = 0.04;
+    public static final double THRESHOLD = 0.03;
 
     public static final int LEFT_BOUND = 700;
 
@@ -133,36 +133,25 @@ public class Isocitrate {
             a random value chosen in a suitable interval.
              */
             DataState state = getInitialState(rand,1.0,0.0,0.0,0.0);
-            /*
-            The <code>DataState</code> <code>stateC</code> is the initial state of another system, whose initial values
-            are the same as in [Milazzo].
-            The value of variables is assigned by function <code>getInitialStateC</state>.
-            */
-            DataState stateC = getInitialStateC(rand,1.0,0.0,0.0,0.0);
 
             /* The <code>TimedSystem</code> <code>system</code> is a system starting in state <code>state</code>.
             Its evolution is determined by Gillespie's algorithm:
             <code>selectReactionTime</code> is a static method that selects the time of next reaction according to Gillespie algorithm.
             <code>selectAndApplyReaction</code> is a static method that selects the reaction among the available ones and modifies the state accordingly.
              */
+
             TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
-            /*
-            The <code>TimedSystem</code> <code>systemC</code> is a system starting in state <code>stateC</code>.
-             */
-            TimedSystem systemC = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), stateC, ds->selectReactionTime(rand,ds));
 
 
             /*
             The <code>EvolutionSequence</code> <code>sequence</code> originates from <code>size</code> copies of <code>system</code>
              */
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
-            EvolutionSequence sequenceC = new EvolutionSequence(rand, rg -> systemC, size);
 
-            /*
-            The <code>PerturbedSystem</code> <code>psystem</code> is <code>system</code> pertubed by perturbation <code>pertEandIp10</code>
-             */
-            PerturbedSystem psystem = new PerturbedSystem(system,pertEandIp10());
-            PerturbedSystem psystemC = new PerturbedSystem(systemC,pertEandIpC());
+            EvolutionSequence sequence_001_100 = sequence.apply(pertEandIp(0.001,100),0,10);
+            EvolutionSequence sequence_001_500 = sequence.apply(pertEandIp(0.001,500),0,10);
+            EvolutionSequence sequence_10_1000 = sequence.apply(pertEandIp(10,1000),0,10);
+
 
             /* Given the system <code>system</code>, the following instructions simulate <code>size</code> runs consisting in
               <code>RIGHT_BOUND</code> steps. At each step, the average value taken by each variable in the runs is printed out.
@@ -187,37 +176,56 @@ public class Isocitrate {
             L.add("EIp");
             L.add("EIpI");
 
-            //double[][] minMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
-            //double[][] pminMax = printLMinMaxData(new DefaultRandomGenerator(), L, F, psystem, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
-            //double[][] pminMaxC = printLMinMaxData(new DefaultRandomGenerator(), L, F, psystemC, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            double[][] minMax = printLMinMaxData(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
 
+            double[][] minMax_001_100 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(0.001,100));
+            double[][] minMax_001_500 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(0.001,500));
+            double[][] minMax_10_1000 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(10,1000));
 
-            double[][] minMax = printLMinMaxData(rand, L, F, systemC, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            double normalisation_001_100 = Math.max(minMax[1][I],minMax_001_100[1][I])*1.1;
+            double normalisation_001_500 = Math.max(minMax[1][I],minMax_001_500[1][I])*1.1;
+            double normalisation_10_1000 = Math.max(minMax[1][I],minMax_10_1000[1][I])*1.1;
 
+            DistanceExpression atomic_001_100 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_001_100,(v1, v2) -> Math.abs(v2-v1));
 
-            double[][] minMaxC_2 = printPerturbed(rand, L, F, systemC, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,badilate());
+            DistanceExpression atomic_001_500 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_001_500,(v1, v2) -> Math.abs(v2-v1));
 
+            DistanceExpression atomic_10_1000 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_10_1000,(v1, v2) -> Math.abs(v2-v1));
 
-            /* The following distance expression returns the maximum, in interval [LEFT_BOUND , RIGHT_BOUND], of the
-            absolute value of the difference of the value assumed by variable I in the nominal and in the perturbed system,
-            normalised by the width of the interval of values that I assumes in the nominal system in interval
-            [LEFT_BOUND , RIGHT_BOUND]. More precisely, if the interval is [m,M], the normalisation consists in dividing by
-            1.1M - 0.9m.
-            * */
-
-            double normalisation = Math.max(minMax[1][I],minMaxC_2[1][I])*1.1;
-
-
-            DistanceExpression distance = new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpression(ds->ds.get(I)/normalisation,(v1, v2) -> Math.abs(v2-v1)),
+            DistanceExpression distance_001_100 = new MaxIntervalDistanceExpression(
+                    atomic_001_100,
                     400,
                     RIGHT_BOUND);
 
-            //DistanceExpression distanceC = new MaxIntervalDistanceExpression(
-            //        new AtomicDistanceExpression(ds->ds.get(I)/(minMaxC[1][I]*1.1-minMaxC[0][I]*0.9),(v1, v2) -> Math.abs(v2-v1)),
-            //        LEFT_BOUND,
-            //        RIGHT_BOUND);
+            DistanceExpression distance_001_500 = new MaxIntervalDistanceExpression(
+                    atomic_001_500,
+                    400,
+                    RIGHT_BOUND);
 
+            DistanceExpression distance_10_1000 = new MaxIntervalDistanceExpression(
+                    atomic_10_1000,
+                    400,
+                    RIGHT_BOUND);
+
+            // Pointwise evaluation of distances
+
+            System.out.println("Starting evaluation of distances");
+
+            double[][] direct_evaluation_001_100 = new double[600][1];
+            double[][] direct_evaluation_001_500 = new double[600][1];
+            double[][] direct_evaluation_10_1000 = new double[600][1];
+
+            for (int i = 0; i<600; i++){
+                direct_evaluation_001_100[i][0] = atomic_001_100.compute(i+400, sequence, sequence_001_100);
+                direct_evaluation_001_500[i][0] = atomic_001_500.compute(i+400, sequence, sequence_001_500);
+                direct_evaluation_10_1000[i][0] = atomic_10_1000.compute(i+400, sequence, sequence_10_1000);
+            }
+
+            Util.writeToCSV("./atomic_001_100.csv",direct_evaluation_001_100);
+            Util.writeToCSV("./atomic_001_500.csv",direct_evaluation_001_500);
+            Util.writeToCSV("./atomic_10_1000.csv",direct_evaluation_10_1000);
+
+            System.out.println("Evaluation of distances completed");
 
             // ROBUSTNESS FORMULA
             /* The following formula tells us whether the difference expressed by <code>distance</cod> between the nominal
@@ -225,38 +233,51 @@ public class Isocitrate {
             of the formula is printed out by the subsequent two lines of code.
             */
 
-            RobustnessFormula robF = new AtomicRobustnessFormula(badilate(),
-                    distance,
+            RobustnessFormula robF_001_100 = new AtomicRobustnessFormula(pertEandIp(0.001,100),
+                    distance_001_100,
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     THRESHOLD);
 
-            RobustnessFormula always_robF = new AlwaysRobustnessFormula(
-                    robF,
+            RobustnessFormula always_robF_001_100 = new AlwaysRobustnessFormula(
+                    robF_001_100,
                     0,
-                    200
+                    100
             );
 
-            //DistanceExpression atomica = new AtomicDistanceExpression(ds->ds.get(I)/normalisation,(v1, v2) -> Math.abs(v2-v1));
-            //double[][] direct_evaluation = new double[3][3];
+            RobustnessFormula robF_001_500 = new AtomicRobustnessFormula(pertEandIp(0.001,500),
+                    distance_001_500,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    THRESHOLD);
 
-            //EvolutionSequence sequence_2 = sequence.apply(badilate(),0,10);
-            //for (int i = 0; i<3; i++){
-            //    double[] partial = atomica.evalCI(rand,i+400, sequence, sequence_2,3,1.96);
-            //    direct_evaluation[i][0] = partial[0];
-            //    direct_evaluation[i][1] = partial[1];
-            //    direct_evaluation[i][2] = partial[2];
-            //    System.out.println(direct_evaluation[i][0]+ " " +direct_evaluation[i][1]+ " " +direct_evaluation[i][2]);
-                //System.out.println(direct_evaluation[i][1]);
-                //System.out.println(direct_evaluation[i][2]);
-            //}
+            RobustnessFormula always_robF_001_500 = new AlwaysRobustnessFormula(
+                    robF_001_500,
+                    0,
+                    100
+            );
 
+            RobustnessFormula robF_10_1000 = new AtomicRobustnessFormula(pertEandIp(10,1000),
+                    distance_10_1000,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    THRESHOLD);
 
-            TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
-            System.out.println("\n robF evaluation at 0: " + value1);
+            RobustnessFormula always_robF_10_1000 = new AlwaysRobustnessFormula(
+                    robF_10_1000,
+                    0,
+                    100
+            );
 
-            //TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robFC).eval(5, 0, sequenceC);
-            //System.out.println("\n robF evaluation at 0: " + value2);
+            System.out.println("Starting evaluation of formulae");
 
+            TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_001_100).eval(5, 0, sequence);
+            System.out.println("\n always_robF_001_100 evaluation at 0: " + value1);
+
+            TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_001_500).eval(5, 0, sequence);
+            System.out.println("\n always_robF_001_500 evaluation at 0: " + value2);
+
+            TruthValues value3 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_10_1000).eval(5, 0, sequence);
+            System.out.println("\n always_robF_10_1000 evaluation at 0: " + value3);
+
+            System.out.println("Evaluation of formulae completed");
 
 
         } catch (RuntimeException e) {
@@ -346,60 +367,21 @@ public class Isocitrate {
     /* PERTURBATIONS:
     Perturbation <code>pertEandIp</code> perturbs the system state by applying function <code>changeEandIp</code> at the
     first computation step.
-    Perturbation <code>pertEandIp10</code> perturbs the system state by applying funciton <code>changeEandIp</code> at the
+    Perturbation <code>pertEandIp10</code> perturbs the system state by applying function <code>changeEandIp</code> at the
     10th computation step.
     Perturbation <code>pertEandIp10Iter</code> applies <code>pertEandIp10</code> for 5 times.
     */
 
-    public static Perturbation badilate(){
-        return new IterativePerturbation(10,new AtomicPerturbation(30,Isocitrate::moreIp));
+    public static Perturbation pertEandIp(double x, double y){
+        return new AtomicPerturbation(0, (rg,ds)->ds.apply(changeEandIp(rg,ds,x,y)));
     }
 
-    public static Perturbation pertEandIp(){
-        return new AtomicPerturbation(0,Isocitrate::changeEandIp );
-    }
-
-    public static Perturbation pertEandIpC(){
-        return new AtomicPerturbation(1,Isocitrate::changeEandIpC );
-    }
-
-    public static Perturbation pertEandIpIter(){
-        return new IterativePerturbation(5,pertEandIp10());
-    }
-
-    public static Perturbation pertEandIp10(){
-        return new AtomicPerturbation(10, Isocitrate::changeEandIp);
-    }
-
-    // FUNCTIONS SUPPORTING PERTURBATION
-    /*
-    The following function changes the values of E and Ip.
-    For each variable x, each value v is mapped to a value in [v/MAX_RED_x , v*MAX_PUSH_x].
-     */
-
-    private static DataState moreIp(RandomGenerator rg, DataState state){
+    private static List<DataStateUpdate> changeEandIp(RandomGenerator rg, DataState state, double x, double y) {
         List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(E,state.get(E) + 100.0));
-        updates.add(new DataStateUpdate(Ip, state.get(Ip) + 100.0));
-        return state.apply(updates);
+        updates.add(new DataStateUpdate(E,  x));
+        updates.add(new DataStateUpdate(Ip,  y));
+        return updates;
     }
-
-    private static DataState changeEandIp(RandomGenerator rg, DataState state) {
-        List<DataStateUpdate> updates = new LinkedList<>();
-        //updates.add(new DataStateUpdate(E, state.get(E)*30.0));
-        //updates.add(new DataStateUpdate(Ip, state.get(Ip)*30.0));
-        updates.add(new DataStateUpdate(E, state.get(E)/MAX_RED_E  + rg.nextDouble()*(state.get(E)*MAX_PUSH_E - state.get(E)/MAX_RED_E +1) ));
-        updates.add(new DataStateUpdate(Ip,state.get(Ip)/MAX_RED_Ip +  rg.nextDouble()*(state.get(Ip)*MAX_PUSH_Ip - state.get(Ip)/MAX_RED_Ip+1) ));
-        return state.apply(updates);
-    }
-
-    private static DataState changeEandIpC(RandomGenerator rg, DataState state) {
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(E, 10) );
-        updates.add(new DataStateUpdate(Ip,100));
-        return state.apply(updates);
-    }
-
 
     /*
     The following method selects the time of next reaction, according to Gillespie's algorithm.
