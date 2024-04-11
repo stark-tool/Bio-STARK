@@ -25,10 +25,7 @@ package it.unicam.quasylab.jspear.examples.vehicle;
 import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.NilController;
-import it.unicam.quasylab.jspear.distance.AtomicDistanceExpression;
-import it.unicam.quasylab.jspear.distance.DistanceExpression;
-import it.unicam.quasylab.jspear.distance.MaxIntervalDistanceExpression;
-import it.unicam.quasylab.jspear.distance.MinIntervalDistanceExpression;
+import it.unicam.quasylab.jspear.distance.*;
 import it.unicam.quasylab.jspear.ds.DataState;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import it.unicam.quasylab.jspear.ds.DataStateUpdate;
@@ -36,6 +33,7 @@ import it.unicam.quasylab.jspear.ds.RelationOperator;
 import it.unicam.quasylab.jspear.perturbation.AtomicPerturbation;
 import it.unicam.quasylab.jspear.perturbation.IterativePerturbation;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
+import it.unicam.quasylab.jspear.perturbation.SequentialPerturbation;
 import it.unicam.quasylab.jspear.robtl.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -49,7 +47,8 @@ public class Repressilator {
     THE TWO STATE MODEL OF THE REPRISSILATOR
 
     The "repressilator" network consists in 3 genes forming a directed cycle of "negative interactions".
-    As in "Herbach et al. BMC Systems Biology (2017) 11:105", we adopt the "two state model" of gene expression,
+    As in "Herbach et al: ''Inferring gene regulatory networks from single-cell data: a mechanistic approach'',
+    BMC Systems Biology (2017) 11:105", we adopt the "two state model" of gene expression,
     where the gene promoter can be either active or inactive, and we consider both  mRNA molecules, which can be
     transcribed only during the active period, and proteins, which are produced by mRNA molecules at a constant rate.
     For i=1,2,3 we have the following variables that will allow us to model the status of such a kind of system:
@@ -74,30 +73,35 @@ public class Repressilator {
 
     SPECIFYING THE TWO STATE MODEL OF THE REPRISSILATOR WITH CHEMICAL REACTIONS
 
-    As in "Herbach et al. BMC Systems Biology (2017) 11:105",
-    we use chemical reactions to specify the repressilator in the two state model approach.
+    As in "Herbach et al: ''Inferring gene regulatory networks from single-cell data: a mechanistic approach'',
+    BMC Systems Biology (2017) 11:105", we use chemical reactions for specifying the repressilator in the two state
+    model approach.
     In particular, reactions model the following dynamics:
-    - activation of the promoter, modelled by reaction Gi --koni--> AGi
-    - deactivation of the promoter, modelled by reaction AGi --koffi--> Gi,
-    - transcritpion, modelled by reaction AGi --s0i--> Xi + AGi,
-    - translation, modelled by reaction Xi --s1i--> Xi + Zi,
-    - mRNA degradation, modelled by reaction Xi --d0i--> empty set,
-    - protein degradation, modelled by reaction Zi --d1i--> empty set.
+    - activation of the promoter, modelled by reaction Gi -- koni --> AGi
+    - deactivation of the promoter, modelled by reaction AGi -- koffi --> Gi,
+    - transcritpion, modelled by reaction AGi -- s0i --> Xi + AGi,
+    - translation, modelled by reaction Xi -- s1i --> Xi + Zi,
+    - mRNA degradation, modelled by reaction Xi -- d0i --> empty set,
+    - protein degradation, modelled by reaction Zi -- d1i --> empty set.
     Therefore, for each gene we have 6 reactions.
-    The value of Z1,Z2,Z3 will impact on kon1,kon2,kon3,koff1,koff2,koff3 thus realising gene interaction.
+    Clearly, Xi and Zi are not conserved quantities, whereas Gi and AGi satisfy the conserved relation Gi + AGi = 1.
+    The value of Z1, Z2, Z3 will impact on kon1, kon2, kon3, thus realising gene interaction.
 
     */
 
 
     /*
 
-    Techincally, for each of the 18 reactions, we define two arrays.
+    ARRAYS REPRESENTING REACTANTS/PRODUCTS OF REACTIONS
+
+    Technically, for each of the 18 reactions, we define two arrays.
     Each of these arrays has 12 positions, which are associated to active promoters, inactive promoters and molecules.
     In particular, the 12 positions are for: G1, AG1, X1, Z1, G2, AG2, X2, Z2, G3, AG3, X3, Z3.
     Then, the two arrays for each reaction ri, with i=1,..,18, are:
     - ri_input: position j is 1 if the variable corresponding to position j is a reactant of the reaction
     - ro_output: position j is 1 if the variable corresponding to j is a product of the reaction
     The arrays are defined below.
+
     */
 
 
@@ -215,6 +219,9 @@ public class Repressilator {
 
 
     /*
+
+    VARIABLES MODELING THE STATUS OF THE SYSTEM
+
     Below a list of 30 variables, the idea being that the value of these 30 variables gives a data state, namely an
     instance of class <code>DataState</code> representing the status of all quantities of the system.
     We have variables for active and inactive promoters, mRNA, proteins and reaction rates. Reaction rates can vary
@@ -276,8 +283,12 @@ public class Repressilator {
     //public static double THETA3 = - 10;
 
     /*
+
+    CONSTANTS FOR COMPUTING THE BURST FREQUENCY
+
     The following constants will be used to derive the burst frequency of gene 1, gene 2 and gene 3 from
     the amount of proteins Z1, Z2, Z3.
+
     The values are taken from
     "Ulysse Herbach: ''Harissa: Stochastic Simulation and Inference of Gene Regulatory Networks Based on Transcriptional
     Bursting''. Proc. CMSB 2023".
@@ -285,16 +296,24 @@ public class Repressilator {
     public static final double K01 = 0.0; // minimal burst frequency
     public static double K11 = 2.0; // maximal burst frequency
     public static double BETA1 = 5; // basal activity gene 1
-    public static double THETA1 = - 10; // interation gene 1 --> gene i for i= 1,2,3
+    // public static double THETA1 = - 10; // interation gene 1 --> gene i for i= 1,2,3
     public static final double K02 = 0.0; // minimal burst frequency
     public static double K12 = 2.0; // maximal  burst frequency
     public static double BETA2 = 5; // basal activity gene 2
-    public static double THETA2 = - 10; // interation gene 2 --> gene i for i= 1,2,3
+    // public static double THETA2 = - 10; // interation gene 2 --> gene i for i= 1,2,3
     public static final double K03 = 0.0; // minimal burst frequency
     public static double K13 = 2.0; // maximal burst frequency
     public static double BETA3 = 5; // basal activity gene 3
-    public static double THETA3 = - 10; // interation gene 1 --> gene i for i= 1,2,3
-
+    // public static double THETA3 = - 10;
+    public static double THETA11 = 0; // interaction gene 1 --> gene 1
+    public static double THETA21 = 0; // interaction gene 2 --> gene 1
+    public static double THETA31 = -10; // interaction gene 3 --> gene 1
+    public static double THETA12 = -10; // interaction gene 1 --> gene 2
+    public static double THETA22 = 0; // interaction gene 2 --> gene 2
+    public static double THETA32 = 0; // interaction gene 3 --> gene 2
+    public static double THETA13 = 0; // interaction gene 1 --> gene 3
+    public static double THETA23 = -10; // interaction gene 2 --> gene 3
+    public static double THETA33 = 0; // interaction gene 3 --> gene 3
 
 
 
@@ -303,24 +322,27 @@ public class Repressilator {
         try {
 
 
-            RandomGenerator rand = new DefaultRandomGenerator();
-
             /*
-            Variable <code>size</code> gives the number of runs that are used to obtain an evolution sequence.
-            More in detail, an evolution sequence, modelled by class <code>EvolutionSequence</code>, is a sequence of
-            sample sets of system configurations, where configurations are modelled by class <code>TimedSystem</code>
-            and sample sets by class <code>SampleSet</code>.
-            In this context, <code>size</code> is the cardinality of those sample sets.
+
+            INITIAL CONFIGURATION
+
+            In order to perform simulations/analysis/model checking for a particular system, we need to create its
+            initial configuration, which is an instance of <code>TimedSystem>/code>
+
             */
-            int size = 100;
+
+
+
+
+
 
             /*
             One of the elements of a system configuration is the "controller", i.e. an instance of <code>Controller</code>.
             In this example we do not need controllers, therefore we use a controller that does nothing, i.e. an instance
             of <code>NilController</code>.
-            In other examples, controllers may be used to control the activity of a system.
+            In other case studies, controllers may be used to control the activity of a system.
             For instance, a scheduling of a therapy may be modelled by a controller.
-             */
+            */
             Controller controller = new NilController();
 
             /*
@@ -332,7 +354,7 @@ public class Repressilator {
             <code>getInitialState</code>, which will be defined later and assigns the initial value to all 30
             variables defined above.
              */
-            DataState state = getInitialState(rand,1.0,0.0,0.0,0.0);
+            DataState state = getInitialState(1.0,0.0,0.0,0.0);
 
             /*
             We define the <code>TimedSystem</code> <code>system</code>, which will be the starting configuration from
@@ -345,11 +367,34 @@ public class Repressilator {
             <code>ds</code> with the list of changes given by method <code><selectAndApplyReaction>/code>. Essentially,
             this static method, defined later, selects the next reaction among the 18 available according to Gillespie
             algorithm and realises the changes on variables that are consequence of the firing of the selected reactions,
-            i.e. reactants are removed from <code>ds</code> and products are added to <code>ds</code>,
+            i.e. reactants are removed from <code>ds</code> and products are added to <code>ds</code>. Moreover, since
+            proteins are among reactants/products and their amount impact on burst frequencies, also those will be
+            updated.
             - an expression over data states, which implements interface <code>DataStateExpression</code> and maps a
             data state <code>ds</code> to the time of next reaction.
              */
+            RandomGenerator rand = new DefaultRandomGenerator();
             TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
+
+
+
+            /*
+
+            EVOLUTION SEQUENCES
+
+            Having the initial configuration <code>system</code>, we can generate its behaviour, which means that
+            we can generate an evolution sequence.
+
+             */
+
+            /*
+            Variable <code>size</code> gives the number of runs that are used to obtain an evolution sequence.
+            More in detail, an evolution sequence, modelled by class <code>EvolutionSequence</code>, is a sequence of
+            sample sets of system configurations, where configurations are modelled by class <code>TimedSystem</code>
+            and sample sets by class <code>SampleSet</code>.
+            In this context, <code>size</code> is the cardinality of those sample sets.
+            */
+            int size = 100;
 
             /*
             The evolution sequence <code>sequence></code> created by the following instruction consists in a sequence of
@@ -361,6 +406,10 @@ public class Repressilator {
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
 
 
+            /*
+            Each expression in the following list <code>F</code> allows us to read the value of a given variable
+            from a data state
+             */
             ArrayList<DataStateExpression> F = new ArrayList<>();
             F.add(ds->ds.get(G1));
             F.add(ds->ds.get(AG1));
@@ -391,50 +440,80 @@ public class Repressilator {
             L.add("Z3      ");
 
 
-
             /*
 
-            ESTIMATING MIN/MAX VALUES FOR VARIABLES BY MEANS OF SIMULATIONS
+            EXPERIMENT #1
 
-            Here we introduce some code allowing us to perform two simulations, where simulating a system consists
-            in generating an evolution sequence from an initial distribution of configurations.
-            The target of these two simulations is to allow us to estimate the min and max value that can be taken by
-            variables Gi, AGi, Xi, Zi, i=1,2,3. In particular, we will exploit later the max value taken by Z1.
-            Both evolution sequences will consist of a sequence of 2000 sample sets of configurations
-            of cardinality <code>size</code>, with the first sample set consisting in <code>size</code>
-            copies of the configuration <code>system</code> defined above. This sample set represents the initial
-            distribution of the system, which is clearly a point (or Dirac) distribution.
+            We generate two evolution sequences from configuration <code>system</system>.
+            Both evolution sequences are sequences of length 200 of sample sets of cardinality <code>size</code> of
+            configurations, with the first sample set consisting in <code>size</code> copies of <code>system</code>.
             The second evolution sequence is perturbed by applying a perturbation, which is returned by static method
-            <code>p_rate()</code> defined later. Essentially, such a perturbation will slow down the rate of the
+            <code>pert_deg_Z1()</code> defined later. Essentially, such a perturbation will change the rate of the
             degradation of the protein obtained from the first gene. Since promoter parameters depend on the amount of
             proteins, this impact on the dynamics of the whole system.
+            For both evolution sequences, we print some information allowing us to observe the behaviour of both the
+            nominal and the perturbed system: for each step and for each variable, we print out the average value that
+            the variable assumes in the <code>size<code> configurations in the sample set obtained at that step.
+            Moreover, we print also the average value that the variables assume in all configurations in all sample sets
+            obtained in all steps.
+            Clearly, if the perturbation diminishes the degradation rate for Z1, then in the perturbed sequence we
+            observe higher values for Z1, lower values for Z2 and higher values for Z3.
+            On the contrary, if the perturbation augments the degradation rate for Z1, in the perturbed sequence we
+            observe lower values for Z1, higher values for Z2 and lower values for Z3.
+            The following two instructions
+
+            */
+
+            printAvgData(rand, L, F, system, 200, size, 0, 200);
+            printAvgDataPerturbed(rand, L, F, system, 200, size, 0, 200, pert_deg_Z1());
+
+
+
+
+            /*
+
+            EXPERIMENT #2
+
+
+            ESTIMATING BEHAVIOURAL DIFFERENCES BETWEEN NOMINAL AND PERTURBED EVOLUTION SEQUENCES
+
+            In this experiment we generate again a nominal and a perturbed evolution sequence as in EXPERIMENT 1.
+            Here, we aim to quantify the differences between those evolutions sequences, which correspond to the
+            behavioural distance between the nominal and the perturbed sequence.
+
              */
 
             /*
-            The following instruction generates the first evolution sequence and returns the array <code>vMax</code>
-            of size 12, where vMax[i] contains the maximal value assumed by the variable of index i over all
-            configurations of all sample sets.
-             */
-            double[] vMax = printLMaxData(rand, L, F, system, 2000, size, 0, 2000);
-
-            /*
-            The following instruction is analogous, but works on the perturbed sequence
-             */
-            double[] vMax_p = printPerturbed(rand, L, F, system, 2000, size, 0, 2000,p_rate());
-
+            We start with estimating the maximal values that can be assumed by variables Xi and Zi, i=1,2,3.
+            To this purpose, we generate a nominal and a perturbed evolution sequence of length 400 and collect the
+            maximal values that are assumed by these variables in all configurations in all sample sets.
+            In particular, the maximal value that is assumed by Z1, Z2, Z3 will be exploited to define a notion of distance
+            allowing us to compare nominal and perturbed sequences.
+            */
+            double[] dataMax = printMaxData(rand, L, F, system, 400, size, 0, 400);
+            double[] dataMax_p = printMaxDataPerturbed(rand, L, F, system, 400, size, 0, 400, pert_deg_Z1());
+            double normalisationZ1 = Math.max(dataMax[Z1],dataMax_p[Z1])*1.5;
+            double normalisationZ2 = Math.max(dataMax[Z2],dataMax_p[Z2])*1.5;
+            double normalisationZ3 = Math.max(dataMax[Z3],dataMax_p[Z3])*1.5;
+            //double[] vMax_pZ1Z2Z3 = printPerturbed(rand, L, F, system, 2000, size, 0, 2000,itProtDegRate());
+            //printAvgPerturbed(rand, L, F, system, 2000, size, 50, 2000,itProtDegRate());
             /*
             The maximum value for variable Z1 that has been obtained through previous simulations is used to compute a
             normalisation factor that will be used later.
             */
 
-            double normalisation = Math.max(vMax[Z1],vMax_p[Z1])*1.1;
+            /*
 
+
+            double normalisationPZ1 = Math.max(vMax[Z1],vMax_pZ1Z2Z3[Z1])*1.1;
+            double normalisationPZ2 = Math.max(vMax[Z2],vMax_pZ1Z2Z3[Z2])*1.1;
+            double normalisationPZ3 = Math.max(vMax[Z3],vMax_pZ1Z2Z3[Z3])*1.1;
+            */
 
 
 
 
             /*
-
             SIMULATION OF THE NETWORK
 
             The following instructions create an evolution sequence consisting of a sequence of <code>N</code> sample
@@ -444,7 +523,7 @@ public class Repressilator {
             for the amount of proteins Z1, Z2 and Z3.
             */
 
-            int N = 10000;
+            int N = 200;
             double[][] plot_z1 = new double[N][1];
             double[][] plot_z2 = new double[N][1];
             double[][] plot_z3 = new double[N][1];
@@ -469,7 +548,7 @@ public class Repressilator {
 
             /*
 
-            ESTIMATING BEHAVIOURAL DIFFERENCES BETWEEN NOMINAL AND PERTURBED EVOLUTION SEQUENCES
+
 
             The following instruction allows us to create the evolution sequence <code>sequence_p</code>, which is
             obtained from the evolution sequence <code>sequence</code> by applying a perturbation, where:
@@ -478,7 +557,9 @@ public class Repressilator {
             - the sample sets of configurations in <code>sequence_p</code> have a cardinality which corresponds to that
             of <code>sequence</code> multiplied by 10
             */
-            EvolutionSequence sequence_p = sequence.apply(p_rate(),0,10);
+            EvolutionSequence sequence_p = sequence.apply(pert_deg_Z1(),0,10);
+
+            EvolutionSequence sequence_pDZ1Z2Z3 = sequence.apply(itProtDegRate() ,0,10);
 
 
             /*
@@ -496,7 +577,37 @@ public class Repressilator {
             Finally, bla bla bla
             */
 
+            /*
             DistanceExpression phases = new MaxIntervalDistanceExpression(
+                    new AtomicDistanceExpression(ds->ds.get(Z1)/normalisationZ1,(v1, v2) -> Math.abs(v2-v1)),
+                    300,
+                    1000
+            );
+
+            DistanceExpression protsLevel = new MaxDistanceExpression(
+                    new MaxIntervalDistanceExpression(
+                          new  AtomicDistanceExpression(ds->ds.get(Z1)/normalisationPZ1,(v1, v2) -> Math.abs(v2-v1)),
+                     300,
+                     2000
+                    ),
+                    new MaxDistanceExpression(
+                            new MaxIntervalDistanceExpression(
+                            new  AtomicDistanceExpression(ds->ds.get(Z2)/normalisationPZ2,(v1, v2) -> Math.abs(v2-v1)),
+                            300,
+                            2000
+                            ),
+                            new MaxIntervalDistanceExpression(
+                            new  AtomicDistanceExpression(ds->ds.get(Z3)/normalisationPZ3,(v1, v2) -> Math.abs(v2-v1)),
+                            300,
+                            2000
+                            )
+                    )
+            );
+
+
+           */
+
+            /*DistanceExpression phases = new MaxIntervalDistanceExpression(
                     new MinIntervalDistanceExpression(
                             new AtomicDistanceExpression(ds->ds.get(Z1)/normalisation,(v1, v2) -> Math.abs(v2-v1)),
                             0,
@@ -505,37 +616,127 @@ public class Repressilator {
                     300,
                     1000
             );
+            */
 
+            /*
             System.out.println(" ");
             System.out.printf("%s \n", "The behavioural distance between the nominal and the perturbed sequence is: ");
             System.out.println(phases.compute(0, sequence, sequence_p));
 
+            System.out.println(" ");
+            System.out.printf("%s \n", "The behavioural distance between the nominal and the perturbed sequence is: ");
+            System.out.println(protsLevel.compute(0, sequence, sequence_pDZ1Z2Z3));
+            */
+
+            /*
 
             RobustnessFormula robF = new AtomicRobustnessFormula(p_rate(),
                     phases,
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     0.040);
 
-            /*
-            RobustnessFormula always_robF = new AlwaysRobustnessFormula(
-                    robF,
-                    0,
-                    200
-            );
-             */
+
+
+
+
+
 
             TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
             System.out.println(" ");
             System.out.println("\n robF evaluation at 0: " + value1);
-
-
-
-
-
+            */
 
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
+    }
+
+
+
+
+
+    /*
+    The following method generates an evolution sequence consisting of a sequence of <code>steps</code> sample sets
+    of cardinality <code>size</code>, with the first sample set consisting in <code>size</code> copies of configuration
+    <code>s</code>.
+    For each sample set, all expressions over data states in <code>F</code> are evaluated on all configurations and
+    their average value are printed out.
+    The method returns the average evaluation that each expression in <code>F</code> gets in all configurations in all
+    sample sets that are in the sequence in between positions <code>leftbound</code> and <code>rightbound</code>
+     */
+    private static double[] printAvgData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
+        System.out.println("");
+        System.out.println("Simulation of NON perturbed system");
+        System.out.println("");
+        System.out.println(label);
+        /*
+        The following instruction creates an evolution sequence consisting in a sequence of <code>steps</code> sample
+        sets of cardinality <size>.
+        The first sample set contains <code>size</code> copies of configuration <code>s</code>.
+        The subsequent sample sets are derived by simulating the dynamics.
+        For each step from 1 to <code>steps</code> and for each variable, the average value taken by the
+        variables in the elements of the sample set at each step are printed out.
+         */
+        double[][] data_avg = SystemState.sample(rg, F, s, steps, size);
+        double[] tot = new double[F.size()];
+        Arrays.fill(tot, 0);
+        for (int i = 0; i < data_avg.length; i++) {
+            System.out.printf("%d>   ", i);
+            for (int j = 0; j < data_avg[i].length -1 ; j++) {
+                System.out.printf("%f   ", data_avg[i][j]);
+                if (leftbound <= i & i <= rightbound) {
+                    tot[j]=tot[j]+data_avg[i][j];
+                }
+            }
+            System.out.printf("%f\n", data_avg[i][data_avg[i].length -1]);
+            if (leftbound <= i & i <= rightbound) {
+                tot[data_avg[i].length -1]=tot[data_avg[i].length -1]+data_avg[i][data_avg[i].length -1];
+            }
+        }
+        System.out.println(" ");
+        System.out.println("Avg over all steps of the average values taken in the single step by the variables:");
+        for(int j=0; j<tot.length-1; j++){
+            System.out.printf("%f   ", tot[j] / (rightbound-leftbound));
+        }
+        System.out.printf("%f\n", tot[tot.length-1]/ (rightbound-leftbound));
+        System.out.println("");
+        System.out.println("");
+        return tot;
+    }
+
+
+    private static double[] printAvgDataPerturbed(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound, Perturbation perturbation){
+        System.out.println("");
+        System.out.println("Simulation of perturbed system");
+        System.out.println("");
+        System.out.println(label);
+
+        double[] tot = new double[F.size()];
+
+        double[][] data_avg = SystemState.sample(rg, F, perturbation, s, steps, size);
+        Arrays.fill(tot, 0);
+        for (int i = 0; i < data_avg.length; i++) {
+            System.out.printf("%d>   ", i);
+            for (int j = 0; j < data_avg[i].length -1 ; j++) {
+                System.out.printf("%f   ", data_avg[i][j]);
+                if (leftbound <= i & i <= rightbound) {
+                    tot[j]=tot[j]+data_avg[i][j];
+                }
+            }
+            System.out.printf("%f\n", data_avg[i][data_avg[i].length -1]);
+            if (leftbound <= i & i <= rightbound) {
+                tot[data_avg[i].length -1]=tot[data_avg[i].length -1]+data_avg[i][data_avg[i].length -1];
+            }
+        }
+        System.out.println("");
+        System.out.println("Max over all steps of the average values taken in the single step by the variables:");
+        for(int j=0; j<tot.length-1; j++){
+            System.out.printf("%f   ", tot[j] / (rightbound-leftbound));
+        }
+        System.out.printf("%f\n", tot[tot.length-1]/ (rightbound-leftbound));
+        System.out.println("");
+        return tot;
+
     }
 
     /*
@@ -545,7 +746,9 @@ public class Repressilator {
     evaluated. the method returns the max evaluation that each expression in <code>F</code> gives in all sample sets
     that are in the sequence in between positions <code>leftbound</code> and <code>rightbound</code>
      */
-    private static double[] printLMaxData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
+
+
+    private static double[] printMaxData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
         System.out.println("");
         System.out.println("Simulation of NON perturbed system");
         System.out.println("");
@@ -563,16 +766,16 @@ public class Repressilator {
         double[] max = new double[F.size()];
         Arrays.fill(max, Double.NEGATIVE_INFINITY);
         for (int i = 0; i < data_max.length; i++) {
-            System.out.printf("%d>   ", i);
+            //System.out.printf("%d>   ", i);
             for (int j = 0; j < data_max[i].length -1 ; j++) {
-                System.out.printf("%f   ", data_max[i][j]);
+                S//ystem.out.printf("%f   ", data_max[i][j]);
                 if (leftbound <= i & i <= rightbound) {
                     if (max[j] < data_max[i][j]) {
                         max[j] = data_max[i][j];
                     }
                 }
             }
-            System.out.printf("%f\n", data_max[i][data_max[i].length -1]);
+            //System.out.printf("%f\n", data_max[i][data_max[i].length -1]);
             if (leftbound <= i & i <= rightbound) {
                 if (max[data_max[i].length -1] < data_max[i][data_max[i].length -1]) {
                     max[data_max[i].length -1] = data_max[i][data_max[i].length -1];
@@ -580,7 +783,7 @@ public class Repressilator {
             }
         }
         System.out.println(" ");
-        System.out.println("Maximal values taken by variables in 2000 steps by the non perturbed system:");
+        System.out.println("Maximal values taken by variables by the non perturbed system:");
         for(int j=0; j<max.length-1; j++){
             System.out.printf("%f   ", max[j]);
         }
@@ -590,7 +793,8 @@ public class Repressilator {
         return max;
     }
 
-    private static double[] printPerturbed(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound, Perturbation perturbation){
+
+    private static double[] printMaxDataPerturbed(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound, Perturbation perturbation){
         System.out.println("");
         System.out.println("Simulation of perturbed system");
         System.out.println("");
@@ -598,20 +802,19 @@ public class Repressilator {
 
         double[] max = new double[F.size()];
 
-
         double[][] data_max = SystemState.sample_max(rg, F, perturbation, s, steps, size);
         Arrays.fill(max, Double.NEGATIVE_INFINITY);
         for (int i = 0; i < data_max.length; i++) {
-            System.out.printf("%d>   ", i);
+            //System.out.printf("%d>   ", i);
             for (int j = 0; j < data_max[i].length -1 ; j++) {
-                System.out.printf("%f   ", data_max[i][j]);
+                //System.out.printf("%f   ", data_max[i][j]);
                 if (leftbound <= i & i <= rightbound) {
                     if (max[j] < data_max[i][j]) {
                         max[j] = data_max[i][j];
                     }
                 }
             }
-            System.out.printf("%f\n", data_max[i][data_max[i].length -1]);
+            //System.out.printf("%f\n", data_max[i][data_max[i].length -1]);
             if (leftbound <= i & i <= rightbound) {
                 if (max[data_max[i].length -1] < data_max[i][data_max[i].length -1]) {
                     max[data_max[i].length -1] = data_max[i][data_max[i].length -1];
@@ -629,6 +832,9 @@ public class Repressilator {
 
     }
 
+
+
+
     /*
     The following method returns a perturbation. In particular this is an atomic perturbation, i.e. an instance of
     <code>AtomicPerturbation</code>. It consists of two elements:
@@ -636,21 +842,45 @@ public class Repressilator {
     method <code>p_rate()>/code>.
     - the number of steps after which the random function will be applied, which is 0 in this case.
      */
-    public static Perturbation p_rate(){
-        return new AtomicPerturbation(0,Repressilator::slow);
+    public static Perturbation pert_deg_Z1(){
+        return new AtomicPerturbation(0,Repressilator::changeDZ1);
     }
 
+    public static Perturbation itProtDegRate(){
+        return new IterativePerturbation(3,
+                new SequentialPerturbation(
+                        new AtomicPerturbation(100,Repressilator::slowDZ1Z2Z3),
+                        new AtomicPerturbation(200,Repressilator::fastDZ1Z2Z3)
+                )
+        );
+    }
     /*
     Method <code>slow>/code> perturbs a data state by modifying the rate constant of degratation of protein constructed
     from gene 1
      */
-    private static DataState slow(RandomGenerator rg, DataState state){
+
+    private static DataState changeDZ1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)-3,0)));
-        //updates.add(new DataStateUpdate(s12,Math.max(state.get(s12)-1,0)));
-        //updates.add(new DataStateUpdate(s13,Math.max(state.get(s13)-1,0)));
+        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)+6,0)));
         return state.apply(updates);
     }
+    private static DataState slowDZ1Z2Z3(RandomGenerator rg, DataState state){
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)-0,0)));
+        updates.add(new DataStateUpdate(s12,Math.max(state.get(s12)+0,0)));
+        updates.add(new DataStateUpdate(s13,Math.max(state.get(s13)+0,0)));
+        return state.apply(updates);
+    }
+
+    private static DataState fastDZ1Z2Z3(RandomGenerator rg, DataState state){
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)+0,0)));
+        updates.add(new DataStateUpdate(s12,Math.max(state.get(s12)+0,0)));
+        updates.add(new DataStateUpdate(s13,Math.max(state.get(s13)+0,0)));
+        return state.apply(updates);
+    }
+
+
 
 
     /*
@@ -827,23 +1057,30 @@ public class Repressilator {
             System.out.println("Missing reagents");
         }
 
-        double new_kon1 = (K01 + K11 * Math.exp(BETA1 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)))/(1+Math.exp(BETA1 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)));
+        //double new_kon1 = (K01 + K11 * Math.exp(BETA1 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)))/(1+Math.exp(BETA1 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)));
+        double new_kon1 = (K01 + K11 * Math.exp(BETA1 + THETA11*state.get(Z1) + THETA21*state.get(Z2) + THETA31*state.get(Z3)))/(1+Math.exp(BETA1 + THETA11*state.get(Z1) + THETA21*state.get(Z2) + THETA31*state.get(Z3)));
         updates.add(new DataStateUpdate(kon1,new_kon1));
 
-        double new_kon2 = (K02 + K12 * Math.exp(BETA2 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)))/(1+Math.exp(BETA2 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)));
+        double new_kon2 = (K02 + K12 * Math.exp(BETA2 + THETA12*state.get(Z1) + THETA22*state.get(Z2) + THETA32*state.get(Z3)))/(1+Math.exp(BETA2 + THETA12*state.get(Z1) + THETA22*state.get(Z2) + THETA32*state.get(Z3)));
         updates.add(new DataStateUpdate(kon2,new_kon2));
 
-        double new_kon3 = (K03 + K13 * Math.exp(BETA3 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)))/(1+Math.exp(BETA3 + THETA1*state.get(Z1) + THETA2*state.get(Z2) + THETA3*state.get(Z3)));
+        double new_kon3 = (K03 + K13 * Math.exp(BETA3 + THETA13*state.get(Z1) + THETA23*state.get(Z2) + THETA33*state.get(Z3)))/(1+Math.exp(BETA3 + THETA13*state.get(Z1) + THETA23*state.get(Z2) + THETA33*state.get(Z3)));
         updates.add(new DataStateUpdate(kon3,new_kon3));
 
         return updates;
 
     }
 
+
+
+
+
+
+
     /*
     Method getInitialState assigns the initial value to all variables
     */
-    public static DataState getInitialState(RandomGenerator rand, double gran, double Tstep, double Treal, double Tdelta) {
+    public static DataState getInitialState(double gran, double Tstep, double Treal, double Tdelta) {
         Map<Integer, Double> values = new HashMap<>();
 
         // the system starts with all promoters inactive, no mRNA molecule and no protein
