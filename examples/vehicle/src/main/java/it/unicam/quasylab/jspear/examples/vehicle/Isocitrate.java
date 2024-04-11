@@ -105,7 +105,7 @@ public class Isocitrate {
 
     public static final double THRESHOLD = 0.03;
 
-    public static final int LEFT_BOUND = 700;
+    public static final int LEFT_BOUND = 400;
 
     public static final int RIGHT_BOUND = 1000;
 
@@ -151,6 +151,9 @@ public class Isocitrate {
             EvolutionSequence sequence_001_100 = sequence.apply(pertEandIp(0.001,100),0,10);
             EvolutionSequence sequence_001_500 = sequence.apply(pertEandIp(0.001,500),0,10);
             EvolutionSequence sequence_10_1000 = sequence.apply(pertEandIp(10,1000),0,10);
+            EvolutionSequence sequence_1_500 = sequence.apply(pertEandIp(1,500),0,10);
+            EvolutionSequence sequence_10_100 = sequence.apply(pertEandIp(10,100),0,10);
+            EvolutionSequence sequence_50_300 = sequence.apply(pertEandIp(50,300),0,10);
 
 
             /* Given the system <code>system</code>, the following instructions simulate <code>size</code> runs consisting in
@@ -186,11 +189,25 @@ public class Isocitrate {
             double normalisation_001_500 = Math.max(minMax[1][I],minMax_001_500[1][I])*1.1;
             double normalisation_10_1000 = Math.max(minMax[1][I],minMax_10_1000[1][I])*1.1;
 
+            double[][] minMax_1_500 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(1,500));
+            double[][] minMax_10_100 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(10,100));
+            double[][] minMax_50_300 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(50,300));
+
+            double normalisation_1_500 = Math.max(minMax[1][I],minMax_1_500[1][I])*1.1;
+            double normalisation_10_100 = Math.max(minMax[1][I],minMax_10_100[1][I])*1.1;
+            double normalisation_50_300 = Math.max(minMax[1][I],minMax_50_300[1][I])*1.1;
+
             DistanceExpression atomic_001_100 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_001_100,(v1, v2) -> Math.abs(v2-v1));
 
             DistanceExpression atomic_001_500 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_001_500,(v1, v2) -> Math.abs(v2-v1));
 
             DistanceExpression atomic_10_1000 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_10_1000,(v1, v2) -> Math.abs(v2-v1));
+
+            DistanceExpression atomic_1_500 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_1_500,(v1, v2) -> Math.abs(v2-v1));
+
+            DistanceExpression atomic_10_100 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_10_100,(v1, v2) -> Math.abs(v2-v1));
+
+            DistanceExpression atomic_50_300 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_50_300,(v1, v2) -> Math.abs(v2-v1));
 
             DistanceExpression distance_001_100 = new MaxIntervalDistanceExpression(
                     atomic_001_100,
@@ -207,23 +224,49 @@ public class Isocitrate {
                     400,
                     RIGHT_BOUND);
 
+            DistanceExpression distance_1_500 = new MaxIntervalDistanceExpression(
+                    atomic_1_500,
+                    400,
+                    RIGHT_BOUND);
+
+            DistanceExpression distance_10_100 = new MaxIntervalDistanceExpression(
+                    atomic_10_100,
+                    400,
+                    RIGHT_BOUND);
+
+            DistanceExpression distance_50_300 = new MaxIntervalDistanceExpression(
+                    atomic_50_300,
+                    400,
+                    RIGHT_BOUND);
+
             // Pointwise evaluation of distances
 
             System.out.println("Starting evaluation of distances");
 
-            double[][] direct_evaluation_001_100 = new double[600][1];
-            double[][] direct_evaluation_001_500 = new double[600][1];
-            double[][] direct_evaluation_10_1000 = new double[600][1];
+            double[][] direct_evaluation_001_100 = new double[1000][1];
+            double[][] direct_evaluation_001_500 = new double[1000][1];
+            double[][] direct_evaluation_10_1000 = new double[1000][1];
+            double[][] direct_evaluation_1_500 = new double[1000][1];
+            double[][] direct_evaluation_10_100 = new double[1000][1];
+            double[][] direct_evaluation_50_300 = new double[1000][1];
 
-            for (int i = 0; i<600; i++){
-                direct_evaluation_001_100[i][0] = atomic_001_100.compute(i+400, sequence, sequence_001_100);
-                direct_evaluation_001_500[i][0] = atomic_001_500.compute(i+400, sequence, sequence_001_500);
-                direct_evaluation_10_1000[i][0] = atomic_10_1000.compute(i+400, sequence, sequence_10_1000);
+
+            for (int i = 0; i<1000; i++){
+                direct_evaluation_001_100[i][0] = atomic_001_100.compute(i+200, sequence, sequence_001_100);
+                direct_evaluation_001_500[i][0] = atomic_001_500.compute(i+200, sequence, sequence_001_500);
+                direct_evaluation_10_1000[i][0] = atomic_10_1000.compute(i+200, sequence, sequence_10_1000);
+
+                direct_evaluation_1_500[i][0] = atomic_1_500.compute(i+200, sequence, sequence_1_500);
+                direct_evaluation_10_100[i][0] = atomic_10_100.compute(i+200, sequence, sequence_10_100);
+                direct_evaluation_50_300[i][0] = atomic_50_300.compute(i+200, sequence, sequence_50_300);
             }
 
             Util.writeToCSV("./atomic_001_100.csv",direct_evaluation_001_100);
             Util.writeToCSV("./atomic_001_500.csv",direct_evaluation_001_500);
             Util.writeToCSV("./atomic_10_1000.csv",direct_evaluation_10_1000);
+            Util.writeToCSV("./atomic_1_500.csv",direct_evaluation_1_500);
+            Util.writeToCSV("./atomic_10_100.csv",direct_evaluation_10_100);
+            Util.writeToCSV("./atomic_50_300.csv",direct_evaluation_50_300);
 
             System.out.println("Evaluation of distances completed");
 
@@ -238,44 +281,51 @@ public class Isocitrate {
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     THRESHOLD);
 
-            RobustnessFormula always_robF_001_100 = new AlwaysRobustnessFormula(
-                    robF_001_100,
-                    0,
-                    100
-            );
-
             RobustnessFormula robF_001_500 = new AtomicRobustnessFormula(pertEandIp(0.001,500),
                     distance_001_500,
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     THRESHOLD);
-
-            RobustnessFormula always_robF_001_500 = new AlwaysRobustnessFormula(
-                    robF_001_500,
-                    0,
-                    100
-            );
 
             RobustnessFormula robF_10_1000 = new AtomicRobustnessFormula(pertEandIp(10,1000),
                     distance_10_1000,
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     THRESHOLD);
 
-            RobustnessFormula always_robF_10_1000 = new AlwaysRobustnessFormula(
-                    robF_10_1000,
-                    0,
-                    100
-            );
+            RobustnessFormula robF_1_500 = new AtomicRobustnessFormula(pertEandIp(1,500),
+                    distance_1_500,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    THRESHOLD);
+
+            RobustnessFormula robF_10_100 = new AtomicRobustnessFormula(pertEandIp(10,100),
+                    distance_10_100,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    THRESHOLD);
+
+            RobustnessFormula robF_50_300 = new AtomicRobustnessFormula(pertEandIp(50,300),
+                    distance_50_300,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    THRESHOLD);
 
             System.out.println("Starting evaluation of formulae");
 
             TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_001_100).eval(5, 0, sequence);
-            System.out.println("\n always_robF_001_100 evaluation at 0: " + value1);
+            System.out.println("\n robF_001_100 evaluation at 0: " + value1);
 
             TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_001_500).eval(5, 0, sequence);
-            System.out.println("\n always_robF_001_500 evaluation at 0: " + value2);
+            System.out.println("\n robF_001_500 evaluation at 0: " + value2);
 
             TruthValues value3 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_10_1000).eval(5, 0, sequence);
-            System.out.println("\n always_robF_10_1000 evaluation at 0: " + value3);
+            System.out.println("\n robF_10_1000 evaluation at 0: " + value3);
+
+            TruthValues value4 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_1_500).eval(5, 0, sequence);
+            System.out.println("\n robF_001_100 evaluation at 0: " + value4);
+
+            TruthValues value5 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_10_100).eval(5, 0, sequence);
+            System.out.println("\n robF_001_500 evaluation at 0: " + value5);
+
+            TruthValues value6 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_50_300).eval(5, 0, sequence);
+            System.out.println("\n robF_10_1000 evaluation at 0: " + value6);
+
 
             System.out.println("Evaluation of formulae completed");
 
