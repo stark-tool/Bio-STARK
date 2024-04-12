@@ -267,7 +267,7 @@ public class Repressilator {
 
     private static final int NUMBER_OF_VARIABLES = 30;
 
-    public static final double THRESHOLD = 0.19;
+
 
     //public static final double K01 = 0.34;
     //public static double K11 = 2.15;
@@ -444,86 +444,34 @@ public class Repressilator {
 
             EXPERIMENT #1
 
-            We generate two evolution sequences from configuration <code>system</system>.
-            Both evolution sequences are sequences of length 200 of sample sets of cardinality <code>size</code> of
+            In this experiment we generate two evolution sequences from configuration <code>system</system>.
+            Both evolution sequences are sequences of length N of sample sets of cardinality <code>size</code> of
             configurations, with the first sample set consisting in <code>size</code> copies of <code>system</code>.
-            The second evolution sequence is perturbed by applying a perturbation, which is returned by static method
+            The second evolution sequence is perturbed by applying the perturbation returned by the static method
             <code>pert_deg_Z1()</code> defined later. Essentially, such a perturbation will change the rate of the
             degradation of the protein obtained from the first gene. Since promoter parameters depend on the amount of
-            proteins, this impact on the dynamics of the whole system.
-            For both evolution sequences, we print some information allowing us to observe the behaviour of both the
-            nominal and the perturbed system: for each step and for each variable, we print out the average value that
-            the variable assumes in the <code>size<code> configurations in the sample set obtained at that step.
-            Moreover, we print also the average value that the variables assume in all configurations in all sample sets
-            obtained in all steps.
+            proteins, this perturbation impact on the dynamics of the whole system.
+            For both evolution sequences, we print some information allowing us to observe the dynamics of both the
+            nominal and the perturbed system: for each time unit in [0,N-1] and and for each variable, we print out
+            the average value that the variable assumes in the <code>size<code> configurations in the sample set
+            obtained at that time unit.
+            After that, we print out also the average value that the variables assume in all configurations in all
+            sample sets obtained in all time units.
             Clearly, if the perturbation diminishes the degradation rate for Z1, then in the perturbed sequence we
             observe higher values for Z1, lower values for Z2 and higher values for Z3.
             On the contrary, if the perturbation augments the degradation rate for Z1, in the perturbed sequence we
             observe lower values for Z1, higher values for Z2 and lower values for Z3.
-            The following two instructions
 
             */
-
-            printAvgData(rand, L, F, system, 200, size, 0, 200);
-            printAvgDataPerturbed(rand, L, F, system, 200, size, 0, 200, pert_deg_Z1());
-
-
-
-
-            /*
-
-            EXPERIMENT #2
-
-
-            ESTIMATING BEHAVIOURAL DIFFERENCES BETWEEN NOMINAL AND PERTURBED EVOLUTION SEQUENCES
-
-            In this experiment we generate again a nominal and a perturbed evolution sequence as in EXPERIMENT 1.
-            Here, we aim to quantify the differences between those evolutions sequences, which correspond to the
-            behavioural distance between the nominal and the perturbed sequence.
-
-             */
-
-            /*
-            We start with estimating the maximal values that can be assumed by variables Xi and Zi, i=1,2,3.
-            To this purpose, we generate a nominal and a perturbed evolution sequence of length 400 and collect the
-            maximal values that are assumed by these variables in all configurations in all sample sets.
-            In particular, the maximal value that is assumed by Z1, Z2, Z3 will be exploited to define a notion of distance
-            allowing us to compare nominal and perturbed sequences.
-            */
-            double[] dataMax = printMaxData(rand, L, F, system, 400, size, 0, 400);
-            double[] dataMax_p = printMaxDataPerturbed(rand, L, F, system, 400, size, 0, 400, pert_deg_Z1());
-            double normalisationZ1 = Math.max(dataMax[Z1],dataMax_p[Z1])*1.5;
-            double normalisationZ2 = Math.max(dataMax[Z2],dataMax_p[Z2])*1.5;
-            double normalisationZ3 = Math.max(dataMax[Z3],dataMax_p[Z3])*1.5;
-            //double[] vMax_pZ1Z2Z3 = printPerturbed(rand, L, F, system, 2000, size, 0, 2000,itProtDegRate());
-            //printAvgPerturbed(rand, L, F, system, 2000, size, 50, 2000,itProtDegRate());
-            /*
-            The maximum value for variable Z1 that has been obtained through previous simulations is used to compute a
-            normalisation factor that will be used later.
-            */
-
-            /*
-
-
-            double normalisationPZ1 = Math.max(vMax[Z1],vMax_pZ1Z2Z3[Z1])*1.1;
-            double normalisationPZ2 = Math.max(vMax[Z2],vMax_pZ1Z2Z3[Z2])*1.1;
-            double normalisationPZ3 = Math.max(vMax[Z3],vMax_pZ1Z2Z3[Z3])*1.1;
-            */
-
-
-
-
-            /*
-            SIMULATION OF THE NETWORK
-
-            The following instructions create an evolution sequence consisting of a sequence of <code>N</code> sample
-            sets of configurations, where each sample set has cardinality <code>size</code>.
-            The first sample set contains <code>size</code> copies of configuration <code>system</code>.
-            Then, we plot the average values obtained at each step over the <code>size</code> configurations
-            for the amount of proteins Z1, Z2 and Z3.
-            */
-
             int N = 200;
+            printAvgData(rand, L, F, system, N, size, 0, 200);
+            printAvgDataPerturbed(rand, L, F, system, N, size, 0, 200, pert_deg_Z1());
+
+            /*
+            While in the previous three lines of code the average values of variables obtained step-by-step are
+            printed out, the following portion of code stores them in .csv files. This is useful if we need to plot them.
+            */
+
             double[][] plot_z1 = new double[N][1];
             double[][] plot_z2 = new double[N][1];
             double[][] plot_z3 = new double[N][1];
@@ -546,105 +494,193 @@ public class Repressilator {
             Util.writeToCSV("./new_plotX2.csv",plot_x2);
             Util.writeToCSV("./new_plotX3.csv",plot_x3);
 
+            double[][] plot_pz1 = new double[N][1];
+            double[][] plot_pz2 = new double[N][1];
+            double[][] plot_pz3 = new double[N][1];
+            double[][] plot_px1 = new double[N][1];
+            double[][] plot_px2 = new double[N][1];
+            double[][] plot_px3 = new double[N][1];
+            double[][] pdata = SystemState.sample(rand, F, system, N, size);
+            for (int i = 0; i<N; i++){
+                plot_pz1[i][0] = pdata[i][3];
+                plot_pz2[i][0] = pdata[i][7];
+                plot_pz3[i][0] = pdata[i][11];
+                plot_px1[i][0] = pdata[i][2];
+                plot_px2[i][0] = pdata[i][6];
+                plot_px3[i][0] = pdata[i][10];
+            }
+            Util.writeToCSV("./new_pplotZ1.csv",plot_z1);
+            Util.writeToCSV("./new_pplotZ2.csv",plot_z2);
+            Util.writeToCSV("./new_pplotZ3.csv",plot_z3);
+            Util.writeToCSV("./new_pplotX1.csv",plot_x1);
+            Util.writeToCSV("./new_pplotX2.csv",plot_x2);
+            Util.writeToCSV("./new_pplotX3.csv",plot_x3);
+
+
+
+
+
+
             /*
 
+            EXPERIMENT #2
 
 
+            ESTIMATING AND CHECKING THE BEHAVIOURAL DIFFERENCES BETWEEN NOMINAL AND PERTURBED EVOLUTION SEQUENCES
+
+
+            In this experiment we generate again a nominal and a perturbed evolution sequence, as in EXPERIMENT 1.
+            Then, we quantify the differences between those evolutions sequences, which corresponds to quantifying the
+            behavioural distance between the nominal and the perturbed sequence. The differences are quantified with
+            respect to the amount of protein Z1.
+            Then, we write down a robustness formula that simply expresses whether such a distance is below a given
+            threshold.
+
+             */
+
+
+            /*
+            In order to quantify the difference between two evolution sequences w.r.t. Z1, we need to define the
+            difference between two configurations w.r.t. Z1: given two configurations with Z1=m and Z1=n, the
+            difference between those configurations w.r.t. Z1 is the value |m-n|, normalised wrt the maximal value that
+            can be assumed by Z1, so that this difference is always in [0,1].
+            Since we cannot know a priori which is the maximal value that can be assumed by Z1, we estimate it.
+
+            We start with estimating the maximal values that can be assumed by all variables.
+            To this purpose, we generate a nominal and a perturbed evolution sequence of length 5*N and collect the
+            maximal values that are assumed by the variables in all configurations in all sample sets.
+            */
+            double[] dataMax = printMaxData(rand, L, F, system, 5*N, size, 20, 400);
+            double[] dataMax_p = printMaxDataPerturbed(rand, L, F, system, 5*N, size, 20, 400, pert_deg_Z1());
+
+            double normalisationZ1 = Math.max(dataMax[Z1],dataMax_p[Z1])*1.2;
+            double normalisationZ2 = Math.max(dataMax[Z2],dataMax_p[Z2])*1.2;
+            double normalisationZ3 = Math.max(dataMax[Z3],dataMax_p[Z3])*1.2;
+
+            /*
             The following instruction allows us to create the evolution sequence <code>sequence_p</code>, which is
             obtained from the evolution sequence <code>sequence</code> by applying a perturbation, where:
-            - the perturbation is returned by static method <code>p_rate()</code> defined later
+            - as in EXPERIMENT #1 the perturbation is returned by the static method <code>pert_deg_Z1()</code> defined later
             - the perturbation is applied at step 0
             - the sample sets of configurations in <code>sequence_p</code> have a cardinality which corresponds to that
-            of <code>sequence</code> multiplied by 10
+            of <code>sequence</code> multiplied by <code>scale>/code>
             */
-            EvolutionSequence sequence_p = sequence.apply(pert_deg_Z1(),0,10);
-
-            EvolutionSequence sequence_pDZ1Z2Z3 = sequence.apply(itProtDegRate() ,0,10);
-
-
+            int scale=4;
+            EvolutionSequence sequence_p = sequence.apply(pert_deg_Z1(),0,scale);
             /*
-            The following lines of code first defines a distance between evolution sequences, named <code>phases</code>.
-            Then, this distance is evaluated over evolution sequence <code>sequence</code> and its perturbed
-            version <code>sequence_p</code>.
-            In detail, <code>phases</code> is constructed starting from an atomic distance, namely an instance of class
-            <code>AtomicDistanceExpression</code>.
-            Here, an atomic distance consists in a data state expression, which maps a data state to a number, and a
-            binary operator. In this case, the idea is that given two configurations, the data state expression allow us
-            to get the normalised value of protein Z1, which is a value in [0,1], from both configuration, and the binary
-            operator gives us their difference.
-            This distance will be lifted to two sample sets of configurations, those obtained from <code>sequence</code>
-            and <code>sequence_p</code> at the same step.
-            Finally, bla bla bla
+            The following lines of code first defines a distance between evolution sequences, named
+            <code>distanceZ1</code>. Then, this distance is evaluated over evolution sequence <code>sequence</code>
+            and its perturbed version <code>sequence_p</code>. Finally, the distance is printed out.
+            In detail, <code>distanceZ1</code> is constructed starting from an atomic distance, namely an instance of
+            class <code>AtomicDistanceExpression</code>. Here, an atomic distance consists in a data state expression,
+            which maps a data state to a number, and a binary operator. As already discussed, in this case, given two
+            configurations, the data state expression allow us to get the normalised value of protein Z1, which is a
+            value in [0,1], from both configuration, and the binary operator gives us their difference, which, intuitively,
+            is the difference with respect to the level of Z1 between the two configurations. This distance will be
+            lifted to two sample sets of configurations, those obtained from <code>sequence</code> and
+            <code>sequence_p</code> at the same step.
+            Finally, from the atomic distance an instance of <code>MaxIntervalDistanceExpression</code> is created,
+            which gives the maximal value of the atomic distance computed in all instants of the given interval.
             */
-
-            /*
-            DistanceExpression phases = new MaxIntervalDistanceExpression(
+            int leftBound = 20;
+            int rightBound = 200;
+            DistanceExpression distanceZ1 = new MaxIntervalDistanceExpression(
                     new AtomicDistanceExpression(ds->ds.get(Z1)/normalisationZ1,(v1, v2) -> Math.abs(v2-v1)),
-                    300,
-                    1000
+                    leftBound,
+                    rightBound
             );
-
-            DistanceExpression protsLevel = new MaxDistanceExpression(
-                    new MaxIntervalDistanceExpression(
-                          new  AtomicDistanceExpression(ds->ds.get(Z1)/normalisationPZ1,(v1, v2) -> Math.abs(v2-v1)),
-                     300,
-                     2000
-                    ),
-                    new MaxDistanceExpression(
-                            new MaxIntervalDistanceExpression(
-                            new  AtomicDistanceExpression(ds->ds.get(Z2)/normalisationPZ2,(v1, v2) -> Math.abs(v2-v1)),
-                            300,
-                            2000
-                            ),
-                            new MaxIntervalDistanceExpression(
-                            new  AtomicDistanceExpression(ds->ds.get(Z3)/normalisationPZ3,(v1, v2) -> Math.abs(v2-v1)),
-                            300,
-                            2000
-                            )
-                    )
-            );
-
-
-           */
-
-            /*DistanceExpression phases = new MaxIntervalDistanceExpression(
-                    new MinIntervalDistanceExpression(
-                            new AtomicDistanceExpression(ds->ds.get(Z1)/normalisation,(v1, v2) -> Math.abs(v2-v1)),
-                            0,
-                            1
-                    ),
-                    300,
-                    1000
-            );
-            */
-
-            /*
             System.out.println(" ");
             System.out.printf("%s \n", "The behavioural distance between the nominal and the perturbed sequence is: ");
-            System.out.println(phases.compute(0, sequence, sequence_p));
-
-            System.out.println(" ");
-            System.out.printf("%s \n", "The behavioural distance between the nominal and the perturbed sequence is: ");
-            System.out.println(protsLevel.compute(0, sequence, sequence_pDZ1Z2Z3));
-            */
+            System.out.println(distanceZ1.compute(0, sequence, sequence_p));
 
             /*
+            We conclude EXPERIMENT #2 by using the model checker.
+            We define a robustness formula, in particular an atomic formula, namely an instance of
+            <code>AtomicRobustnessFormula</code>.
+            This formula will be evaluated on the evolution sequence <code>sequence</code> and expresses that the
+            distance, expressed by expression distance <code>distanceZ1</code> defined above, between that evolution
+            sequence and the evolution sequence obtained from it by applying the perturbation returned by method
+            <code>pert_deg_Z1()</code>, is below a given threshold.
 
-            RobustnessFormula robF = new AtomicRobustnessFormula(p_rate(),
-                    phases,
+
+            */
+
+            double THRESHOLD = 0.9;
+
+            RobustnessFormula robF = new AtomicRobustnessFormula(pert_deg_Z1(),
+                    distanceZ1,
                     RelationOperator.LESS_OR_EQUAL_THAN,
-                    0.040);
-
-
-
-
-
+                    THRESHOLD);
 
 
             TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
             System.out.println(" ");
             System.out.println("\n robF evaluation at 0: " + value1);
-            */
+
+
+            /*
+
+            EXPERIMENT #3
+
+            In this experiment, we proceed as in EXPERIMENT 2 to define a perturbation and an expression distance,
+            then we define a robustness formula that expresses whether the distance, w.r.t. that expression distance,
+            between the nominal evolution sequence and that obtained by perturbing it with that distance, is below
+            a given threshold.
+
+             */
+
+
+
+            double[] vMax_pZ1Z2Z3 = printAvgDataPerturbed(rand, L, F, system, 200, size, 0, 200, itProtDegRate());
+
+            EvolutionSequence sequence_pDZ1Z2Z3 = sequence.apply(itProtDegRate() ,0,10);
+
+
+
+
+            DistanceExpression protsLevel = new MaxDistanceExpression(
+                    new MaxIntervalDistanceExpression(
+                          new  AtomicDistanceExpression(ds->ds.get(Z1)/normalisationZ1,(v1, v2) -> Math.abs(v2-v1)),
+                     20,
+                     200
+                    ),
+                    new MaxDistanceExpression(
+                            new MaxIntervalDistanceExpression(
+                            new  AtomicDistanceExpression(ds->ds.get(Z2)/normalisationZ2,(v1, v2) -> Math.abs(v2-v1)),
+                            20,
+                            200
+                            ),
+                            new MaxIntervalDistanceExpression(
+                            new  AtomicDistanceExpression(ds->ds.get(Z3)/normalisationZ3,(v1, v2) -> Math.abs(v2-v1)),
+                            20,
+                            200
+                            )
+                    )
+            );
+
+
+
+
+
+
+
+            System.out.println(" ");
+            System.out.printf("%s \n", "The behavioural distance between the nominal and the perturbed sequence is: ");
+            System.out.println(protsLevel.compute(0, sequence, sequence_pDZ1Z2Z3));
+
+
+
+
+
+
+
+
+
+
+            TruthValues v = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
+            System.out.println(" ");
+            System.out.println("\n robF evaluation at 0: " + value1);
+
 
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -749,10 +785,10 @@ public class Repressilator {
 
 
     private static double[] printMaxData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
-        System.out.println("");
-        System.out.println("Simulation of NON perturbed system");
-        System.out.println("");
-        System.out.println(label);
+        //System.out.println("");
+        //System.out.println("Simulation of NON perturbed system");
+        //System.out.println("");
+        //System.out.println(label);
 
         /*
         The following instruction creates an evolution sequence consisting in a sequence of <code>steps</code> sample
@@ -768,7 +804,7 @@ public class Repressilator {
         for (int i = 0; i < data_max.length; i++) {
             //System.out.printf("%d>   ", i);
             for (int j = 0; j < data_max[i].length -1 ; j++) {
-                S//ystem.out.printf("%f   ", data_max[i][j]);
+                //System.out.printf("%f   ", data_max[i][j]);
                 if (leftbound <= i & i <= rightbound) {
                     if (max[j] < data_max[i][j]) {
                         max[j] = data_max[i][j];
@@ -795,10 +831,10 @@ public class Repressilator {
 
 
     private static double[] printMaxDataPerturbed(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound, Perturbation perturbation){
-        System.out.println("");
-        System.out.println("Simulation of perturbed system");
-        System.out.println("");
-        System.out.println(label);
+        //System.out.println("");
+        //System.out.println("Simulation of perturbed system");
+        //System.out.println("");
+        //System.out.println(label);
 
         double[] max = new double[F.size()];
 
