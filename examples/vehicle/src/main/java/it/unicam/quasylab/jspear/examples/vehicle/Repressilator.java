@@ -469,8 +469,20 @@ public class Repressilator {
             observe lower values for Z1, higher values for Z2 and lower values for Z3.
 
             */
+
+            System.out.println("");
+            System.out.println("EXPERIMENT 1");
+            System.out.println("");
+
+
             int N = 200;
+            System.out.println("");
+            System.out.println("Simulation of nominal system - data average values");
+            System.out.println("");
             printAvgData(rand, L, F, system, N, size, 0, 200);
+            System.out.println("");
+            System.out.println("Simulation of perturbed system - data average values");
+            System.out.println("");
             printAvgDataPerturbed(rand, L, F, system, N, size, 0, 200, pert_deg_Z1());
 
             /*
@@ -557,9 +569,19 @@ public class Repressilator {
             To this purpose, we generate a nominal and a perturbed evolution sequence of length 5*M and collect the
             maximal values that are assumed by the variables in all configurations in all sample sets.
             */
+
+            System.out.println("");
+            System.out.println("EXPERIMENT 2");
+            System.out.println("");
+
             int M = 200;
-            double[] dataMax = printMaxData(rand, L, F, system, 5*M, size, 20, 2*M);
-            double[] dataMax_p = printMaxDataPerturbed(rand, L, F, system, 5*M, size, 20, 2*M, pert_deg_Z1());
+            System.out.println("");
+            System.out.println("Simulation of nominal system - Data maximal values");
+            double[] dataMax = printMaxData(rand, L, F, system, M, size, 20, 5*M);
+            System.out.println("");
+            System.out.println("Simulation of perturbed system - Data maximal values");
+            System.out.println("");
+            double[] dataMax_p = printMaxDataPerturbed(rand, L, F, system, M, size, 20, 5*M, pert_deg_Z1());
 
             double normalisationZ1 = Math.max(dataMax[Z1],dataMax_p[Z1])*1.2;
 
@@ -613,7 +635,7 @@ public class Repressilator {
 
             */
 
-            double THRESHOLD = 0.09;
+            double THRESHOLD = 0.11;
 
             RobustnessFormula robF = new AtomicRobustnessFormula(pert_deg_Z1(),
                     distanceZ1,
@@ -642,8 +664,26 @@ public class Repressilator {
            The perturbed sequence is obtained by applying the perturbation returned by the static method
            <code>itProtDegRate</code>,
             */
+            System.out.println("");
+            System.out.println("Experiment 3");
+            System.out.println("");
+
             int Q=200;
+            System.out.println("");
+            System.out.println("Simulation of nominal system - Data average values");
+            System.out.println("");
+            printAvgData(rand, L, F, system, Q, size, 20, Q);
+            System.out.println("");
+            System.out.println("Simulation of perturbed system - Data average values");
+            System.out.println("");
+            printAvgDataPerturbed(rand, L, F, system, Q, size, 20, Q, itProtDegRate());
+            System.out.println("");
+            System.out.println("Simulation of nominal system - Data maximal values");
+            System.out.println("");
             double[] dataMaxIt = printMaxData(rand, L, F, system, 5*Q, size, 20, 2*Q);
+            System.out.println("");
+            System.out.println("Simulation of perturbedl system - Data maximal values");
+            System.out.println("");
             double[] dataMaxItp = printMaxDataPerturbed(rand, L, F, system, 5*Q, size, 20, 2*Q, itProtDegRate());
 
             double normZ1 = Math.max(dataMaxIt[Z1],dataMaxItp[Z1])*1.2;
@@ -722,9 +762,6 @@ public class Repressilator {
     sample sets that are in the sequence in between positions <code>leftbound</code> and <code>rightbound</code>
      */
     private static double[] printAvgData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
-        System.out.println("");
-        System.out.println("Simulation of NON perturbed system");
-        System.out.println("");
         System.out.println(label);
         /*
         The following instruction creates an evolution sequence consisting in a sequence of <code>steps</code> sample
@@ -763,9 +800,6 @@ public class Repressilator {
 
 
     private static double[] printAvgDataPerturbed(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound, Perturbation perturbation){
-        System.out.println("");
-        System.out.println("Simulation of perturbed system");
-        System.out.println("");
         System.out.println(label);
 
         double[] tot = new double[F.size()];
@@ -786,7 +820,7 @@ public class Repressilator {
             }
         }
         System.out.println("");
-        System.out.println("Max over all steps of the average values taken in the single step by the variables:");
+        System.out.println("Avg over all steps of the average values taken in the single step by the variables:");
         for(int j=0; j<tot.length-1; j++){
             System.out.printf("%f   ", tot[j] / (rightbound-leftbound));
         }
@@ -806,10 +840,6 @@ public class Repressilator {
 
 
     private static double[] printMaxData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
-        //System.out.println("");
-        //System.out.println("Simulation of NON perturbed system");
-        //System.out.println("");
-        //System.out.println(label);
 
         /*
         The following instruction creates an evolution sequence consisting in a sequence of <code>steps</code> sample
@@ -840,9 +870,10 @@ public class Repressilator {
             }
         }
         System.out.println(" ");
-        System.out.println("Maximal values taken by variables by the non perturbed system:");
+        //System.out.println("Maximal values taken by variables by the non perturbed system:");
+        System.out.println(label);
         for(int j=0; j<max.length-1; j++){
-            System.out.printf("%f   ", max[j]);
+            System.out.printf("%f ", max[j]);
         }
         System.out.printf("%f\n", max[max.length-1]);
         System.out.println("");
@@ -852,10 +883,6 @@ public class Repressilator {
 
 
     private static double[] printMaxDataPerturbed(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound, Perturbation perturbation){
-        //System.out.println("");
-        //System.out.println("Simulation of perturbed system");
-        //System.out.println("");
-        //System.out.println(label);
 
         double[] max = new double[F.size()];
 
@@ -878,10 +905,11 @@ public class Repressilator {
                 }
             }
         }
-        System.out.println("");
-        System.out.println("Maximal values taken by variables in steps by the perturbed system:");
+        //System.out.println("");
+        //System.out.println("Maximal values taken by variables in steps by the perturbed system:");
+        System.out.println(label);
         for(int j=0; j<max.length-1; j++){
-            System.out.printf("%f   ", max[j]);
+            System.out.printf("%f ", max[j]);
         }
         System.out.printf("%f\n", max[max.length-1]);
         System.out.println("");
