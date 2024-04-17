@@ -84,7 +84,7 @@ public class Repressilator {
     - mRNA degradation, modelled by reaction Xi -- d0i --> empty set,
     - protein degradation, modelled by reaction Zi -- d1i --> empty set.
     Therefore, for each gene we have 6 reactions.
-    Clearly, Xi and Zi are not conserved quantities, whereas Gi and AGi satisfy the conserved relation Gi + AGi = 1.
+    Clearly, Xi and Zi are not conserved quantities, whereas Gi and AGi satisfy the conservation relation Gi + AGi = 1.
     The value of Z1, Z2, Z3 will impact on kon1, kon2, kon3, thus realising gene interaction.
 
     */
@@ -439,7 +439,7 @@ public class Repressilator {
             EXPERIMENTS
 
             We propose three experiments showing how our tool can be used.
-            When running one experiment, commenting out the others allow for keep under control the execution times
+
 
             */
 
@@ -454,9 +454,11 @@ public class Repressilator {
             Both evolution sequences are sequences of length N of sample sets of cardinality <code>size</code> of
             configurations, with the first sample set consisting in <code>size</code> copies of <code>system</code>.
             The second evolution sequence is perturbed by applying the perturbation returned by the static method
-            <code>pert_deg_Z1()</code> defined later. Essentially, such a perturbation will change the rate of the
-            degradation of the protein obtained from the first gene. Since promoter parameters depend on the amount of
-            proteins, this perturbation impact on the dynamics of the whole system.
+            <code>pert_transl_1(x)</code> defined later. Essentially, such a perturbation will change the rate of the
+            translation of protein obtained from the first gene by adding x. Since promoter parameters depend on the
+            amount of proteins, this perturbation impact on the dynamics of the whole system. This perturbation
+            models protein translation deregulation.
+
             For both evolution sequences, we print some information allowing us to observe the dynamics of both the
             nominal and the perturbed system: for each time unit in [0,N-1] and for each variable, we print out
             the average value that the variable assumes in the <code>size<code> configurations in the sample set
@@ -475,15 +477,18 @@ public class Repressilator {
             System.out.println("");
 
 
-            int N = 200;
+            double x = +10.0; // x negative: higher values for Z1, lower for Z2, higher for Z3
+                             // x positive: lower values for Z1, higher for Z2, lower for Z3
+
+            int N = 1000;
             System.out.println("");
-            System.out.println("Simulation of nominal system - data average values");
+            System.out.println("Simulation of nominal system - data average values:");
             System.out.println("");
-            printAvgData(rand, L, F, system, N, size, 0, 200);
+            printAvgData(rand, L, F, system, N, size, 0, 1000);
             System.out.println("");
-            System.out.println("Simulation of perturbed system - data average values");
+            System.out.println("Simulation of perturbed system - s11 incremented by " + x + " - data average values:");
             System.out.println("");
-            printAvgDataPerturbed(rand, L, F, system, N, size, 0, 200, pert_deg_Z1());
+            printAvgDataPerturbed(rand, L, F, system, N, size, 0, 1000, pert_transl_1(x));
 
             /*
             While in the previous three lines of code the average values of variables obtained step-by-step are
@@ -551,7 +556,7 @@ public class Repressilator {
             In this experiment we generate again a nominal and a perturbed evolution sequence, as in EXPERIMENT 1.
             Then, we quantify the differences between those evolutions sequences, which corresponds to quantifying the
             behavioural distance between the nominal and the perturbed sequence. The differences are quantified with
-            respect to the amount of protein Z1.
+            respect to the amount of protein Z1, Z2 or Z3.
             Then, we write down a robustness formula that simply expresses whether such a distance is below a given
             threshold.
 
@@ -559,86 +564,186 @@ public class Repressilator {
 
 
             /*
-            In order to quantify the difference between two evolution sequences w.r.t. Z1, we need to define the
-            difference between two configurations w.r.t. Z1: given two configurations with Z1=m and Z1=n, the
-            difference between those configurations w.r.t. Z1 is the value |m-n|, normalised wrt the maximal value that
-            can be assumed by Z1, so that this difference is always in [0,1].
-            Since we cannot know a priori which is the maximal value that can be assumed by Z1, we estimate it.
+            In order to quantify the difference between two evolution sequences w.r.t. Zi, we need to define the
+            difference between two configurations w.r.t. Zi: given two configurations with Zi=m and Zi=n, the
+            difference between those configurations w.r.t. Zi is the value |m-n|, normalised wrt the maximal value that
+            can be assumed by Zi, so that this difference is always in [0,1].
+            Since we cannot know a priori which is the maximal value that can be assumed by Zi, we estimate it.
 
             We start with estimating the maximal values that can be assumed by all variables.
             To this purpose, we generate a nominal and a perturbed evolution sequence of length 5*M and collect the
             maximal values that are assumed by the variables in all configurations in all sample sets.
             */
 
+
+
+
+
+
+
+            /*
+
+
             System.out.println("");
             System.out.println("EXPERIMENT 2");
             System.out.println("");
 
-            int M = 200;
-            System.out.println("");
-            System.out.println("Simulation of nominal system - Data maximal values");
-            double[] dataMax = printMaxData(rand, L, F, system, M, size, 20, 5*M);
-            System.out.println("");
-            System.out.println("Simulation of perturbed system - Data maximal values");
-            System.out.println("");
-            double[] dataMax_p = printMaxDataPerturbed(rand, L, F, system, M, size, 20, 5*M, pert_deg_Z1());
 
-            double normalisationZ1 = Math.max(dataMax[Z1],dataMax_p[Z1])*1.2;
+
+
+            int M = 1000;
+            System.out.println("");
+            System.out.println("Simulation of nominal system - Data maximal values:");
+            double[] dataMax = printMaxData(rand, L, F, system, M, size, 20, 2*M);
+            System.out.println("");
+            System.out.println("Simulation of perturbed system - s11 incremented by " + x + " - Data maximal values:");
+            System.out.println("");
+            double[] dataMax_p = printMaxDataPerturbed(rand, L, F, system, M, size, 20, 2*M, pert_transl_1(x));
+
+            double normalisationZ1 = Math.max(dataMax[Z1],dataMax_p[Z1])*1.1;
+            double normalisationZ2 = Math.max(dataMax[Z2],dataMax_p[Z1])*1.1;
+            double normalisationZ3 = Math.max(dataMax[Z3],dataMax_p[Z2])*1.1;
+
+
+             */
 
 
             /*
             The following instruction allows us to create the evolution sequence <code>sequence_p</code>, which is
             obtained from the evolution sequence <code>sequence</code> by applying a perturbation, where:
-            - as in EXPERIMENT #1 the perturbation is returned by the static method <code>pert_deg_Z1()</code> defined later
+            - as in EXPERIMENT #1 the perturbation is returned by the static method <code>pert_transl_1()</code> defined later
             - the perturbation is applied at step 0
             - the sample sets of configurations in <code>sequence_p</code> have a cardinality which corresponds to that
             of <code>sequence</code> multiplied by <code>scale>/code>
             */
-            int scale=10;
-            EvolutionSequence sequence_p = sequence.apply(pert_deg_Z1(),0,scale);
+
+
 
             /*
-            The following lines of code first defines a distance between evolution sequences, named
-            <code>distanceZ1</code>. Then, this distance is evaluated over evolution sequence <code>sequence</code>
-            and its perturbed version <code>sequence_p</code> defined above. Finally, the distance is printed out.
-            In detail, <code>distanceZ1</code> is constructed starting from an atomic distance, namely an instance of
+            int scale=5;
+            EvolutionSequence sequence_p = sequence.apply(pert_transl_1(x),0,scale);
+
+            */
+
+
+            /*
+            The following lines of code first defines athree distances between evolution sequences, named
+            <code>distanceZi</code> for i=1,2,3. Then, these distances are evaluated over evolution sequence
+            <code>sequence</code> and its perturbed version <code>sequence_p</code> defined above.
+            Finally, the distances are printed out.
+            In detail, <code>distanceZi</code> is constructed starting from an atomic distance, namely an instance of
             class <code>AtomicDistanceExpression</code>. Here, an atomic distance consists in a data state expression,
             which maps a data state to a number, and a binary operator. As already discussed, in this case, given two
-            configurations, the data state expression allow us to get the normalised value of protein Z1, which is a
+            configurations, the data state expression allow us to get the normalised value of protein Zi, which is a
             value in [0,1], from both configuration, and the binary operator gives us their difference, which, intuitively,
-            is the difference with respect to the level of Z1 between the two configurations. This distance will be
+            is the difference with respect to the level of Zi between the two configurations. This distance will be
             lifted to two sample sets of configurations, those obtained from <code>sequence</code> and
             <code>sequence_p</code> at the same step.
             Finally, from the atomic distance an instance of <code>MaxIntervalDistanceExpression</code> is created,
             which gives the maximal value of the atomic distance computed in all instants of the given interval.
             */
+
             int leftBound = 20;
-            int rightBound = 200;
+            int rightBound = 1000;
+
+            /*
+            AtomicDistanceExpression atomicZ1 = new AtomicDistanceExpression(ds->ds.get(Z1)/normalisationZ1,(v1, v2) -> Math.abs(v2-v1));
+
+            AtomicDistanceExpression atomicZ2 = new AtomicDistanceExpression(ds->ds.get(Z2)/normalisationZ2,(v1, v2) -> Math.abs(v2-v1));
+
+            AtomicDistanceExpression atomicZ3 = new AtomicDistanceExpression(ds->ds.get(Z3)/normalisationZ3,(v1, v2) -> Math.abs(v2-v1));
+
+            int leftBound = 20;
+            int rightBound = 1000;
+
             DistanceExpression distanceZ1 = new MaxIntervalDistanceExpression(
-                    new AtomicDistanceExpression(ds->ds.get(Z1)/normalisationZ1,(v1, v2) -> Math.abs(v2-v1)),
+                    atomicZ1,
                     leftBound,
                     rightBound
             );
+
+            DistanceExpression distanceZ2 = new MaxIntervalDistanceExpression(
+                    atomicZ2,
+                    leftBound,
+                    rightBound
+            );
+
+            DistanceExpression distanceZ3 = new MaxIntervalDistanceExpression(
+                    atomicZ3,
+                    leftBound,
+                    rightBound
+            );
+
+             */
+
+            /*
             System.out.println(" ");
-            System.out.printf("%s \n", "The behavioural distance between the nominal and the perturbed sequence is: ");
+            System.out.printf("%s \n", "The behavioural distance wrt Z1 between the nominal and the perturbed sequence is: ");
             System.out.println(distanceZ1.compute(0, sequence, sequence_p));
+            System.out.println(" ");
+            System.out.printf("%s \n", "The behavioural distance wrt Z2 between the nominal and the perturbed sequence is: ");
+            System.out.println(distanceZ2.compute(0, sequence, sequence_p));
+            System.out.println(" ");
+            System.out.printf("%s \n", "The behavioural distance wrt Z3 between the nominal and the perturbed sequence is: ");
+            System.out.println(distanceZ3.compute(0, sequence, sequence_p));
+            */
+
+            /*
+            Below, we store in csv files the evaluation of the three atomic distances that are obtained in all
+            steps step-by-step distances
+             */
+
+
+
+            /*
+            double[][] direct_evaluation_atomic_Z1 = new double[rightBound-leftBound][1];
+            double[][] direct_evaluation_atomic_Z2 = new double[rightBound-leftBound][1];
+            double[][] direct_evaluation_atomic_Z3 = new double[rightBound-leftBound][1];
+
+            for (int i = 0; i<(rightBound-leftBound); i++){
+                direct_evaluation_atomic_Z1[i][0] = atomicZ1.compute(i+leftBound, sequence, sequence_p);
+                direct_evaluation_atomic_Z2[i][0] = atomicZ2.compute(i+leftBound, sequence, sequence_p);
+                direct_evaluation_atomic_Z3[i][0] = atomicZ3.compute(i+leftBound, sequence, sequence_p);
+            }
+
+            Util.writeToCSV("./atomic_Z1.csv",direct_evaluation_atomic_Z1);
+            Util.writeToCSV("./atomic_Z2.csv",direct_evaluation_atomic_Z2);
+            Util.writeToCSV("./atomic_Z3.csv",direct_evaluation_atomic_Z3);
+
+
+
+             */
+
 
             /*
             We conclude EXPERIMENT #2 by using the model checker.
-            We define a robustness formula, in particular an atomic formula, namely an instance of
+            First we defined the distance expression <code>distanceMaxZ1Z2Z3</code>, which returns the maximal value
+            among those returned by three distances defined above that capture the differences with respect to Z1, Z2
+            and Z3.
+            Then, we define a robustness formula, in particular an atomic formula, namely an instance of
             <code>AtomicRobustnessFormula</code>.
             This formula will be evaluated on the evolution sequence <code>sequence</code> and expresses that the
-            distance, expressed by expression distance <code>distanceZ1</code> defined above, between that evolution
+            distance, expressed by expression distance <code>distanceMaxZ1Z2Z3</code> between that evolution
             sequence and the evolution sequence obtained from it by applying the perturbation returned by method
-            <code>pert_deg_Z1()</code>, is below a given threshold.
+            <code>pert_transl_1()</code>, is below a given threshold.
+
+             */
 
 
-            */
 
-            double THRESHOLD = 0.11;
 
-            RobustnessFormula robF = new AtomicRobustnessFormula(pert_deg_Z1(),
+            /*
+
+            DistanceExpression distanceMaxZ1Z2Z3 = new MaxDistanceExpression(
                     distanceZ1,
+                    new MaxDistanceExpression(distanceZ2, distanceZ3)
+            );
+
+
+            double THRESHOLD = 0.15;
+
+            RobustnessFormula robF = new AtomicRobustnessFormula(pert_transl_1(x),
+                    distanceMaxZ1Z2Z3,
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     THRESHOLD);
 
@@ -648,89 +753,124 @@ public class Repressilator {
             System.out.println("\n robF evaluation at 0: " + value1);
 
 
+             */
+
 
             /*
 
             EXPERIMENT #3
 
             In this experiment, we proceed as in EXPERIMENT 2 to define a perturbation and an expression distance,
-            then we define a robustness formula that expresses whether the distance between the nominal evolution
-            sequence and that obtained by perturbing it with that distance, is below a given threshold.
+            then we define a robustness formula that expresses that the distance between the nominal and the
+            perturbed evolution sequences is below a given threshold.
+            The main differences between EXPERIMENT #3 and EXPERIMENT #2 is that now the perturbation modifies the
+            translation rates of both gene 1 and gene 2 and, moreover, the effects of the perturbation are iteratively
+            activated and deactivated.
+
 
              */
 
 
            /*
            The perturbed sequence is obtained by applying the perturbation returned by the static method
-           <code>itProtDegRate</code>,
+           <code>itProtTranslRate</code>, which, iteratively,
             */
+
             System.out.println("");
             System.out.println("Experiment 3");
             System.out.println("");
 
-            int Q=200;
+            double x_1 = -3.0;
+            double y_1 = 3.0;
+            double x_2 = 3.0;
+            double y_2 = -3.0;
+
+            int Q=1000;
             System.out.println("");
             System.out.println("Simulation of nominal system - Data average values");
             System.out.println("");
             printAvgData(rand, L, F, system, Q, size, 20, Q);
             System.out.println("");
+            System.out.println("Simulation of perturbed system ");
+            System.out.println("Translation rate of gene 1 incremented by " + x_1 + "and translation rate of gene 2 incremented by " + y_1 + "every 50 steps for 40 steps");
             System.out.println("Simulation of perturbed system - Data average values");
+            System.out.println("Data average values:");
             System.out.println("");
-            printAvgDataPerturbed(rand, L, F, system, Q, size, 20, Q, itProtDegRate());
+            printAvgDataPerturbed(rand, L, F, system, Q, size, 20, Q, itProtTranslRate(x_1,y_1,-x_1,-y_1));
             System.out.println("");
             System.out.println("Simulation of nominal system - Data maximal values");
             System.out.println("");
             double[] dataMaxIt = printMaxData(rand, L, F, system, 5*Q, size, 20, 2*Q);
             System.out.println("");
-            System.out.println("Simulation of perturbedl system - Data maximal values");
+            System.out.println("Simulation of perturbed system - Data maximal values");
             System.out.println("");
-            double[] dataMaxItp = printMaxDataPerturbed(rand, L, F, system, 5*Q, size, 20, 2*Q, itProtDegRate());
+            double[] dataMaxItp = printMaxDataPerturbed(rand, L, F, system, 5*Q, size, 20, 2*Q, itProtTranslRate(x_1,y_1,x_2,y_2));
+            double normalisationZ1it = Math.max(dataMaxIt[Z1],dataMaxItp[Z1])*1.1;
+            double normalisationZ2it = Math.max(dataMaxIt[Z2],dataMaxItp[Z1])*1.1;
+            double normalisationZ3it = Math.max(dataMaxIt[Z3],dataMaxItp[Z2])*1.1;
 
-            double normZ1 = Math.max(dataMaxIt[Z1],dataMaxItp[Z1])*1.2;
-            double normZ2 = Math.max(dataMaxIt[Z2],dataMaxItp[Z2])*1.2;
-            double normZ3 = Math.max(dataMaxIt[Z3],dataMaxItp[Z3])*1.2;
+            AtomicDistanceExpression atomicZ1it = new AtomicDistanceExpression(ds->ds.get(Z1)/normalisationZ1it,(v1, v2) -> Math.abs(v2-v1));
 
-            int scaleIt = 10;
-            EvolutionSequence sequence_pIt = sequence.apply(itProtDegRate() ,0,scaleIt);
+            AtomicDistanceExpression atomicZ2it = new AtomicDistanceExpression(ds->ds.get(Z2)/normalisationZ2it,(v1, v2) -> Math.abs(v2-v1));
 
-            int leftBoundIt = 20;
-            int rightBoundIt = 200;
-
+            AtomicDistanceExpression atomicZ3it = new AtomicDistanceExpression(ds->ds.get(Z3)/normalisationZ3it,(v1, v2) -> Math.abs(v2-v1));
 
 
-            /*
-            The distance expression <code>distanceMaxZ1Z2Z3</code> returns the maximal value among those returned
-            by three distances that capture the differences with respect to Z1, Z2 and Z3, respectively.
-             */
-            DistanceExpression distanceMaxZ1Z2Z3 = new MaxDistanceExpression(
-                    new MaxIntervalDistanceExpression(
-                          new  AtomicDistanceExpression(ds->ds.get(Z1)/normZ1,(v1, v2) -> Math.abs(v2-v1)),
-                     leftBoundIt,
-                     rightBoundIt
-                    ),
-                    new MaxDistanceExpression(
-                            new MaxIntervalDistanceExpression(
-                            new  AtomicDistanceExpression(ds->ds.get(Z2)/normZ2,(v1, v2) -> Math.abs(v2-v1)),
-                                    leftBoundIt,
-                                    rightBoundIt
-                            ),
-                            new MaxIntervalDistanceExpression(
-                            new  AtomicDistanceExpression(ds->ds.get(Z3)/normZ3,(v1, v2) -> Math.abs(v2-v1)),
-                                    leftBoundIt,
-                                    rightBoundIt
-                            )
-                    )
+            DistanceExpression distanceZ1it = new MaxIntervalDistanceExpression(
+                    atomicZ1it,
+                    leftBound,
+                    rightBound
             );
+
+            DistanceExpression distanceZ2it = new MaxIntervalDistanceExpression(
+                    atomicZ2it,
+                    leftBound,
+                    rightBound
+            );
+
+            DistanceExpression distanceZ3it = new MaxIntervalDistanceExpression(
+                    atomicZ3it,
+                    leftBound,
+                    rightBound
+            );
+
+
+            DistanceExpression distanceMaxZ1Z2Z3it = new MaxDistanceExpression(
+                    distanceZ1it,
+                    new MaxDistanceExpression(distanceZ2it, distanceZ3it)
+            );
+
+
+            int scale=5;
+            EvolutionSequence sequence_p_it = sequence.apply(pert_transl_1(x),0,scale);
+
+            double[][] direct_evaluation_atomic_Z1_it = new double[rightBound-leftBound][1];
+            double[][] direct_evaluation_atomic_Z2_it = new double[rightBound-leftBound][1];
+            double[][] direct_evaluation_atomic_Z3_it = new double[rightBound-leftBound][1];
+
+            for (int i = 0; i<980; i++){
+                direct_evaluation_atomic_Z1_it[i][0] = atomicZ1it.compute(i+leftBound, sequence, sequence_p_it);
+                direct_evaluation_atomic_Z2_it[i][0] = atomicZ2it.compute(i+leftBound, sequence, sequence_p_it);
+                direct_evaluation_atomic_Z3_it[i][0] = atomicZ3it.compute(i+leftBound, sequence, sequence_p_it);
+            }
+
+            Util.writeToCSV("./atomic_Z1_it.csv",direct_evaluation_atomic_Z1_it);
+            Util.writeToCSV("./atomic_Z2_it.csv",direct_evaluation_atomic_Z2_it);
+            Util.writeToCSV("./atomic_Z3_it.csv",direct_evaluation_atomic_Z3_it);
+
+            int scaleIt = 5;
+            EvolutionSequence sequence_pIt = sequence.apply(itProtTranslRate(x_1,y_1,x_2,y_2) ,0,scaleIt);
+
+
 
             System.out.println(" ");
             System.out.printf("%s \n", "The behavioural distance between the nominal and the perturbed sequence is: ");
-            System.out.println(distanceMaxZ1Z2Z3.compute(0, sequence, sequence_pIt));
+            System.out.println(distanceMaxZ1Z2Z3it.compute(0, sequence, sequence_pIt));
 
-            double THRESHOLD_IT = 0.09;
+            double THRESHOLD_IT = 0.15;
 
-
-            RobustnessFormula robFIt = new AtomicRobustnessFormula(pert_deg_Z1(),
-                    distanceZ1,
+            RobustnessFormula robFIt = new AtomicRobustnessFormula(itProtTranslRate(x_1,y_1,x_2,y_2),
+                    distanceMaxZ1Z2Z3it,
                     RelationOperator.LESS_OR_EQUAL_THAN,
                     THRESHOLD_IT);
 
@@ -931,14 +1071,26 @@ public class Repressilator {
     Overall, this perturbation changes immediately the degradation rate of Z1, thus impacting on the whole evolution
     of the system.
      */
-    public static Perturbation pert_deg_Z1(){
-        return new AtomicPerturbation(0,Repressilator::changeDZ1);
+
+    /* public static Perturbation pert_transl_1(){
+        return new AtomicPerturbation(0,Repressilator::pert_s11);
     }
 
-    private static DataState changeDZ1(RandomGenerator rg, DataState state){
+    private static DataState pert_s11(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)+6,0)));
         return state.apply(updates);
+    }
+    */
+
+    public static Perturbation pert_transl_1(double x){
+        return new AtomicPerturbation(0,(rg,ds)->ds.apply(upd_s11(rg,ds,x)));
+    }
+
+    private static List<DataStateUpdate> upd_s11(RandomGenerator rg, DataState state, double x){
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)+x,0)));
+        return updates;
     }
 
     /*
@@ -947,14 +1099,42 @@ public class Repressilator {
     that the integer expresses how many times the body perturbation is applied.
     In this case, the body perturbation is a sequential perturbation, namely an instance of
     <code>SequentialPerturbation</code>, which, essentially, consists in two perturbations where the second is applied
-    after the first has terminated its effect. Both body perturbations are atomic perturbations, which are returned by
-    methods <code>slowZ1fastZ2</code> and <code>fastZ1slowZ2</code>. The first perturbation is applied after 10 steps
-    and, increments the degradation rate of Z1 and decrements that of Z2. The second perturbation is applied after 40
+    after the first has terminated its effect. The first perturbation is applied after 10 steps
+    and, increments the translation rate of Z2 and decrements that of Z1. The second perturbation is applied after 40
     steps and reverts the effects of the first one. Overall, the perturbed system evolves with perturbed values of the
-    degradation rates of Z1 and Z1 in between time interals [10,50], [60,100], [110.150].
+    degradation rates of Z1 and Z1 in between time intervals [10,50], [60,100], [110.150].
 
      */
-    public static Perturbation itProtDegRate(){
+
+
+    public static Perturbation itProtTranslRate(double x1 , double y1, double x2, double y2){
+        return new IterativePerturbation(3,
+                new SequentialPerturbation(
+                        new AtomicPerturbation(10,(rg,ds)->ds.apply(upd_s11_s12(rg,ds,x1,y1))),
+                        new AtomicPerturbation(40,(rg,ds)->ds.apply(upd_s11_s12(rg,ds,x2,y2)))
+                )
+        );
+    }
+
+
+    private static List<DataStateUpdate> upd_s11_s12(RandomGenerator rg, DataState state, double x, double y){
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)+x,0)));
+        updates.add(new DataStateUpdate(s12,Math.max(state.get(s12)+y,0)));
+        return updates;
+    }
+
+    /*
+    private static DataState fastZ1slowZ2(RandomGenerator rg, DataState state){
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)+3,0)));
+        updates.add(new DataStateUpdate(s12,Math.max(state.get(s12)-3,0)));
+        return state.apply(updates);
+    }
+
+
+
+    public static Perturbation itProtTranslRate(){
         return new IterativePerturbation(3,
                 new SequentialPerturbation(
                         new AtomicPerturbation(10,Repressilator::slowZ1fastZ2),
@@ -962,7 +1142,6 @@ public class Repressilator {
                 )
         );
     }
-
 
 
     private static DataState slowZ1fastZ2(RandomGenerator rg, DataState state){
@@ -979,7 +1158,7 @@ public class Repressilator {
         return state.apply(updates);
     }
 
-
+    */
 
 
     /*
@@ -1213,7 +1392,7 @@ public class Repressilator {
         values.put(s01, 250.0);
         values.put(s11, 7.0);
         values.put(d01, 1.0);
-        values.put(d11, 1.0);
+        values.put(d11, 0.1);
 
 
         double initial_kon2 = K02 + K12 * Math.exp(BETA2)/(1+Math.exp(BETA2));
@@ -1230,7 +1409,7 @@ public class Repressilator {
         values.put(s02, 250.0);
         values.put(s12, 7.0);
         values.put(d02, 1.0);
-        values.put(d12, 1.0);
+        values.put(d12, 0.1);
 
         double initial_kon3 = K03 + K13 * Math.exp(BETA3)/(1+Math.exp(BETA3));
 
@@ -1246,7 +1425,7 @@ public class Repressilator {
         values.put(s03, 250.0);
         values.put(s13, 7.0);
         values.put(d03, 1.0);
-        values.put(d13, 1.0);
+        values.put(d13, 0.1);
 
 
         return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN), gran, Tstep, Treal, Tdelta);
