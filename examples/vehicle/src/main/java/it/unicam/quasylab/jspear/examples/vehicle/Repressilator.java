@@ -1095,7 +1095,7 @@ public class Repressilator {
     <code>SequentialPerturbation</code>, which, essentially, consists in two perturbations where the second is applied
     after the first has terminated its effect. The first perturbation is applied after <code>w1<code> steps
     and, increments the translation rate of Z1 by the parameter <code>x</code>. The second perturbation is applied after
-    further <code>w2<code> steps and reverts the effects of the first one.
+    further <code>w2<code> stepps and reverts the effects of the first one.
 
      */
 
