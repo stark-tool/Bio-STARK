@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.examples.vehicle;
+package it.unicam.quasylab.jspear.examples.Isocitrate;
 
 import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
@@ -41,7 +41,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import java.io.IOException;
 import java.util.*;
 
-public class Isocitrate {
+public class Main {
 
     /* The isocitrate dehydrogenase regulatory system (IDHKPIDH) of E. Coli controls the partioning of
     carbon flux and it is useful when the bacterium of E. coli grows on substances, like for example
