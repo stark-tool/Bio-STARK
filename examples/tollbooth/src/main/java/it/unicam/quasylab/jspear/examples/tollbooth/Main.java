@@ -20,7 +20,7 @@
  * limitations under the License.
  */
 
-package it.unicam.quasylab.jspear.examples.vehicle;
+package it.unicam.quasylab.jspear.examples.tollbooth;
 
 import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
@@ -34,7 +34,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import java.io.IOException;
 import java.util.*;
 
-public class Casello {
+public class Main {
 
     public final static String[] VARIABLES =
             new String[]{"p_speed", "s_speed", "p_distance", "accel", "timer_V", "braking_distance", "gap"
@@ -70,13 +70,13 @@ public class Casello {
 
             DataStateFunction mu_pos = (rg, ds) -> ds.apply(getTargetPosDistribution(rg, ds));
 
-            Penalty till_100 = new IterativePenalty(100,new AtomicPenalty(0,Casello::rho_100));
+            Penalty till_100 = new IterativePenalty(100,new AtomicPenalty(0,Main::rho_100));
 
-            Penalty till_200 = new IterativePenalty(100,new AtomicPenalty(0,Casello::rho_200));
+            Penalty till_200 = new IterativePenalty(100,new AtomicPenalty(0,Main::rho_200));
 
-            Penalty till_275 = new IterativePenalty(75,new AtomicPenalty(0,Casello::rho_275));
+            Penalty till_275 = new IterativePenalty(75,new AtomicPenalty(0,Main::rho_275));
 
-            Penalty till_350 = new IterativePenalty(76,new AtomicPenalty(0,Casello::rho_350));
+            Penalty till_350 = new IterativePenalty(76,new AtomicPenalty(0,Main::rho_350));
 
             Penalty rho_pos = new SequentialPenalty(till_100, new SequentialPenalty(till_200, new SequentialPenalty(till_275, till_350)));
 
@@ -210,11 +210,11 @@ public class Casello {
         System.out.println(label);
         double[][] data = SystemState.sample(rg, F, p, s, steps, size);
         for (int i = 0; i < data.length; i++) {
-        System.out.printf("%d>   ", i);
-        for (int j = 0; j < data[i].length -1; j++) {
+            System.out.printf("%d>   ", i);
+            for (int j = 0; j < data[i].length -1; j++) {
                 System.out.printf("%f   ", data[i][j]);
-        }
-        System.out.printf("%f\n", data[i][data[i].length -1]);
+            }
+            System.out.printf("%f\n", data[i][data[i].length -1]);
         }
     }
 
@@ -285,16 +285,16 @@ public class Casello {
                 Controller.ifThenElse(
                         DataState.greaterThan(s_speed, 0),
                         Controller.ifThenElse(
-                                   DataState.greaterThan(gap, 0 ),
-                                   Controller.doAction(
-                                           (rg, ds) -> List.of(new DataStateUpdate(accel, ACCELERATION),
-                                                   new DataStateUpdate(timer_V, TIMER)),
-                                           registry.reference("Accelerate")
-                                   ),
-                                   Controller.doAction(
-                                           (rg, ds) -> List.of( new DataStateUpdate(accel, - BRAKE),
-                                                   new DataStateUpdate(timer_V, TIMER)),
-                                           registry.reference("Decelerate"))
+                                DataState.greaterThan(gap, 0 ),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(accel, ACCELERATION),
+                                                new DataStateUpdate(timer_V, TIMER)),
+                                        registry.reference("Accelerate")
+                                ),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of( new DataStateUpdate(accel, - BRAKE),
+                                                new DataStateUpdate(timer_V, TIMER)),
+                                        registry.reference("Decelerate"))
                         ),
                         Controller.ifThenElse(
                                 DataState.greaterThan(gap,0),
@@ -371,7 +371,7 @@ public class Casello {
         if(new_timer_V == 0) {
             double new_braking_distance = (new_s_speed * new_s_speed +
                     (ACCELERATION + BRAKE) * (ACCELERATION * TIMER * TIMER +
-                    2 * new_s_speed * TIMER)) / (2 * BRAKE);
+                            2 * new_s_speed * TIMER)) / (2 * BRAKE);
             double new_gap = new_p_distance - new_braking_distance;
             updates.add(new DataStateUpdate(s_speed, new_s_speed));
             updates.add(new DataStateUpdate(braking_distance, new_braking_distance));
@@ -381,7 +381,7 @@ public class Casello {
     }
 
 
-   // INITIALISATION OF DATA STATE
+    // INITIALISATION OF DATA STATE
 
     public static DataState getInitialState( ) {
         Map<Integer, Double> values = new HashMap<>();

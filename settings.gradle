@@ -19,4 +19,8 @@ include 'examples:Isocitrate'
 findProject(':examples:Isocitrate')?.name = 'Isocitrate'
 include 'examples:repressilator'
 findProject(':examples:repressilator')?.name = 'repressilator'
+include 'examples:tollbooth'
+findProject(':examples:tollbooth')?.name = 'tollbooth'
+include 'examples:envzompr'
+findProject(':examples:envzompr')?.name = 'envzompr'
 
