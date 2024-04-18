@@ -17,4 +17,6 @@ include('speclang')
 include('cli')
 include 'examples:Isocitrate'
 findProject(':examples:Isocitrate')?.name = 'Isocitrate'
+include 'examples:repressilator'
+findProject(':examples:repressilator')?.name = 'repressilator'
 
