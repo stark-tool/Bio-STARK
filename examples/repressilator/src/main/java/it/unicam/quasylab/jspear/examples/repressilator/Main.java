@@ -268,20 +268,6 @@ public class Main {
 
     private static final int NUMBER_OF_VARIABLES = 30;
 
-    // RIMUOVERE PRIMA DI INVIARE IL PAPER:
-
-    //public static final double K01 = 0.34;
-    //public static double K11 = 2.15;
-    //public static double BETA1 = 5;
-    //public static double THETA1 = - 10;
-    //public static final double K02 = 0.34;
-    //public static double K12 = 2.15;
-    //public static double BETA2 = 5;
-    //public static double THETA2 = - 10;
-    //public static final double K03 = 0.34;
-    //public static double K13 = 2.15;
-    //public static double BETA3 = 5;
-    //public static double THETA3 = - 10;
 
     /*
 
@@ -487,8 +473,9 @@ public class Main {
 
             int w1=50;
             int w2=50;
-            int replica= 6;
+            int replica= 5;
 
+            /*
             System.out.println("");
             System.out.println("Simulation of nominal system - data average values:");
             System.out.println("");
@@ -498,10 +485,16 @@ public class Main {
             System.out.println("");
             printAvgDataPerturbed(rand, L, F, system, N, size, 0, N, itZ1TranslRate(x, w1, w2, replica));
 
+             */
+
+
+
             /*
             While in the previous three lines of code the average values of variables obtained step-by-step are
             printed out, the following portion of code stores them in .csv files. This is useful if we need to plot them.
             */
+
+            /*
 
             double[][] plot_z1 = new double[N][1];
             double[][] plot_z2 = new double[N][1];
@@ -555,7 +548,7 @@ public class Main {
             Util.writeToCSV("./new_pplotX2.csv",plot_px2);
             Util.writeToCSV("./new_pplotX3.csv",plot_px3);
 
-
+             */
 
 
 
@@ -671,6 +664,8 @@ public class Main {
             double[][] direct_evaluation_atomic_Z2 = new double[rightBound-leftBound][1];
             double[][] direct_evaluation_atomic_Z3 = new double[rightBound-leftBound][1];
 
+            /*
+
             for (int i = 0; i<(rightBound-leftBound); i++){
                 direct_evaluation_atomic_Z1[i][0] = atomicZ1.compute(i+leftBound, sequence, sequence_p);
                 direct_evaluation_atomic_Z2[i][0] = atomicZ2.compute(i+leftBound, sequence, sequence_p);
@@ -682,8 +677,6 @@ public class Main {
             Util.writeToCSV("./atomic_Z3.csv",direct_evaluation_atomic_Z3);
 
 
-            /*Finally, from the atomic distance an instance of <code>MaxIntervalDistanceExpression</code> is created,
-                    which gives the maximal value of the atomic distance computed in all instants of the given interval.
             */
 
 
@@ -726,23 +719,41 @@ public class Main {
             );
 
 
-            DistanceExpression distanceMaxZ1Z2Z3 = new MaxDistanceExpression(
+            DistanceExpression dMax = new MaxDistanceExpression(
                     distanceZ1,
                     new MaxDistanceExpression(distanceZ2, distanceZ3)
             );
 
-
-            double THRESHOLD = 0.15;
-
-            RobustnessFormula robF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
-                    distanceMaxZ1Z2Z3,
-                    RelationOperator.LESS_OR_EQUAL_THAN,
-                    THRESHOLD);
+            DistanceExpression intdMax = new MaxIntervalDistanceExpression(
+                    dMax,
+                    800,
+                    900
+            );
 
 
-            TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
-            System.out.println(" ");
-            System.out.println("\n robF evaluation at 0: " + value1);
+
+            double THRESHOLD = 0.04;
+
+            //RobustnessFormula robF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
+            //        intdMax,
+            //        RelationOperator.LESS_OR_EQUAL_THAN,
+            //        THRESHOLD);
+
+
+            RobustnessFormula robustF;
+            for(double thresholdV = 0.08; thresholdV<0.21 ; thresholdV = thresholdV + 0.01){
+                robustF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
+                        intdMax,
+                        RelationOperator.LESS_OR_EQUAL_THAN,
+                        thresholdV);
+                TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(1, 0, sequence);
+                System.out.println(" ");
+                System.out.println("\n robustF evaluation at " + thresholdV + ": " + value1);
+            }
+
+            //TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
+            //System.out.println(" ");
+            //System.out.println("\n robF evaluation at 0: " + value1);
 
 
 
