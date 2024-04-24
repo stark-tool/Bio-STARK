@@ -50,9 +50,13 @@ public class Main {
 
     The "repressilator" network consists in 3 genes forming a directed cycle of "negative interactions".
     As in "Herbach et al: ''Inferring gene regulatory networks from single-cell data: a mechanistic approach'',
-    BMC Systems Biology (2017) 11:105", we adopt the "two state model" of gene expression, where the gene promoter
-    can be either active or inactive, and we consider both mRNA molecules, which can be transcribed only during the
-    active period, and proteins, which are produced by mRNA molecules at a constant rate.
+    BMC Systems Biology (2017) 11:105", we proceed as follows:
+    - we adopt the "two state model" of gene expression, where the gene promoter can be either active or inactive;
+    - we consider both mRNA molecules, which can be transcribed only during the active period, and proteins, which
+    are produced by mRNA molecules at a constant rate;
+    - we use chemical reactions for specifying the model;
+    - we model a network with 3 genes.
+
     For i=1,2,3 we have the following variables that will allow us to model the status of such a kind of system:
     - Gi: models the inactive promoter, Gi is 1 if the promoter is inactive, otherwise Gi is 0.
     - AGi: models the active promoter, AGi is 1 if the promoter is active, otherwise AGi is 0.
@@ -65,7 +69,7 @@ public class Main {
     - s1i: rate constant of translation
     - d0i: rate constant of mRNA degradation
     - d1i: rate constant of protein degradation.
-    It holds that koffi >> koni and koffi >> d0i, so that mRNA is transcribed in "burst".
+    It holds that koffi >> koni and s0i >> d0i, so that mRNA is transcribed in "burst".
 
     */
 
@@ -357,6 +361,7 @@ public class Main {
             data state <code>ds</code> to the time of next reaction.
              */
             RandomGenerator rand = new DefaultRandomGenerator();
+
             TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
 
 
@@ -426,7 +431,7 @@ public class Main {
 
             EXPERIMENTS
 
-            We propose three experiments showing how our tool can be used.
+            We propose some experiments showing how our tool can be used.
 
 
             */
@@ -436,32 +441,29 @@ public class Main {
 
             /*
 
-            EXPERIMENT #1
+            UNING THE SIMULATOR
 
-            In this experiment we generate two evolution sequences from configuration <code>system</system>.
-            Both evolution sequences are sequences of length N of sample sets of cardinality <code>size</code> of
-            configurations, with the first sample set consisting in <code>size</code> copies of <code>system</code>.
+            We start with generating two evolution sequences from configuration <code>system</system>.
+            Both evolution sequences are sequences of length <code>N</code> of sample sets of cardinality
+            <code>size</code> of configurations, with the first sample set consisting in <code>size</code> copies of
+            <code>system</code>.
             The second evolution sequence is perturbed by applying the perturbation returned by the static method
-            <code>pert_transl_1(x)</code> defined later. Essentially, such a perturbation will change the rate of the
-            translation of protein obtained from the first gene by adding x. Since promoter parameters depend on the
-            amount of proteins, this perturbation impact on the dynamics of the whole system. This perturbation
-            models protein translation deregulation.
+            <code>itZ1TranslRate(x)</code> defined later. Essentially, the method returns a cyclic perturbation that
+            affects the translation rate  of gene 1:  for <code>replica</code> times, it has no effect for the first w1
+            time points, i.e., the system behaves regularly, then in the subsequent <code>w2</code> time points, the
+            translation rare is decremented by x, which impacts directly on the evolution of <code>Z1</code> and,
+            through interactions, on <code>Z2</code> and <code>Z3</code>.
+            This perturbation models protein translation deregulation.
 
-            For both evolution sequences, we print some information allowing us to observe the dynamics of both the
-            nominal and the perturbed system: for each time unit in [0,N-1] and for each variable, we print out
-            the average value that the variable assumes in the <code>size<code> configurations in the sample set
+            For both evolution sequences, we store in .csv files some information allowing us to observe the dynamics of
+            both the nominal and the perturbed system: for each time unit in [0,N-1] and for each variable, we store
+            the average value that the variable assumes in the <code>size</code> configurations in the sample set
             obtained at that time unit.
-            After that, we print out also the average value that the variables assume in all configurations in all
-            sample sets obtained in all time units.
-            Clearly, if the perturbation diminishes the degradation rate for Z1, then in the perturbed sequence we
-            observe higher values for Z1, lower values for Z2 and higher values for Z3.
-            On the contrary, if the perturbation augments the degradation rate for Z1, in the perturbed sequence we
-            observe lower values for Z1, higher values for Z2 and lower values for Z3.
 
             */
 
             System.out.println("");
-            System.out.println("EXPERIMENT 1");
+            System.out.println("Simulation of nominal and perturbed system");
             System.out.println("");
 
 
@@ -475,27 +477,8 @@ public class Main {
             int w2=50;
             int replica= 5;
 
-            /*
-            System.out.println("");
-            System.out.println("Simulation of nominal system - data average values:");
-            System.out.println("");
-            printAvgData(rand, L, F, system, N, size, 0, N);
-            System.out.println("");
-            System.out.println("Simulation of perturbed system - s11 incremented by " + x + " - data average values:");
-            System.out.println("");
-            printAvgDataPerturbed(rand, L, F, system, N, size, 0, N, itZ1TranslRate(x, w1, w2, replica));
-
-             */
-
-
 
             /*
-            While in the previous three lines of code the average values of variables obtained step-by-step are
-            printed out, the following portion of code stores them in .csv files. This is useful if we need to plot them.
-            */
-
-            /*
-
             double[][] plot_z1 = new double[N][1];
             double[][] plot_z2 = new double[N][1];
             double[][] plot_z3 = new double[N][1];
@@ -552,22 +535,35 @@ public class Main {
 
 
 
+            /*
+            While in the previous lines of code the average values of variables obtained step-by-step are stored in
+            .cvs files, the following portion of code allows us to print them.
+            */
+
+            /*
+            System.out.println("");
+            System.out.println("Simulation of nominal system - data average values:");
+            System.out.println("");
+            printAvgData(rand, L, F, system, N, size, 0, N);
+            System.out.println("");
+            System.out.println("Simulation of perturbed system - data average values:");
+            System.out.println("");
+            printAvgDataPerturbed(rand, L, F, system, N, size, 0, N, itZ1TranslRate(x, w1, w2, replica));
+
+             */
+
+
 
 
             /*
 
-            EXPERIMENT #2
+            ESTIMATING BEHAVIORAL DISTANCES BETWEEN NOMINAL AND PERTURBED EVOLUTION SEQUENCES
 
 
-            ESTIMATING AND CHECKING THE BEHAVIOURAL DIFFERENCES BETWEEN NOMINAL AND PERTURBED EVOLUTION SEQUENCES
-
-
-            In this experiment we generate again a nominal and a perturbed evolution sequence, as in EXPERIMENT 1.
+            Now we generate again a nominal and a perturbed evolution sequence, as above.
             Then, we quantify the differences between those evolutions sequences, which corresponds to quantifying the
-            behavioural distance between the nominal and the perturbed sequence. The differences are quantified with
+            behavioural distance between the nominal and the perturbed system. The differences are quantified with
             respect to the amount of protein Z1, Z2 or Z3.
-            Then, we write down a robustness formula that simply expresses whether the maximal of these distances is
-            below a given threshold.
 
              */
 
@@ -586,19 +582,9 @@ public class Main {
 
 
 
-
-
-
-
-
-
-
             System.out.println("");
-            System.out.println("EXPERIMENT 2");
+            System.out.println("Estimating behavioural differences between nominal and perturbed system");
             System.out.println("");
-
-
-
 
 
             System.out.println("");
@@ -607,7 +593,7 @@ public class Main {
             System.out.println("");
             System.out.println("Simulation of perturbed system - Data maximal values:");
             System.out.println("");
-            double[] dataMax_p = printMaxDataPerturbed(rand, L, F, system, N, size, 20, 2*N, itZ1TranslRate(x,w1,w2,replica));
+            double[] dataMax_p = printMaxDataPerturbed(rand, L, F, system, N, size, w1+w2, 2*N, itZ1TranslRate(x,w1,w2,replica));
 
             double normalisationZ1 = Math.max(dataMax[Z1],dataMax_p[Z1])*1.1;
             double normalisationZ2 = Math.max(dataMax[Z2],dataMax_p[Z1])*1.1;
@@ -615,24 +601,18 @@ public class Main {
 
 
 
-
-
             /*
             The following instruction allows us to create the evolution sequence <code>sequence_p</code>, which is
             obtained from the evolution sequence <code>sequence</code> by applying a perturbation, where:
-            - as in EXPERIMENT #1 the perturbation is returned by the static method <code>itZ1PertRate()</code> defined later
+            - as above, the perturbation is returned by the static method <code>itZ1PertRate()</code> defined later
             - the perturbation is applied at step 0
             - the sample sets of configurations in <code>sequence_p</code> have a cardinality which corresponds to that
             of <code>sequence</code> multiplied by <code>scale>/code>
             */
 
 
-
-
             int scale=5;
             EvolutionSequence sequence_p = sequence.apply(itZ1TranslRate(x, w1, w2, replica),0,scale);
-
-
 
 
             /*
@@ -664,8 +644,6 @@ public class Main {
             double[][] direct_evaluation_atomic_Z2 = new double[rightBound-leftBound][1];
             double[][] direct_evaluation_atomic_Z3 = new double[rightBound-leftBound][1];
 
-            /*
-
             for (int i = 0; i<(rightBound-leftBound); i++){
                 direct_evaluation_atomic_Z1[i][0] = atomicZ1.compute(i+leftBound, sequence, sequence_p);
                 direct_evaluation_atomic_Z2[i][0] = atomicZ2.compute(i+leftBound, sequence, sequence_p);
@@ -677,7 +655,7 @@ public class Main {
             Util.writeToCSV("./atomic_Z3.csv",direct_evaluation_atomic_Z3);
 
 
-            */
+
 
 
 
@@ -685,7 +663,10 @@ public class Main {
 
 
             /*
-            We conclude EXPERIMENT #2 by using the model checker.
+            USING THE MODEL CHECKER
+
+            Later, we will write down a robustness formula that simply expresses whether the maximal of these distances is
+            below a given threshold.
             First we define the distances <code>distanceZi</code>, as instances of <code>MaxIntervalDistanceExpression</code>.
             Each <code>distanceZi</code> evaluates <code>atomicZi</code> in all time-points and returns the max value.
             Then we define the distance expression <code>distanceMaxZ1Z2Z3</code>, which returns the maximal value
@@ -699,35 +680,18 @@ public class Main {
 
              */
 
-
-            DistanceExpression distanceZ1 = new MaxIntervalDistanceExpression(
-                    atomicZ1,
-                    leftBound,
-                    rightBound
-            );
-
-            DistanceExpression distanceZ2 = new MaxIntervalDistanceExpression(
-                    atomicZ2,
-                    leftBound,
-                    rightBound
-            );
-
-            DistanceExpression distanceZ3 = new MaxIntervalDistanceExpression(
-                    atomicZ3,
-                    leftBound,
-                    rightBound
-            );
-
+            int leftRBound=800;
+            int rightRBound=900;
 
             DistanceExpression dMax = new MaxDistanceExpression(
-                    distanceZ1,
-                    new MaxDistanceExpression(distanceZ2, distanceZ3)
+                    atomicZ1,
+                    new MaxDistanceExpression(atomicZ2, atomicZ3)
             );
 
             DistanceExpression intdMax = new MaxIntervalDistanceExpression(
                     dMax,
-                    800,
-                    900
+                    leftRBound,
+                    rightRBound
             );
 
 
@@ -739,16 +703,20 @@ public class Main {
             //        RelationOperator.LESS_OR_EQUAL_THAN,
             //        THRESHOLD);
 
-
+            double[][] robEvaluations = new double[20][1];
             RobustnessFormula robustF;
-            for(double thresholdV = 0.08; thresholdV<0.21 ; thresholdV = thresholdV + 0.01){
+            int index=0;
+            for(double thresholdV = 0.01; thresholdV<0.21 ; thresholdV = thresholdV + 0.01){
                 robustF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
                         intdMax,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         thresholdV);
-                TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(1, 0, sequence);
+                TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(5, 0, sequence);
                 System.out.println(" ");
                 System.out.println("\n robustF evaluation at " + thresholdV + ": " + value1);
+                robEvaluations[index][0]=value1.valueOf();
+                index++;
+                Util.writeToCSV("./evalR.csv",robEvaluations);
             }
 
             //TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
@@ -1397,8 +1365,11 @@ public class Main {
 
 
     /*
-    Method getInitialState assigns the initial value to all variables
-    */
+    Method getInitialState assigns the initial value to all variables.
+    The values are taken from "Ulysse Herbach: ''Harissa: Stochastic Simulation and Inference of Gene Regulatory Networks Based on Transcriptional
+    Bursting''. Proc. CMSB 2023".
+
+     */
     public static DataState getInitialState(double gran, double Tstep, double Treal, double Tdelta) {
         Map<Integer, Double> values = new HashMap<>();
 
@@ -1421,13 +1392,6 @@ public class Main {
 
         double initial_kon1 = K01 + K11 * Math.exp(BETA1)/(1+Math.exp(BETA1));
 
-        //values.put(kon1, initial_kon1);
-        //values.put(koff1, 10.0);
-        //values.put(s01, 1000.0);
-        //values.put(s11, 10.0);
-        //values.put(d01, 0.5);
-        //values.put(d11, 0.1);
-
         values.put(kon1, initial_kon1);
         values.put(koff1, 5.0);
         values.put(s01, 250.0);
@@ -1435,15 +1399,7 @@ public class Main {
         values.put(d01, 1.0);
         values.put(d11, 0.1);
 
-
         double initial_kon2 = K02 + K12 * Math.exp(BETA2)/(1+Math.exp(BETA2));
-
-        //values.put(kon2, initial_kon2);
-        //values.put(koff2, 10.0);
-        //values.put(s02, 1000.0);
-        //values.put(s12, 10.0);
-        //values.put(d02, 0.5);
-        //values.put(d12, 0.1);
 
         values.put(kon2, initial_kon2);
         values.put(koff2, 5.0);
@@ -1453,13 +1409,6 @@ public class Main {
         values.put(d12, 0.1);
 
         double initial_kon3 = K03 + K13 * Math.exp(BETA3)/(1+Math.exp(BETA3));
-
-        //values.put(kon3, initial_kon3);
-        //values.put(koff3, 10.0);
-        //values.put(s03, 1000.0);
-        //values.put(s13, 10.0);
-        //values.put(d03, 0.5);
-        //values.put(d13, 0.1);
 
         values.put(kon3, initial_kon3);
         values.put(koff3, 5.0);
