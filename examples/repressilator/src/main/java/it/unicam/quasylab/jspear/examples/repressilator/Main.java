@@ -696,7 +696,7 @@ public class Main {
 
 
 
-            double THRESHOLD = 0.04;
+            // double THRESHOLD = 0.04;
 
             //RobustnessFormula robF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
             //        intdMax,
