@@ -40,6 +40,7 @@ import it.unicam.quasylab.jspear.robtl.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 public class Main {
@@ -703,21 +704,25 @@ public class Main {
             //        RelationOperator.LESS_OR_EQUAL_THAN,
             //        THRESHOLD);
 
-            double[][] robEvaluations = new double[20][1];
+            double[][] robEvaluations = new double[20][2];
             RobustnessFormula robustF;
             int index=0;
-            for(double thresholdV = 0.01; thresholdV<0.21 ; thresholdV = thresholdV + 0.01){
+            double thresholdV = 0.0;
+            for(int i = 1; i < 21 ; i++){
+                double incrThreshold = i/100.0;
+                thresholdV = thresholdV + incrThreshold;
                 robustF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
                         intdMax,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         thresholdV);
-                TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(5, 0, sequence);
+                TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(5, 0, sequence);
                 System.out.println(" ");
-                System.out.println("\n robustF evaluation at " + thresholdV + ": " + value1);
-                robEvaluations[index][0]=value1.valueOf();
+                System.out.println("\n robustF evaluation at " + thresholdV + ": " + value);
+                robEvaluations[index][1]=value.valueOf();
+                robEvaluations[index][0]=thresholdV;
                 index++;
-                Util.writeToCSV("./evalR.csv",robEvaluations);
             }
+            Util.writeToCSV("./evalR.csv",robEvaluations);
 
             //TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
             //System.out.println(" ");
