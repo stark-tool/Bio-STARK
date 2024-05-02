@@ -707,19 +707,20 @@ public class Main {
             double[][] robEvaluations = new double[20][2];
             RobustnessFormula robustF;
             int index=0;
-            double thresholdV = 0.0;
-            for(int i = 1; i < 21 ; i++){
-                double incrThreshold = i/100.0;
-                thresholdV = thresholdV + incrThreshold;
+            double thresholdB = 1;
+            double thresholdIncr = 0.01;
+            for(int i = 0; i < 20 ; i++){
+                double threshold = thresholdB + i;
+                threshold = threshold / 100;
                 robustF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
                         intdMax,
                         RelationOperator.LESS_OR_EQUAL_THAN,
-                        thresholdV);
+                        threshold);
                 TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(5, 0, sequence);
                 System.out.println(" ");
-                System.out.println("\n robustF evaluation at " + thresholdV + ": " + value);
+                System.out.println("\n robustF evaluation at " + threshold + ": " + value);
                 robEvaluations[index][1]=value.valueOf();
-                robEvaluations[index][0]=thresholdV;
+                robEvaluations[index][0]=threshold;
                 index++;
             }
             Util.writeToCSV("./evalR.csv",robEvaluations);
