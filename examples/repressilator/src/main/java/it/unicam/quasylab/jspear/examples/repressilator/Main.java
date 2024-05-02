@@ -479,7 +479,7 @@ public class Main {
             int replica= 5;
 
 
-            /*
+
             double[][] plot_z1 = new double[N][1];
             double[][] plot_z2 = new double[N][1];
             double[][] plot_z3 = new double[N][1];
@@ -532,7 +532,7 @@ public class Main {
             Util.writeToCSV("./new_pplotX2.csv",plot_px2);
             Util.writeToCSV("./new_pplotX3.csv",plot_px3);
 
-             */
+
 
 
 
@@ -697,18 +697,10 @@ public class Main {
 
 
 
-            // double THRESHOLD = 0.04;
-
-            //RobustnessFormula robF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
-            //        intdMax,
-            //        RelationOperator.LESS_OR_EQUAL_THAN,
-            //        THRESHOLD);
-
             double[][] robEvaluations = new double[20][2];
             RobustnessFormula robustF;
             int index=0;
             double thresholdB = 1;
-            double thresholdIncr = 0.01;
             for(int i = 0; i < 20 ; i++){
                 double threshold = thresholdB + i;
                 threshold = threshold / 100;
@@ -725,9 +717,7 @@ public class Main {
             }
             Util.writeToCSV("./evalR.csv",robEvaluations);
 
-            //TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
-            //System.out.println(" ");
-            //System.out.println("\n robF evaluation at 0: " + value1);
+
 
 
 
