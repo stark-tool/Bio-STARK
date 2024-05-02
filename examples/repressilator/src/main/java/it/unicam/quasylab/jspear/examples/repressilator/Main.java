@@ -479,7 +479,7 @@ public class Main {
             int replica= 5;
 
 
-            /*
+
             double[][] plot_z1 = new double[N][1];
             double[][] plot_z2 = new double[N][1];
             double[][] plot_z3 = new double[N][1];
@@ -532,7 +532,7 @@ public class Main {
             Util.writeToCSV("./new_pplotX2.csv",plot_px2);
             Util.writeToCSV("./new_pplotX3.csv",plot_px3);
 
-             */
+
 
 
 
@@ -541,7 +541,7 @@ public class Main {
             .cvs files, the following portion of code allows us to print them.
             */
 
-            /*
+
             System.out.println("");
             System.out.println("Simulation of nominal system - data average values:");
             System.out.println("");
@@ -551,7 +551,7 @@ public class Main {
             System.out.println("");
             printAvgDataPerturbed(rand, L, F, system, N, size, 0, N, itZ1TranslRate(x, w1, w2, replica));
 
-             */
+
 
 
 
@@ -697,36 +697,27 @@ public class Main {
 
 
 
-            // double THRESHOLD = 0.04;
-
-            //RobustnessFormula robF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
-            //        intdMax,
-            //        RelationOperator.LESS_OR_EQUAL_THAN,
-            //        THRESHOLD);
-
             double[][] robEvaluations = new double[20][2];
             RobustnessFormula robustF;
             int index=0;
-            double thresholdV = 0.0;
-            for(int i = 1; i < 21 ; i++){
-                double incrThreshold = i/100.0;
-                thresholdV = thresholdV + incrThreshold;
+            double thresholdB = 1;
+            for(int i = 0; i < 20 ; i++){
+                double threshold = thresholdB + i;
+                threshold = threshold / 100;
                 robustF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
                         intdMax,
                         RelationOperator.LESS_OR_EQUAL_THAN,
-                        thresholdV);
+                        threshold);
                 TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(5, 0, sequence);
                 System.out.println(" ");
-                System.out.println("\n robustF evaluation at " + thresholdV + ": " + value);
+                System.out.println("\n robustF evaluation at " + threshold + ": " + value);
                 robEvaluations[index][1]=value.valueOf();
-                robEvaluations[index][0]=thresholdV;
+                robEvaluations[index][0]=threshold;
                 index++;
             }
             Util.writeToCSV("./evalR.csv",robEvaluations);
 
-            //TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF).eval(5, 0, sequence);
-            //System.out.println(" ");
-            //System.out.println("\n robF evaluation at 0: " + value1);
+
 
 
 
