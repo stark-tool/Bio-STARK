@@ -43,19 +43,11 @@ import java.util.*;
 
 public class Main {
 
-    /* The isocitrate dehydrogenase regulatory system (IDHKPIDH) of E. Coli controls the partioning of
-    carbon flux and it is useful when the bacterium of E. coli grows on substances, like for example
+    /* The isocitrate dehydrogenase regulatory system (IDHKPIDH) of E. Coli controls the partitioning of
+    carbon flux, and it is useful when the bacterium of E. coli grows on substances, like for example
     acetate, which contains only a small quantity of carbon. Without this regulation system, in fact,
     the organism would not have enough carbon available for biosynthesis of cell constituents.
     */
-
-    /*
-    public final static String[] VARIABLES =
-           new String[]{
-               "E", "I", "Ip", "EIp", "EIpI",
-           };
-    */
-
 
     // LIST OF ALL REACTIONS
 
@@ -109,13 +101,6 @@ public class Main {
 
     public static final int RIGHT_BOUND = 1000;
 
-    public static final double MAX_RED_E = 10.0;
-    public static final double MAX_PUSH_E = 10.0;
-    public static final double MAX_RED_Ip = 10.0;
-    public static final double MAX_PUSH_Ip = 10.0;
-
-
-
 
     // MAIN PROGRAM
     public static void main(String[] args) throws IOException {
@@ -132,20 +117,22 @@ public class Main {
             The value of variables is assigned by function <code>getInitialState</state>, which assigns to each variable
             a random value chosen in a suitable interval.
              */
+
             DataState state = getInitialState(rand,1.0,0.0,0.0,0.0);
 
-            /* The <code>TimedSystem</code> <code>system</code> is a system starting in state <code>state</code>.
+            /*
+            The <code>TimedSystem</code> <code>system</code> is a system starting in state <code>state</code>.
             Its evolution is determined by Gillespie's algorithm:
             <code>selectReactionTime</code> is a static method that selects the time of next reaction according to Gillespie algorithm.
             <code>selectAndApplyReaction</code> is a static method that selects the reaction among the available ones and modifies the state accordingly.
-             */
+            */
 
             TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
 
-
             /*
             The <code>EvolutionSequence</code> <code>sequence</code> originates from <code>size</code> copies of <code>system</code>
-             */
+            */
+
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
 
             EvolutionSequence sequence_001_100 = sequence.apply(pertEandIp(0.001,100),0,10);
@@ -156,12 +143,13 @@ public class Main {
             EvolutionSequence sequence_50_300 = sequence.apply(pertEandIp(50,300),0,10);
 
 
-            /* Given the system <code>system</code>, the following instructions simulate <code>size</code> runs consisting in
-              <code>RIGHT_BOUND</code> steps. At each step, the average value taken by each variable in the runs is printed out.
-              Then, for each variable the min and max value that are printed in the steps in the interval
-              [LEFT_BOUND,RIGHT_BOUND] are stored in arrays minMax[0] AND minMax[1], respectively.
-              Then, the same simulation is done for <code>psystem</code>.
-              Therefore, we can observe an evolution of both the nominal and the perturbed system.
+            /*
+            Given the system <code>system</code>, the following instructions simulate <code>size</code> runs consisting in
+            <code>RIGHT_BOUND</code> steps. At each step, the average value taken by each variable in the runs is printed out.
+            Then, for each variable the min and max value that are printed in the steps in the interval
+            [LEFT_BOUND,RIGHT_BOUND] are stored in arrays minMax[0] AND minMax[1], respectively.
+            Then, the same simulation is done for <code>psystem</code>.
+            Therefore, we can observe an evolution of both the nominal and the perturbed system.
             */
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
@@ -197,6 +185,12 @@ public class Main {
             double normalisation_10_100 = Math.max(minMax[1][I],minMax_10_100[1][I])*1.1;
             double normalisation_50_300 = Math.max(minMax[1][I],minMax_50_300[1][I])*1.1;
 
+            /*
+            Definition of distance expressions evaluating the Wasserstein distance between the
+            distributions reached, at a given time step, in the nominal system and the perturbed one,
+            each considering the proper normalisation factor according to the perturbation that is applied.
+            */
+
             DistanceExpression atomic_001_100 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_001_100,(v1, v2) -> Math.abs(v2-v1));
 
             DistanceExpression atomic_001_500 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_001_500,(v1, v2) -> Math.abs(v2-v1));
@@ -208,6 +202,11 @@ public class Main {
             DistanceExpression atomic_10_100 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_10_100,(v1, v2) -> Math.abs(v2-v1));
 
             DistanceExpression atomic_50_300 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_50_300,(v1, v2) -> Math.abs(v2-v1));
+
+            /*
+            Extension in time of the atomic distances.
+            We consider the maximum over the interval [400,1000]
+            */
 
             DistanceExpression distance_001_100 = new MaxIntervalDistanceExpression(
                     atomic_001_100,
@@ -270,10 +269,11 @@ public class Main {
 
             System.out.println("Evaluation of distances completed");
 
-            // ROBUSTNESS FORMULA
+            // ROBUSTNESS FORMULAE
+
             /* The following formula tells us whether the difference expressed by <code>distance</cod> between the nominal
-            system and its version perturbed by <code>pertEandIp10</code> is bound by THRESHOLD. The result of the evaluation
-            of the formula is printed out by the subsequent two lines of code.
+            system and its version perturbed by <code>pertEandIp</code> is bound by THRESHOLD.
+            The result of the evaluation of the formula is printed out by the subsequent two lines of code.
             */
 
             RobustnessFormula robF_001_100 = new AtomicRobustnessFormula(pertEandIp(0.001,100),
@@ -336,25 +336,12 @@ public class Main {
     }
 
 
-    /* This method will simulate <code>size</code> runs of lenght <code>steps</code> of system <code>s</code>.
+    /* This method will simulate <code>size</code> runs of length <code>steps</code> of system <code>s</code>.
        For each time step, each data state expression in list <code>F</code> is evaluated on all <code>s</code>
        systems and the average value is printed.
        The method returns a double[][], where:
-       - double[0,j] contains the minimum value of jth expression in F
        - double[1,j] contains the maximum value of jth expression in F
     */
-
-    private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size){
-        System.out.println(label);
-        double[][] data = SystemState.sample(rg, F, s, steps, size);
-        for (int i = 0; i < data.length; i++) {
-            System.out.printf("%d>   ", i);
-            for (int j = 0; j < data[i].length -1; j++) {
-                System.out.printf("%f   ", data[i][j]);
-            }
-            System.out.printf("%f\n", data[i][data[i].length -1]);
-        }
-    }
 
     private static double[][] printLMinMaxData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
         double[][] result = new double[2][NUMBER_OF_VARIABLES];
@@ -417,9 +404,9 @@ public class Main {
     /* PERTURBATIONS:
     Perturbation <code>pertEandIp</code> perturbs the system state by applying function <code>changeEandIp</code> at the
     first computation step.
-    Perturbation <code>pertEandIp10</code> perturbs the system state by applying function <code>changeEandIp</code> at the
-    10th computation step.
-    Perturbation <code>pertEandIp10Iter</code> applies <code>pertEandIp10</code> for 5 times.
+    It modifies the initial concentration of species E and Ip, by adding
+    x molecules of E, and
+    y molecules of Ip.
     */
 
     public static Perturbation pertEandIp(double x, double y){
@@ -458,8 +445,8 @@ public class Main {
 
 
     /*
-    The following method selects the next reaction, according to Gillespie's algorithm, and returns the updates that allow for
-     modifying the state accordingly.
+    The following method selects the next reaction, according to Gillespie's algorithm,
+    and returns the updates that allow for modifying the state accordingly.
     */
 
     public static List<DataStateUpdate> selectAndApplyReaction(RandomGenerator rg, DataState state) {
@@ -550,21 +537,6 @@ public class Main {
         double initIp = Math.ceil(100 * rand.nextDouble());
         double initEIp = Math.ceil(100 * rand.nextDouble());
         double initEIpI = Math.ceil(100 * rand.nextDouble());
-        values.put(E, initE);
-        values.put(I, initI);
-        values.put(Ip, initIp);
-        values.put(EIp, initEIp);
-        values.put(EIpI, initEIpI);
-        return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN), gran, Tstep, Treal, Tdelta);
-    }
-
-    public static DataState getInitialStateC(RandomGenerator rand, double gran, double Tstep, double Treal, double Tdelta) {
-        Map<Integer, Double> values = new HashMap<>();
-        double initE = 0.0;
-        double initI = 100.0;
-        double initIp = 10000.0;
-        double initEIp = 10.0;
-        double initEIpI = 0.0;
         values.put(E, initE);
         values.put(I, initI);
         values.put(Ip, initIp);
