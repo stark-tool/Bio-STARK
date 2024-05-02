@@ -541,7 +541,7 @@ public class Main {
             .cvs files, the following portion of code allows us to print them.
             */
 
-            /*
+
             System.out.println("");
             System.out.println("Simulation of nominal system - data average values:");
             System.out.println("");
@@ -551,7 +551,7 @@ public class Main {
             System.out.println("");
             printAvgDataPerturbed(rand, L, F, system, N, size, 0, N, itZ1TranslRate(x, w1, w2, replica));
 
-             */
+
 
 
 
