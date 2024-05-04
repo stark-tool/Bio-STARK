@@ -442,7 +442,7 @@ public class Main {
 
             /*
 
-            UNING THE SIMULATOR
+            USING THE SIMULATOR
 
             We start with generating two evolution sequences from configuration <code>system</system>.
             Both evolution sequences are sequences of length <code>N</code> of sample sets of cardinality
@@ -723,131 +723,9 @@ public class Main {
 
 
 
-            /*
-
-            EXPERIMENT #3
-
-            In this experiment, we proceed as in EXPERIMENT 2 to define a perturbation and an expression distance,
-            then we define a robustness formula that expresses that the distance between the nominal and the
-            perturbed evolution sequences is below a given threshold.
-            The main differences between EXPERIMENT #3 and EXPERIMENT #2 is that now the perturbation modifies the
-            translation rates of both gene 1 and gene 2 and, moreover, the effects of the perturbation are iteratively
-            activated and deactivated.
-
-
-             */
-
-
-           /*
-           The perturbed sequence is obtained by applying the perturbation returned by the static method
-           <code>itProtTranslRate</code>, which, iteratively,
-            */
-
-
-            /*
-            System.out.println("");
-            System.out.println("Experiment 3");
-            System.out.println("");
-
-            double x_1 = -3.0;
-            double y_1 = 3.0;
-            double x_2 = 3.0;
-            double y_2 = -3.0;
-
-            int Q=1000;
-            System.out.println("");
-            System.out.println("Simulation of nominal system - Data average values");
-            System.out.println("");
-            printAvgData(rand, L, F, system, Q, size, 20, Q);
-            System.out.println("");
-            System.out.println("Simulation of perturbed system ");
-            System.out.println("Translation rate of gene 1 incremented by " + x_1 + "and translation rate of gene 2 incremented by " + y_1 + "every 50 steps for 40 steps");
-            System.out.println("Simulation of perturbed system - Data average values");
-            System.out.println("Data average values:");
-            System.out.println("");
-            printAvgDataPerturbed(rand, L, F, system, Q, size, 20, Q, itProtTranslRate(x_1,y_1,-x_1,-y_1));
-            System.out.println("");
-            System.out.println("Simulation of nominal system - Data maximal values");
-            System.out.println("");
-            double[] dataMaxIt = printMaxData(rand, L, F, system, 5*Q, size, 20, 2*Q);
-            System.out.println("");
-            System.out.println("Simulation of perturbed system - Data maximal values");
-            System.out.println("");
-            double[] dataMaxItp = printMaxDataPerturbed(rand, L, F, system, 5*Q, size, 20, 2*Q, itProtTranslRate(x_1,y_1,x_2,y_2));
-            double normalisationZ1it = Math.max(dataMaxIt[Z1],dataMaxItp[Z1])*1.1;
-            double normalisationZ2it = Math.max(dataMaxIt[Z2],dataMaxItp[Z1])*1.1;
-            double normalisationZ3it = Math.max(dataMaxIt[Z3],dataMaxItp[Z2])*1.1;
-
-            AtomicDistanceExpression atomicZ1it = new AtomicDistanceExpression(ds->ds.get(Z1)/normalisationZ1it,(v1, v2) -> Math.abs(v2-v1));
-
-            AtomicDistanceExpression atomicZ2it = new AtomicDistanceExpression(ds->ds.get(Z2)/normalisationZ2it,(v1, v2) -> Math.abs(v2-v1));
-
-            AtomicDistanceExpression atomicZ3it = new AtomicDistanceExpression(ds->ds.get(Z3)/normalisationZ3it,(v1, v2) -> Math.abs(v2-v1));
-
-
-            DistanceExpression distanceZ1it = new MaxIntervalDistanceExpression(
-                    atomicZ1it,
-                    leftBound,
-                    rightBound
-            );
-
-            DistanceExpression distanceZ2it = new MaxIntervalDistanceExpression(
-                    atomicZ2it,
-                    leftBound,
-                    rightBound
-            );
-
-            DistanceExpression distanceZ3it = new MaxIntervalDistanceExpression(
-                    atomicZ3it,
-                    leftBound,
-                    rightBound
-            );
-
-
-            DistanceExpression distanceMaxZ1Z2Z3it = new MaxDistanceExpression(
-                    distanceZ1it,
-                    new MaxDistanceExpression(distanceZ2it, distanceZ3it)
-            );
-
-
-            EvolutionSequence sequence_p_it = sequence.apply(pert_transl_1(x),0,scale);
-
-            double[][] direct_evaluation_atomic_Z1_it = new double[rightBound-leftBound][1];
-            double[][] direct_evaluation_atomic_Z2_it = new double[rightBound-leftBound][1];
-            double[][] direct_evaluation_atomic_Z3_it = new double[rightBound-leftBound][1];
-
-            for (int i = 0; i<980; i++){
-                direct_evaluation_atomic_Z1_it[i][0] = atomicZ1it.compute(i+leftBound, sequence, sequence_p_it);
-                direct_evaluation_atomic_Z2_it[i][0] = atomicZ2it.compute(i+leftBound, sequence, sequence_p_it);
-                direct_evaluation_atomic_Z3_it[i][0] = atomicZ3it.compute(i+leftBound, sequence, sequence_p_it);
-            }
-
-            Util.writeToCSV("./atomic_Z1_it.csv",direct_evaluation_atomic_Z1_it);
-            Util.writeToCSV("./atomic_Z2_it.csv",direct_evaluation_atomic_Z2_it);
-            Util.writeToCSV("./atomic_Z3_it.csv",direct_evaluation_atomic_Z3_it);
-
-            int scaleIt = 5;
-            EvolutionSequence sequence_pIt = sequence.apply(itProtTranslRate(x_1,y_1,x_2,y_2) ,0,scaleIt);
 
 
 
-            System.out.println(" ");
-            System.out.printf("%s \n", "The behavioural distance between the nominal and the perturbed sequence is: ");
-            System.out.println(distanceMaxZ1Z2Z3it.compute(0, sequence, sequence_pIt));
-
-            double THRESHOLD_IT = 0.15;
-
-            RobustnessFormula robFIt = new AtomicRobustnessFormula(itProtTranslRate(x_1,y_1,x_2,y_2),
-                    distanceMaxZ1Z2Z3it,
-                    RelationOperator.LESS_OR_EQUAL_THAN,
-                    THRESHOLD_IT);
-
-            TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robFIt).eval(5, 0, sequence);
-            System.out.println(" ");
-            System.out.println("\n robFIt evaluation at 0: " + value);
-
-
-             */
 
 
         } catch (RuntimeException e) {
@@ -1030,33 +908,6 @@ public class Main {
 
 
 
-    /*
-    The following method returns a perturbation. In particular this is an atomic perturbation, i.e. an instance of
-    <code>AtomicPerturbation</code>. It consists of two elements:
-    - a random function over data states, i.e. an instance of <code>DataStateFunction</code>, which is returned by
-    method <code>changeDZ1()>/code>,
-    - the number of steps after which the random function will be applied, which is 0 in this case.
-    In particular, the function returned by <code>changeDZ1()>/code> modifies the data state by changing the value of
-    the degradation rate of protein Z1.
-    Overall, this perturbation changes immediately the degradation rate of Z1, thus impacting on the whole evolution
-    of the system.
-     */
-
-    /* public static Perturbation pert_transl_1(){
-        return new AtomicPerturbation(0,Repressilator::pert_s11);
-    }
-
-    private static DataState pert_s11(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)+6,0)));
-        return state.apply(updates);
-    }
-    */
-
-    public static Perturbation pert_transl_1(double x){
-        return new AtomicPerturbation(0,(rg,ds)->ds.apply(upd_s11(rg,ds,x)));
-    }
-
     private static List<DataStateUpdate> upd_s11(RandomGenerator rg, DataState state, double x){
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)+x,0)));
@@ -1108,62 +959,13 @@ public class Main {
      */
 
 
-    public static Perturbation itProtTranslRate(double x1 , double y1, double x2, double y2){
-        return new IterativePerturbation(18,
-                new SequentialPerturbation(
-                        new AtomicPerturbation(10,(rg,ds)->ds.apply(upd_s11_s12(rg,ds,x1,y1))),
-                        new AtomicPerturbation(40,(rg,ds)->ds.apply(upd_s11_s12(rg,ds,x2,y2)))
-                )
-        );
-    }
-
-
-    private static List<DataStateUpdate> upd_s11_s12(RandomGenerator rg, DataState state, double x, double y){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)+x,0)));
-        updates.add(new DataStateUpdate(s12,Math.max(state.get(s12)+y,0)));
-        return updates;
-    }
 
 
 
 
 
-    /*
-    private static DataState fastZ1slowZ2(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)+3,0)));
-        updates.add(new DataStateUpdate(s12,Math.max(state.get(s12)-3,0)));
-        return state.apply(updates);
-    }
 
 
-
-    public static Perturbation itProtTranslRate(){
-        return new IterativePerturbation(3,
-                new SequentialPerturbation(
-                        new AtomicPerturbation(10,Repressilator::slowZ1fastZ2),
-                        new AtomicPerturbation(40,Repressilator::fastZ1slowZ2)
-                )
-        );
-    }
-
-
-    private static DataState slowZ1fastZ2(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)-3,0)));
-        updates.add(new DataStateUpdate(s12,Math.max(state.get(s12)+3,0)));
-        return state.apply(updates);
-    }
-
-    private static DataState fastZ1slowZ2(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(s11,Math.max(state.get(s11)+3,0)));
-        updates.add(new DataStateUpdate(s12,Math.max(state.get(s12)-3,0)));
-        return state.apply(updates);
-    }
-
-    */
 
 
     /*
