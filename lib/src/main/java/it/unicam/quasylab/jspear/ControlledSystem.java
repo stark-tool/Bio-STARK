@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -31,7 +31,11 @@ import it.unicam.quasylab.jspear.ds.DataStateFunction;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
- * Represents a system controlled by controller.
+ * Represents a system in the evolution sequence model,
+ * namely a system that consists of
+ * an agent,
+ * an environment, and
+ * a set of application-relevant data.
  */
 public class ControlledSystem implements SystemState {
 
@@ -40,9 +44,9 @@ public class ControlledSystem implements SystemState {
     private final DataState state;
 
     /**
-     * Creates a system with the given controller and the given state.
-     *  @param controller system controller.
-     * @param environment
+     * Creates a system with the given agent, environment and data state.
+     * @param controller process modelling the agent,
+     * @param environment set of functions modelling the environment,
      * @param state current data state.
      */
     public ControlledSystem(Controller controller, DataStateFunction environment, DataState state) {
@@ -59,7 +63,10 @@ public class ControlledSystem implements SystemState {
     @Override
     public SystemState sampleNext(RandomGenerator rg) {
         EffectStep<Controller> step = controller.next(rg, state);
-        return new ControlledSystem(step.next(), environment, environment.apply(rg, state.apply(step.effect())));
+        int c_step = state.getStep();
+        DataState newState = environment.apply(rg, state.apply(step.effect()));
+        newState.setStep(c_step+1);
+        return new ControlledSystem(step.next(), environment, newState);
     }
 
     @Override

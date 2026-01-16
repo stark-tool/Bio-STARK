@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -84,12 +84,16 @@ public class StarkMessages {
         return PENALTIES_MESSAGE;
     }
 
-    public static String distancesMesage() {
+    public static String distancesMessage() {
         return DISTANCES_MESSAGE;
     }
 
     public static String doneMessage() {
         return DONE_MESSAGE;
+    }
+
+    public static String doneMessage(String message) {
+        return message;
     }
 
     public static String printMessage() {

@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -22,10 +22,12 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
-
-import java.util.stream.IntStream;
-
+/**
+ * We use the "until" operator to establish a correlation
+ * between the satisfaction in a given time interval
+ * of two given formulae:
+ * the first should be satisfied until the second one is.
+ */
 public final class UntilRobustnessFormula implements RobustnessFormula {
 
     private final RobustnessFormula leftFormula;
@@ -33,6 +35,14 @@ public final class UntilRobustnessFormula implements RobustnessFormula {
     private final int to;
     private final RobustnessFormula rightFormula;
 
+    /**
+     * The "until" formula takes four parameters:
+     *
+     * @param leftFormula a RobTL formula
+     * @param from the left bound of the time interval
+     * @param to the right bound of the time interval
+     * @param rightFormula a RobTL formula.
+     */
     public UntilRobustnessFormula(RobustnessFormula leftFormula, int from, int to, RobustnessFormula rightFormula) {
         if ((from<0)||(to<0)||(from>=to)) {
             throw new IllegalArgumentException();
@@ -48,18 +58,38 @@ public final class UntilRobustnessFormula implements RobustnessFormula {
         return evaluator.evalUntil(this);
     }
 
+    /**
+     * Returns the RobTL formula taken as first parameter by this formula.
+     *
+     * @return parameter <code>leftFormula</code>.
+     */
     public RobustnessFormula getLeftFormula() {
         return leftFormula;
     }
 
+    /**
+     * Returns the left of the time interval of this formula.
+     *
+     * @return parameter <code>from</code>.
+     */
     public int getFrom() {
         return from;
     }
 
+    /**
+     * Returns the right bound of the time interval of this formula.
+     *
+     * @return parameter <code>to</code>.
+     */
     public int getTo() {
         return to;
     }
 
+    /**
+     * Returns the RobTL formula taken as fourth parameter by this formula.
+     *
+     * @return parameter <code>rightFormula</code>.
+     */
     public RobustnessFormula getRightFormula() {
         return rightFormula;
     }

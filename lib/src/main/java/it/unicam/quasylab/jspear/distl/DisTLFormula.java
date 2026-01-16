@@ -22,10 +22,10 @@
 
 package it.unicam.quasylab.jspear.distl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
 import it.unicam.quasylab.jspear.robtl.*;
+import it.unicam.quasylab.jspear.udistl.UDisTLFormula;
 
-public sealed interface DisTLFormula permits
+public sealed interface DisTLFormula extends UDisTLFormula permits
         AlwaysDisTLFormula,
         BrinkDisTLFormula,
         ConjunctionDisTLFormula,
@@ -36,19 +36,12 @@ public sealed interface DisTLFormula permits
         NegationDisTLFormula,
         TargetDisTLFormula,
         TrueDisTLFormula,
-        UntilDisTLFormula {
-
-    default double eval(int sampleSize, int step, EvolutionSequence sequence) {
-        return eval(sampleSize, step, sequence, true);
-    }
-
-    double eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel);
+        UntilDisTLFormula  {
 
     <T> DisTLFunction<T> eval(DisTLFormulaVisitor<T> evaluator);
 
     static DisTLFunction<Double> getDoubleEvaluationFunction(DisTLFormula formula) {
         return formula.eval(new DoubleSemanticsVisitor());
     }
-
 
 }

@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -22,24 +22,33 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
-
+/**
+ * Defines the negation of a given RobTL formula.
+ */
 public final class NegationRobustnessFormula implements RobustnessFormula {
 
-    private final RobustnessFormula argument;
+    private final RobustnessFormula formula;
 
-    public NegationRobustnessFormula(RobustnessFormula argument) {
-        this.argument = argument;
+    /**
+     * It takes as parameter the RobTL to be negated.
+     *
+     * @param formula a RobTL formula.
+     */
+    public NegationRobustnessFormula(RobustnessFormula formula) {
+        this.formula = formula;
     }
-
-
 
     @Override
     public <T> RobustnessFunction<T> eval(RobustnessFormulaVisitor<T> evaluator) {
         return evaluator.evalNegation(this);
     }
 
+    /**
+     * Returns the RobTL formula takes as parameter by this formula.
+     *
+     * @return parameter <code>formula</code>.
+     */
     public RobustnessFormula getArgument() {
-        return argument;
+        return formula;
     }
 }

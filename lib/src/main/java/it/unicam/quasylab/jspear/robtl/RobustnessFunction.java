@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -25,9 +25,9 @@ package it.unicam.quasylab.jspear.robtl;
 import it.unicam.quasylab.jspear.EvolutionSequence;
 
 /**
- * This functional interface represents an interpretation function of RobTL formulas.
+ * This functional interface represents an interpretation function of RobTL formulae.
  *
- * @param <T> formulas interpretation domain.
+ * @param <T> formulae interpretation domain.
  */
 @FunctionalInterface
 public interface RobustnessFunction<T> {

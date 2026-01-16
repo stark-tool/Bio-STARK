@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -28,6 +28,9 @@ import it.unicam.quasylab.jspear.perturbation.Perturbation;
 
 import java.util.stream.IntStream;
 
+/**
+ * This class implements the Boolean interpretation of RobTL formulae.
+ */
 public class BooleanSemanticsVisitor implements RobustnessFormulaVisitor<Boolean> {
 
     private final boolean parallel;
@@ -51,9 +54,11 @@ public class BooleanSemanticsVisitor implements RobustnessFormulaVisitor<Boolean
         int from = alwaysRobustnessFormula.getFrom();
         int to = alwaysRobustnessFormula.getTo();
         if (parallel) {
-            return (sampleSize, step, sequence) -> IntStream.of(from, to).parallel().allMatch(i -> argumentFunction.eval(sampleSize, step+i, sequence));
+            return (sampleSize, step, sequence) ->
+                    IntStream.of(from, to).parallel().allMatch(i -> argumentFunction.eval(sampleSize, step+i, sequence));
         } else {
-            return (sampleSize, step, sequence) -> IntStream.of(from, to).sequential().allMatch(i -> argumentFunction.eval(sampleSize, step+i, sequence));
+            return (sampleSize, step, sequence) ->
+                    IntStream.of(from, to).sequential().allMatch(i -> argumentFunction.eval(sampleSize, step+i, sequence));
         }
     }
 
@@ -85,6 +90,20 @@ public class BooleanSemanticsVisitor implements RobustnessFormulaVisitor<Boolean
     }
 
     @Override
+    public RobustnessFunction<Boolean> evalEventually(EventuallyRobustnessFormula eventuallyRobustnessFormula) {
+        RobustnessFunction<Boolean> argumentFunction = eventuallyRobustnessFormula.getArgument().eval(this);
+        int from = eventuallyRobustnessFormula.getFrom();
+        int to = eventuallyRobustnessFormula.getTo();
+        if (parallel) {
+            return (sampleSize, step, sequence) ->
+                    IntStream.of(from, to).parallel().anyMatch(i -> argumentFunction.eval(sampleSize, step+i, sequence));
+        } else {
+            return (sampleSize, step, sequence) ->
+                    IntStream.of(from, to).sequential().anyMatch(i -> argumentFunction.eval(sampleSize, step+i, sequence));
+        }
+    }
+
+    @Override
     public RobustnessFunction<Boolean> evalFalse() {
         return (sampleSize, step, sequence) -> false;
     }
@@ -93,7 +112,8 @@ public class BooleanSemanticsVisitor implements RobustnessFormulaVisitor<Boolean
     public RobustnessFunction<Boolean> evalImplication(ImplicationRobustnessFormula implicationRobustnessFormula) {
         RobustnessFunction<Boolean> leftFunction = implicationRobustnessFormula.getLeftFormula().eval(this);
         RobustnessFunction<Boolean> rightFunction = implicationRobustnessFormula.getRightFormula().eval(this);
-        return (sampleSize, step, sequence) -> (!leftFunction.eval(sampleSize, step, sequence))||rightFunction.eval(sampleSize, step, sequence);
+        return (sampleSize, step, sequence) ->
+                (!leftFunction.eval(sampleSize, step, sequence))||rightFunction.eval(sampleSize, step, sequence);
     }
 
     @Override
@@ -126,15 +146,4 @@ public class BooleanSemanticsVisitor implements RobustnessFormulaVisitor<Boolean
         }
     }
 
-    @Override
-    public RobustnessFunction<Boolean> evalEventually(EventuallyRobustnessFormula eventuallyRobustnessFormula) {
-        RobustnessFunction<Boolean> argumentFunction = eventuallyRobustnessFormula.getArgument().eval(this);
-        int from = eventuallyRobustnessFormula.getFrom();
-        int to = eventuallyRobustnessFormula.getTo();
-        if (parallel) {
-            return (sampleSize, step, sequence) -> IntStream.of(from, to).parallel().anyMatch(i -> argumentFunction.eval(sampleSize, step+i, sequence));
-        } else {
-            return (sampleSize, step, sequence) -> IntStream.of(from, to).sequential().anyMatch(i -> argumentFunction.eval(sampleSize, step+i, sequence));
-        }
-    }
 }

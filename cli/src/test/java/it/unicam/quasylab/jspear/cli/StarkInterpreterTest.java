@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -31,6 +31,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Disabled
 class StarkInterpreterTest {
+
+    public static final String two_vehicles = "two_vehicles.stark";
+    public static final String vehicle = "single_vehicle.stark";
+    public static final String engine = "Engine.stark";
 
     @Test
     void shouldBeCreatedWithoutErrors() throws StarkCommandExecutionException {
@@ -86,9 +90,19 @@ class StarkInterpreterTest {
     }
 
     @Test
-    void testScriptRun() throws StarkCommandExecutionException {
+    void testSingleVehicleRun() throws StarkCommandExecutionException {
+        StarkInterpreter si = new StarkInterpreter();
+        si.executeCommand("cd \"build\"");
         StarkShell shell = new StarkShell();
-        shell.executeScript(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource("vehicle.stark")).getFile());
+        shell.executeScript(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(vehicle)).getFile().replaceFirst("^/(.:/)", "$1"));
+    }
+
+    @Test
+    void testEngineRun() throws StarkCommandExecutionException {
+        StarkInterpreter si = new StarkInterpreter();
+        si.executeCommand("cd \"build\"");
+        StarkShell shell = new StarkShell();
+        shell.executeScript(Objects.requireNonNull(ClassLoader.getSystemClassLoader().getResource(engine)).getFile().replaceFirst("^/(.:/)", "$1"));
     }
 
 }

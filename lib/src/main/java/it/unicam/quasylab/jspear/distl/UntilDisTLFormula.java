@@ -22,24 +22,28 @@
 
 package it.unicam.quasylab.jspear.distl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
-import it.unicam.quasylab.jspear.robtl.RobustnessFormula;
-import it.unicam.quasylab.jspear.robtl.RobustnessFormulaVisitor;
-import it.unicam.quasylab.jspear.robtl.RobustnessFunction;
+import it.unicam.quasylab.jspear.udistl.UDisTLFormula;
+import nl.tue.Monitoring.MonitorBuildingVisitor;
 
-import java.util.stream.IntStream;
+import java.util.OptionalInt;
 
 public final class UntilDisTLFormula implements DisTLFormula {
 
-    private final DisTLFormula leftFormula;
+    private final UDisTLFormula leftFormula;
     private final int from;
     private final int to;
-    private final DisTLFormula rightFormula;
+    private final UDisTLFormula rightFormula;
 
-    public UntilDisTLFormula(DisTLFormula leftFormula, int from, int to, DisTLFormula rightFormula) {
-        if ((from<0)||(to<0)||(from>=to)) {
-            throw new IllegalArgumentException();
-        }
+    public UntilDisTLFormula(UDisTLFormula leftFormula, int from, int to, UDisTLFormula rightFormula) {
+        if (from < 0)
+            throw new IllegalArgumentException("Parameter 'from' must be non-negative: from=" + from);
+
+        if (to < 0)
+            throw new IllegalArgumentException("Parameter 'to' must be non-negative: to=" + to);
+
+        if (from >= to)
+            throw new IllegalArgumentException("Parameter 'from' must be less than 'to': from=" + from + ", to=" + to);
+
         this.leftFormula = leftFormula;
         this.from = from;
         this.to = to;
@@ -47,24 +51,11 @@ public final class UntilDisTLFormula implements DisTLFormula {
     }
 
     @Override
-    public double eval(int sampleSize, int step, EvolutionSequence sequence, boolean parallel) {
-        if (parallel) {
-            return IntStream.range(from+step, to+step).sequential().mapToDouble(
-                    i -> Math.min(rightFormula.eval(sampleSize, i, sequence, true),
-                            IntStream.range(from+step, i).mapToDouble(j -> leftFormula.eval(sampleSize, j, sequence, true)).min().orElse(Double.NaN))).max().orElse(Double.NaN);
-        } else {
-            return IntStream.range(from+step, to+step).sequential().mapToDouble(
-                    i -> Math.min(rightFormula.eval(sampleSize, i, sequence, false),
-                            IntStream.range(from+step, i).mapToDouble(j -> leftFormula.eval(sampleSize, j, sequence, false)).min().orElse(Double.NaN))).max().orElse(Double.NaN);
-        }
-    }
-
-    @Override
-    public <Double> DisTLFunction<Double> eval(DisTLFormulaVisitor<Double> evaluator) {
+    public <T> DisTLFunction<T> eval(DisTLFormulaVisitor<T> evaluator) {
         return evaluator.evalUntil(this);
     }
 
-    public DisTLFormula getLeftFormula() {
+    public UDisTLFormula getLeftFormula() {
         return leftFormula;
     }
 
@@ -76,7 +67,28 @@ public final class UntilDisTLFormula implements DisTLFormula {
         return to;
     }
 
-    public DisTLFormula getRightFormula() {
+    public UDisTLFormula getRightFormula() {
         return rightFormula;
+    }
+
+    @Override
+    public <T> T build(MonitorBuildingVisitor<T> visitor, int semanticsEvaluationTimestep) {
+        return visitor.buildUntil(this, semanticsEvaluationTimestep);
+    }
+
+    @Override
+    public int getFES() {
+        return Math.max(leftFormula.getFES(),rightFormula.getFES())+from;
+    }
+
+    @Override
+    public OptionalInt getTimeHorizon() {
+        OptionalInt l = leftFormula.getTimeHorizon();
+        OptionalInt r = rightFormula.getTimeHorizon();
+        if(l.isEmpty() || r.isEmpty()){
+            return OptionalInt.empty();
+        } else {
+            return OptionalInt.of(Math.max(l.getAsInt() - 1, r.getAsInt()) + to);
+        }
     }
 }

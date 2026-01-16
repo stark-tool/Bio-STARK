@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -26,24 +26,34 @@ import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
 import it.unicam.quasylab.jspear.ds.RelationOperator;
 
+/**
+ * Assuming an evolution sequence and a time step,
+ * we use the atomic formula to evaluate the distance,
+ * specified by a given expression,
+ * between the evolution sequence and its perturbation,
+ * obtained by applying a given perturbation from the time step,
+ * and to compare it with a given threshold.
+ */
 public final class AtomicRobustnessFormula implements RobustnessFormula {
 
     private final Perturbation perturbation;
     private final DistanceExpression expr;
     private final RelationOperator relop;
     private final double threshold;
-    private final int op;
 
-    public AtomicRobustnessFormula(Perturbation perturbation, DistanceExpression expr, RelationOperator relop, double value) {
-        this(perturbation, expr, relop, value, 0);
-    }
-
-    public AtomicRobustnessFormula(Perturbation perturbation, DistanceExpression expr, RelationOperator relop, double value, int op) {
+    /**
+     * An atomic formula takes four parameters:
+     *
+     * @param perturbation the perturbation that we want to apply to the evolution sequence
+     * @param expr the distance expression that we want to evaluate
+     * @param relop a relation operator to compare the distance with the given threshold
+     * @param threshold the threshold
+     */
+    public AtomicRobustnessFormula(Perturbation perturbation, DistanceExpression expr, RelationOperator relop, double threshold) {
         this.perturbation = perturbation;
         this.expr = expr;
         this.relop = relop;
-        this.threshold = value;
-        this.op = op;
+        this.threshold = threshold;
     }
 
     @Override
@@ -51,19 +61,40 @@ public final class AtomicRobustnessFormula implements RobustnessFormula {
         return evaluator.evalAtomic(this);
     }
 
+    /**
+     * Returns the distance expression specified in this formula.
+     *
+     * @return parameter <code>expr</code>.
+     */
     public DistanceExpression getDistanceExpression() {
         return this.expr;
     }
 
+    /**
+     * Returns the perturbation specified in this formula.
+     *
+     * @return parameter <code>perturbation</code>.
+     */
     public Perturbation getPerturbation() {
         return this.perturbation;
     }
 
+    /**
+     * Returns the relation operator specified in this formula.
+     *
+     * @return parameter <code>relop</code>.
+     */
     public RelationOperator getRelationOperator() {
         return this.relop;
     }
 
+    /**
+     * Returns the threshold specified in this formula.
+     *
+     * @return parameter <code>threshold</code>.
+     */
     public double getThreshold() {
         return this.threshold;
     }
+
 }

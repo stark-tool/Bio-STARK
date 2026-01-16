@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -22,19 +22,25 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
-
-import java.util.stream.IntStream;
-
+/**
+ * We use the "always" operator to specify that
+ * a given formula must be satisfied at each time step in a given interval.
+ */
 public final class AlwaysRobustnessFormula implements RobustnessFormula {
 
-    private final RobustnessFormula arg;
+    private final RobustnessFormula formula;
     private final int from;
     private final int to;
 
-
-    public AlwaysRobustnessFormula(RobustnessFormula arg, int from, int to) {
-        this.arg = arg;
+    /**
+     * The "always" formula takes three parameters:
+     *
+     * @param formula a RobTL formula
+     * @param from the left bound of the time interval
+     * @param to the right bound of the time interval.
+     */
+    public AlwaysRobustnessFormula(RobustnessFormula formula, int from, int to) {
+        this.formula = formula;
         this.from = from;
         this.to = to;
     }
@@ -44,14 +50,29 @@ public final class AlwaysRobustnessFormula implements RobustnessFormula {
         return evaluator.evalAlways(this);
     }
 
+    /**
+     * Returns the RobTL formula passed as argument to this formula.
+     *
+     * @return parameter <code>formula</code>.
+     */
     public RobustnessFormula getArgument() {
-        return this.arg;
+        return this.formula;
     }
 
+    /**
+     * Returns the left bound of the time interval in this formula.
+     *
+     * @return parameter <code>from</code>.
+     */
     public int getFrom() {
         return from;
     }
 
+    /**
+     * Returns the right bound of the time interval in this formula.
+     *
+     * @return parameter <code>to</code>.
+     */
     public int getTo() {
         return to;
     }

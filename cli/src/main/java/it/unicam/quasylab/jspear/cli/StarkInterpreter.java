@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -179,7 +179,7 @@ public class StarkInterpreter {
 
         @Override
         public StarkCommandExecutionResult visitComputeCommand(StarkScriptParser.ComputeCommandContext ctx) {
-            return compute(ctx.perturbation.getText(), ctx.distance.getText(), Integer.parseInt(ctx.when.getText()), computeSteps(ctx.steps));
+            return compute(ctx.distance.getText(), ctx.perturbation.getText(), Integer.parseInt(ctx.when.getText()), computeSteps(ctx.steps));
         }
 
         @Override
@@ -220,12 +220,17 @@ public class StarkInterpreter {
         public StarkCommandExecutionResult visitSetScaleCommand(StarkScriptParser.SetScaleCommandContext ctx) {
             return setScale(Integer.parseInt(ctx.value.getText()));
         }
+
+        @Override
+        public StarkCommandExecutionResult visitSetSeedCommand(StarkScriptParser.SetSeedCommandContext ctx) {
+            return setRandomSeed(Long.parseLong(ctx.value.getText()));
+        }
     }
 
     private StarkCommandExecutionResult setSize(int size) {
         try {
             this.starkEnvironment.setSize(size);
-            return new StarkCommandExecutionResult(StarkMessages.doneMessage(), true);
+            return new StarkCommandExecutionResult(StarkMessages.doneMessage("Done, size correctly set!"), true);
         } catch (StarkCommandExecutionException e) {
             return new StarkCommandExecutionResult(e.getMessage(), e.getReasons(), false);
         }
@@ -233,13 +238,13 @@ public class StarkInterpreter {
 
     private StarkCommandExecutionResult setScale(int scale) {
         this.starkEnvironment.setScale(scale);
-        return new StarkCommandExecutionResult(StarkMessages.doneMessage(), true);
+        return new StarkCommandExecutionResult(StarkMessages.doneMessage("Done, scale correctly set!"), true);
     }
 
     private StarkCommandExecutionResult setM(int m) {
         try {
             this.starkEnvironment.setM(m);
-            return new StarkCommandExecutionResult(StarkMessages.doneMessage(), true);
+            return new StarkCommandExecutionResult(StarkMessages.doneMessage("Done, M correctly set!"), true);
         } catch (StarkCommandExecutionException e) {
             return new StarkCommandExecutionResult(e.getMessage(), e.getReasons(), false);
         }
@@ -248,7 +253,16 @@ public class StarkInterpreter {
     private StarkCommandExecutionResult setZ(double z) {
         try {
             this.starkEnvironment.setZ(z);
-            return new StarkCommandExecutionResult(StarkMessages.doneMessage(), true);
+            return new StarkCommandExecutionResult(StarkMessages.doneMessage("Done, z correctly set!"), true);
+        } catch (StarkCommandExecutionException e) {
+            return new StarkCommandExecutionResult(e.getMessage(), e.getReasons(), false);
+        }
+    }
+
+    private StarkCommandExecutionResult setRandomSeed(long seed) {
+        try {
+            this.starkEnvironment.setRandomSeed(seed);
+            return new StarkCommandExecutionResult(StarkMessages.doneMessage("Done, RandomSeed correctly set!"), true);
         } catch (StarkCommandExecutionException e) {
             return new StarkCommandExecutionResult(e.getMessage(), e.getReasons(), false);
         }
@@ -301,9 +315,9 @@ public class StarkInterpreter {
         this.lastResults = data;
     }
 
-    private StarkCommandExecutionResult compute(String perturbation, String distance, int at, int[] steps) {
+    private StarkCommandExecutionResult compute(String distance, String perturbation, int at, int[] steps) {
         try {
-            setLastResults(starkEnvironment.compute(perturbation, distance, at, steps));
+            setLastResults(starkEnvironment.compute(distance, perturbation, at, steps));
             this.steps = steps;
             return new StarkCommandExecutionResult(StarkMessages.doneMessage(), true);
         } catch (StarkCommandExecutionException e) {
@@ -380,7 +394,7 @@ public class StarkInterpreter {
 
     private StarkCommandExecutionResult distances() {
         try {
-            return new StarkCommandExecutionResult(StarkMessages.distancesMesage(), List.of(starkEnvironment.getDistances()), true);
+            return new StarkCommandExecutionResult(StarkMessages.distancesMessage(), List.of(starkEnvironment.getDistances()), true);
         } catch (StarkCommandExecutionException e) {
             return new StarkCommandExecutionResult(e.getMessage(), e.getReasons(), false);
         }

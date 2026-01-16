@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -85,9 +85,10 @@ public final class UntilDistanceExpression implements DistanceExpression {
 
          */
         double res = 1.0;
+        double resL = 0.0;
         for(int i = from+step; i<to+step; i++) {
             double resR = rightExpression.compute(i, seq1, seq2);
-            double resL = leftExpression.compute(i,seq1,seq2);
+            //double resL = leftExpression.compute(i,seq1,seq2);
             for(int j =from+step; j<i; j++) {
                 double partialL = leftExpression.compute(j,seq1,seq2);
                 resL = Math.max(resL, partialL);
@@ -125,6 +126,5 @@ public final class UntilDistanceExpression implements DistanceExpression {
         }
         return res;
     }
-
 
 }

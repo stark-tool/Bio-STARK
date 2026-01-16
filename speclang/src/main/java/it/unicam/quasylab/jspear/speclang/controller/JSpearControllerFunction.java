@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -30,6 +30,8 @@ import it.unicam.quasylab.jspear.speclang.variables.JSpearStore;
 import it.unicam.quasylab.jspear.speclang.variables.JSpearVariableAllocation;
 import org.apache.commons.math3.random.RandomGenerator;
 
+import java.util.List;
+
 @FunctionalInterface
 public interface JSpearControllerFunction {
 
@@ -48,6 +50,17 @@ public interface JSpearControllerFunction {
             } else {
                 return elseCase.apply(rg, s);
             }
+        };
+    }
+
+    static JSpearControllerFunction sequential(List<JSpearControllerFunction> functions) {
+        return (rg, s) -> {
+            EffectStep<Controller> effect = new EffectStep<>(List.of(), null);
+            for (JSpearControllerFunction function : functions) {
+                effect = effect.applyAfter(function.apply(rg, s));
+                if (effect.isCompleted()) return effect;
+            }
+            return effect;
         };
     }
 

@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -101,10 +101,10 @@ public class StarkEnvironment {
         this.specification.clear();
     }
 
-    public double[] compute(String perturbation, String distance, int at, int[] steps) throws StarkCommandExecutionException {
+    public double[] compute(String distance, String perturbation, int at, int[] steps) throws StarkCommandExecutionException {
         checkSpecification();
         checkPerturbation(perturbation);
-        return specification.evalDistanceExpression(perturbation, distance, at, scale, steps);
+        return specification.evalDistanceExpression(distance, perturbation, at, scale, steps);
     }
 
     private void checkPerturbation(String perturbation) throws StarkCommandExecutionException {
@@ -189,6 +189,11 @@ public class StarkEnvironment {
     public void setZ(double z) throws StarkCommandExecutionException {
         checkSpecification();
         this.specification.setZ(z);
+    }
+
+    public void setRandomSeed(long seed) throws StarkCommandExecutionException {
+        checkSpecification();
+        this.specification.setRand(seed);
     }
 
     public String[] getPerturbations() throws StarkCommandExecutionException {

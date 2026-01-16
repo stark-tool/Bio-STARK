@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -24,11 +24,13 @@ package it.unicam.quasylab.jspear.distance;
 
 import java.util.stream.IntStream;
 
-import org.apache.commons.math3.random.RandomGenerator;
-
 import it.unicam.quasylab.jspear.DefaultRandomGenerator;
 import it.unicam.quasylab.jspear.EvolutionSequence;
 
+/**
+ * Distance expressions are used for the definition of distances between evolution sequences.
+ * The interface also offers the methods for their evaluation.
+ */
 public sealed interface DistanceExpression permits
         AtomicDistanceExpression,
         AtomicDistanceExpressionLeq,
@@ -43,12 +45,12 @@ public sealed interface DistanceExpression permits
         SkorokhodDistanceExpression{
 
     /**
-     * Returns the evaluation of the distance expression among the two sequences at the given step.
+     * Returns the evaluation of the distance expression between the two sequences at the given step.
      *
-     * @param step step where the expression is evaluated
+     * @param step time step at which we evaluate the expression
      * @param seq1 an evolution sequence
      * @param seq2 an evolution sequence
-     * @return the evaluation of the distance expression at the given step among the two sequences.
+     * @return the evaluation of the distance expression at the given step between the two sequences.
      */
     double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2);
 
@@ -78,7 +80,6 @@ public sealed interface DistanceExpression permits
     default double[] compute(int[] steps, EvolutionSequence seq1, EvolutionSequence seq2) {
         return IntStream.of(steps).mapToDouble(i -> compute(i, seq1, seq2)).toArray();
     }
-
 
     /**
      * Returns the evaluation of the distance expression among the two sequences at the given step

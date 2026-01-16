@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -21,6 +21,7 @@
  */
 
 package it.unicam.quasylab.jspear;
+
 import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.ds.DataStateExpression;
 import it.unicam.quasylab.jspear.perturbation.Perturbation;
@@ -392,6 +393,10 @@ public class SystemSpecification {
      */
     public void setZ(double z) {
         this.z = z;
+    }
+
+    public void setRand(long seed){
+        this.rand.setSeed(seed);
     }
 
     /**

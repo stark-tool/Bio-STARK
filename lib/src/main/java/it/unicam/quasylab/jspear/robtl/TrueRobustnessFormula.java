@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -22,8 +22,9 @@
 
 package it.unicam.quasylab.jspear.robtl;
 
-import it.unicam.quasylab.jspear.EvolutionSequence;
-
+/**
+ * Defines the formula <code>true</code>.
+ */
 public final class TrueRobustnessFormula implements RobustnessFormula {
 
     @Override
