@@ -22,11 +22,10 @@
 
 package it.unicam.quasylab.jspear.distance;
 
+import java.util.stream.IntStream;
+
 import it.unicam.quasylab.jspear.DefaultRandomGenerator;
 import it.unicam.quasylab.jspear.EvolutionSequence;
-import org.apache.commons.math3.random.RandomGenerator;
-
-import java.util.stream.IntStream;
 
 /**
  * Distance expressions are used for the definition of distances between evolution sequences.
@@ -42,7 +41,8 @@ public sealed interface DistanceExpression permits
         MinDistanceExpression,
         MinIntervalDistanceExpression,
         UntilDistanceExpression,
-        ThresholdDistanceExpression {
+        ThresholdDistanceExpression,
+        SkorokhodDistanceExpression{
 
     /**
      * Returns the evaluation of the distance expression between the two sequences at the given step.

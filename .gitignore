@@ -30,4 +30,15 @@ build
 # Ignore csv file
 *.csv
 
+#Ignore pdf file
+*.pdf
+
+#Ignore png file
+*.png
+
+#Ignore eps file
+*.eps
+
+# Ignore binaries
+bin
 .idea
