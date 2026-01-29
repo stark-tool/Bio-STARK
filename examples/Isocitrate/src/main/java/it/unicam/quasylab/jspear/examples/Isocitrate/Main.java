@@ -1,7 +1,7 @@
 /*
  * STARK: Software Tool for the Analysis of Robustness in the unKnown environment
  *
- *                Copyright (C) 2023.
+ *              Copyright (C) 2023.
  *
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -24,525 +24,1839 @@ package it.unicam.quasylab.jspear.examples.Isocitrate;
 
 import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
-import it.unicam.quasylab.jspear.controller.NilController;
-import it.unicam.quasylab.jspear.distance.AtomicDistanceExpression;
+import it.unicam.quasylab.jspear.controller.ControllerRegistry;
+import it.unicam.quasylab.jspear.controller.ParallelController;
+import it.unicam.quasylab.jspear.distance.AtomicDistanceExpressionLeq;
 import it.unicam.quasylab.jspear.distance.DistanceExpression;
 import it.unicam.quasylab.jspear.distance.MaxIntervalDistanceExpression;
-import it.unicam.quasylab.jspear.ds.DataState;
-import it.unicam.quasylab.jspear.ds.DataStateExpression;
-import it.unicam.quasylab.jspear.ds.DataStateUpdate;
-import it.unicam.quasylab.jspear.ds.RelationOperator;
-import it.unicam.quasylab.jspear.perturbation.AtomicPerturbation;
-import it.unicam.quasylab.jspear.perturbation.IterativePerturbation;
-import it.unicam.quasylab.jspear.perturbation.Perturbation;
+import it.unicam.quasylab.jspear.ds.*;
+import it.unicam.quasylab.jspear.perturbation.*;
 import it.unicam.quasylab.jspear.robtl.*;
 import org.apache.commons.math3.random.RandomGenerator;
 
+import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.util.*;
 
 public class Main {
 
-    /* The isocitrate dehydrogenase regulatory system (IDHKPIDH) of E. Coli controls the partitioning of
-    carbon flux, and it is useful when the bacterium of E. coli grows on substances, like for example
-    acetate, which contains only a small quantity of carbon. Without this regulation system, in fact,
-    the organism would not have enough carbon available for biosynthesis of cell constituents.
-    */
+    public final static String[] VARIABLES =
+            new String[]{"p_GB_pressure", "s_GB_pressure", "p_PS_ins_pressure", "s_PS_ins_pressure",
+                    "p_PS_exp_pressure", "s_PS_exp_pressure","p_OS", "s_OS", "p_Fl1_flow", "s_Fl1_flow",
+                    "p_Fl2_flow", "s_Fl2_flow",  "p_temp", "s_temp","p_power_source", "s_power_source",
+                    "p_fan", "s_fan", "s_battery_level", "a_IN_valve", "a_OUT_valve", "a_LED",
+                    "RR_ms", "peak_P_insp", "V_tidal", "V_E", "t_RM_remaining", "Status", "IE_ms",
+                    "b_powerOn", "conn_power_source", "conn_air_supply", "conn_patient", "conn_breathing",
+                    "comm_sens_valves_ok", "comm_memory", "comm_cont_gui_ok", "init_succ", "conn_failToPowerOn",
+                    "sys_out_of_service", "selfTest_fail", "gui_req_res_ven", "power_switch_ok",
+                    "no_leaks_breathing_circuit", "out_valve_ok", "alarms_ok", "nr_of_retries",
+                    "gui_req_change_mode_PCV", "gui_req_change_mode_PSV", "gui_req_stop_vent", "timer_PCV_insp",
+                    "timer_PSV_insp", "timer_PCV_exp", "drop_PAW", "gui_req_IP", "gui_req_RM", "gui_req_EP",
+                    "timer_IP", "timer_EP", "timer_RM", "timer_triggerDelay", "min_exp_time_psv", "b_powerOff",
+                    "gui_param_psv_ok", "phase", "phase_changed", "IE_toolow_counter", "timer_insp",
+                    "timer_exp", "cycle_done", "fs", "previous_PAW", "peak_flow", "nr_of_retries_p", "timer_PSV_exp",
+                    "V_tidal_prev", "rr_pcv", "p_insp_pcv", "ie_pcv", "alarm_counter", "counter_cycles", "switch_ready",
+                    "req_counter"
+            };
+    //TODO: ask if the order above matters for the order below (cause it's not the same again anymore..
+    public final static int PRM = 20;
+    public final static int RM_TIME = 10;
+    public final static int RR_PCV = 12;
+    public final static double IE_PCV = 0.5;
+    public final static int P_INSP_PCV = 15;
+    public final static int ITS_PCV = 3;
+    public final static int P_INSP_PSV = 15;
+    public final static int ITS_PSV = 3;
+    public final static int ETS = 30;
+    public final static int T_APNEALAG = 30;
+    public final static int RR_AP = 12;
+    public final static int P_INSP_AP = 12;
+    public final static double IE_AP = 0.5;
+    public final static double MAX_P_INSP = 40.0;
+    public final static int MIN_P_INSP = 50; //note this means 50% of P_insp
+    public final static int MAX_V_TIDAL_EXP = 990;
+    public final static int MIN_V_TIDAL_EXP = 10;
+    public final static int MAX_V_E = 80;
+    public final static int MIN_V_E = 2;
+    public final static int MIN_RR = 4;
+    public final static int MAX_RR = 50;
+    public final static int MIN_PEEP = 5;
+    public final static int MAX_PEEP = 15;
+    public final static int MAX_T_IP = 40;
+    public final static int MAX_T_EP = 60;
+    public final static double TRIGGER_WINDOW_DELAY = 0.7;
+    public final static int MAX_INSP_TIME_PSV = 7;
+    public final static int PM_A_GB_PRESSURE = 4500;
+    public final static int PM_A_GB_FiO2 = 50;
+    public final static int PM_A_PEEP_VALVE = 8;
+    public final static int HIGH_FLOW = 60;
+    public final static int H= 450;
+    public final static double ETA_test = 0.1;
+    public final static int TIMER_INIT = 5;
 
-    // LIST OF ALL REACTIONS
+    private static final int p_GB_pressure = 0;//variableRegistry.getVariable("p_speed");
+    private static final int s_GB_pressure = 1;//variableRegistry.getVariable("s_speed");
+    private static final int p_PS_ins_pressure = 2;// variableRegistry.getVariable("p_distance");
+    private static final int s_PS_ins_pressure = 3;// variableRegistry.getVariable("s_distance");
+    private static final int p_PS_exp_pressure = 4;//variableRegistry.getVariable("accel");
+    private static final int s_PS_exp_pressure = 5;//variableRegistry.getVariable("timer");
+    private static final int p_OS = 6;//variableRegistry.getVariable("warning");
+    private static final int s_OS = 7;//variableRegistry.getVariable("braking_distance");
+    private static final int p_Fl1_flow = 8; //variableRegistry.getVariable("required_distance");
+    private static final int s_Fl1_flow = 9;//variableRegistry.getVariable("safety_gap");
+    private static final int p_Fl2_flow = 10;
 
-    public static final int[] r1_input =  {1,0,1,0,0}; // reactants: E and Ip
-    public static final int[] r1_output = {0,0,0,1,0}; // product: EIp
-    public static final double r1_k = 0.02;
+    private static final int s_Fl2_flow = 11;//variableRegistry.getVariable("p_speed");
+    private static final int p_temp = 12;//variableRegistry.getVariable("s_speed");
+    private static final int s_temp = 13;// variableRegistry.getVariable("p_distance");
+    private static final int p_power_source = 14;// variableRegistry.getVariable("s_distance");
+    private static final int s_power_source = 15;// variableRegistry.getVariable("p_distance");
+    private static final int p_fan = 16;
+    private static final int s_fan = 17;//variableRegistry.getVariable("accel");
+    private static final int s_battery_level = 18;//variableRegistry.getVariable("timer");
+    private static final int a_IN_valve = 19;//variableRegistry.getVariable("warning");
+    private static final int a_OUT_valve = 20;//variableRegistry.getVariable("braking_distance");
+    private static final int a_LED = 21; //variableRegistry.getVariable("required_distance");
+    private static final int RR_ms = 22;
+    private static final int peak_P_insp = 23;//variableRegistry.getVariable("safety_gap");
+    private static final int V_tidal = 24;
+    private static final int V_E = 25;
+    private static final int t_RM_remaining = 26;
+    private static final int Status = 27;
+    private static final int IE_ms = 28;
+    private static final int b_powerOn = 29;
+    private static final int  conn_power_source = 30;
+    private static final int  conn_air_supply = 31;
+    private static final int  conn_patient = 32;
+    private static final int  conn_breathing = 33;
+    private static final int comm_sens_valves_ok = 34;
+    private static final int comm_memory = 35;
+    private static final int comm_cont_gui_ok = 36;
+    private static final int init_succ = 37;
+    private static final int conn_failToPowerOn = 38;
+    private static final int sys_out_of_service = 39;
+    private static final int selfTest_fail = 40;
+    private static final int gui_req_res_ven = 41;
+    private static final int power_switch_ok = 42;
+    private static final int no_leaks_breathing_circuit = 43;
+    private static final int out_valve_ok = 44;
+    private static final int alarms_ok = 45;
+    private static final int nr_of_retries = 46;
+    private static final int gui_req_change_mode_PCV = 47;
+    private static final int gui_req_change_mode_PSV = 48;
+    private static final int gui_req_stop_vent = 49;
+    private static final int timer_PCV_insp = 50;
+    private static final int timer_PSV_insp = 51;
+    private static final int timer_PCV_exp = 52;
+    private static final int drop_PAW = 53;
+    private static final int gui_req_IP = 54;
+    private static final int gui_req_RM = 55;
+    private static final int gui_req_EP = 56;
+    private static final int timer_IP = 57;
+    private static final int timer_EP = 58;
+    private static final int timer_RM = 59;
+    private static final int timer_triggerDelay = 60;
+    private static final int min_exp_time_psv = 61;
+    private static final int b_powerOff = 62;
+    private static final int gui_param_psv_ok = 63;
+    private static final int phase = 64;
+    private static final int phase_changed = 65;
+    private static final int IE_toolow_counter = 67;
+    private static final int timer_insp = 68;
+    private static final int timer_exp = 69;
+    private static final int cycle_done = 70;
+    private static final int fs = 71;
+    private static final int previous_PAW = 72;
+    private static final int peak_flow = 73;
+    private static final int nr_of_retries_p = 74;
+    private static final int timer_PSV_exp = 66;
+    private static final int V_tidal_prev = 75;
+    private static final int rr_pcv = 76;
+    private static final int p_insp_pcv = 77;
+    private static final int ie_pcv = 78;
+    private static final int ind_var = 79;
+    private static final int alarm_counter = 80;
+    private static final int counter_cycles = 81;
+    private static final int switch_ready = 82;
+    private static final int req_counter = 83;
 
-    public static final int[] r2_input =  {0,0,0,1,0}; // reactants: EIp
-    public static final int[] r2_output = {1,0,1,0,0}; // product: E and Ip
-    public static final double r2_k = 0.5;
-
-    public static final int[] r3_input =  {0,0,0,1,0}; // reactants: EIp
-    public static final int[] r3_output = {1,1,0,0,0}; // product: E and I
-    public static final double r3_k = 0.5;
-
-    public static final int[] r4_input =  {0,1,0,1,0}; // reactants: I and EIp
-    public static final int[] r4_output = {0,0,0,0,1}; // product: EIpI
-    public static final double r4_k = 0.02;
-
-    public static final int[] r5_input =  {0,0,0,0,1}; // reactants: EIpI
-    public static final int[] r5_output = {0,1,0,1,0}; // product: I and EIp
-    public static final double r5_k = 0.5;
-
-    public static final int[] r6_input =  {0,0,0,0,1}; // reactants: EIpI
-    public static final int[] r6_output = {0,0,1,1,0}; // product: Ip and EIp
-    public static final double r6_k = 0.1;
-
-    /*
-      Interesting question: is I robust to variations of E and Ip?
-      Our answer strategy: we perturb a system by changing the values for E and Ip and we check whether the distance
-      that depends on the value of I between the nominal system and the perturbed one is below a given threshold.
-    */
-
-    public static final int[][] r_input = {r1_input,r2_input,r3_input,r4_input,r5_input,r6_input};
-    public static final int[][] r_output = {r1_output,r2_output,r3_output,r4_output,r5_output,r6_output};
-
-    public static final double[] r_k = {r1_k,r2_k,r3_k,r4_k,r5_k,r6_k};
+    private static final int NUMBER_OF_VARIABLES = 84;
 
 
-    // LIST OF SPECIES
-    public static final int E = 0;  // enzyme able to phosporylate and dephosporylate I
-    public static final int I = 1;  // isocitrate dehydrogenase, IDH, which regulate the carbon flux
-    public static final int Ip = 2; // IDH in phosporilated form,
-    public static final int EIp = 3; // compound E + Ip.
-    public static final int EIpI = 4; // compound EIp + I
-    private static final int NUMBER_OF_VARIABLES = 5;
 
-    public static final double THRESHOLD = 0.03;
-
-    public static final int LEFT_BOUND = 400;
-
-    public static final int RIGHT_BOUND = 1000;
-
-
-    // MAIN PROGRAM
     public static void main(String[] args) throws IOException {
         try {
-
             RandomGenerator rand = new DefaultRandomGenerator();
+            Controller controller_MLV = getController_MLV();
+            Controller controller_alarm = getController_alarm();
+            Controller controller_switch = getController_switch();
+            DataState state = getInitialState();
+            ControlledSystem system = new ControlledSystem(new ParallelController(new ParallelController(controller_MLV, controller_alarm), controller_switch),
+                    (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
+            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
 
-            int size = 100;
+            DistanceExpression test = new AtomicDistanceExpressionLeq(Main::rho_test4);
+            DistanceExpression test_dist = new MaxIntervalDistanceExpression(test, 0, 100);
 
-            Controller controller = new NilController();
+            System.out.println("Starting test on bootstrap");
+
+            RobustnessFormula Phi_test = new AlwaysRobustnessFormula(
+                    new AtomicRobustnessFormula(getTestPerturbation(),
+                            test_dist,
+                            RelationOperator.LESS_OR_EQUAL_THAN,
+                            ETA_test),
+                0,
+                    H
+                );
 
             /*
-            The <code>DataState</code> <code>state</code> will be the initial state of our system.
-            The value of variables is assigned by function <code>getInitialState</state>, which assigns to each variable
-            a random value chosen in a suitable interval.
+            USING THE SIMULATOR
              */
 
-            DataState state = getInitialState(rand,1.0,0.0,0.0,0.0);
-
-            /*
-            The <code>TimedSystem</code> <code>system</code> is a system starting in state <code>state</code>.
-            Its evolution is determined by Gillespie's algorithm:
-            <code>selectReactionTime</code> is a static method that selects the time of next reaction according to Gillespie algorithm.
-            <code>selectAndApplyReaction</code> is a static method that selects the reaction among the available ones and modifies the state accordingly.
-            */
-
-            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
-
-            /*
-            The <code>EvolutionSequence</code> <code>sequence</code> originates from <code>size</code> copies of <code>system</code>
-            */
-
-            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, size);
-
-            EvolutionSequence sequence_001_100 = sequence.apply(pertEandIp(0.001,100),0,10);
-            EvolutionSequence sequence_001_500 = sequence.apply(pertEandIp(0.001,500),0,10);
-            EvolutionSequence sequence_10_1000 = sequence.apply(pertEandIp(10,1000),0,10);
-            EvolutionSequence sequence_1_500 = sequence.apply(pertEandIp(1,500),0,10);
-            EvolutionSequence sequence_10_100 = sequence.apply(pertEandIp(10,100),0,10);
-            EvolutionSequence sequence_50_300 = sequence.apply(pertEandIp(50,300),0,10);
-
-
-            /*
-            Given the system <code>system</code>, the following instructions simulate <code>size</code> runs consisting in
-            <code>RIGHT_BOUND</code> steps. At each step, the average value taken by each variable in the runs is printed out.
-            Then, for each variable the min and max value that are printed in the steps in the interval
-            [LEFT_BOUND,RIGHT_BOUND] are stored in arrays minMax[0] AND minMax[1], respectively.
-            Then, the same simulation is done for <code>psystem</code>.
-            Therefore, we can observe an evolution of both the nominal and the perturbed system.
-            */
+            ArrayList<String> L = new ArrayList<>();
+            //L.add("init_succ");
+            //L.add("conn_patient");
+            L.add("fs");
+            L.add("a_LED");
+            //L.add("timer_PCV_insp");
+            //L.add("timer_insp");
+            L.add("a_in");
+            L.add("a_out");
+            L.add("Status");
+            L.add("phase");
+            L.add("PAW/s_PS_insp");
+            L.add("p_PS_insp");
+            L.add("s_PS_exp");
+            L.add("p_PS_exp");
+            L.add("timer_insp");
+            L.add("timer_exp");
+            L.add("timer_psv_exp");
+            L.add("drop_PAW");
+            L.add("Timer_trigger_Delay");
+            L.add("cycle_done");
+            L.add("counter_cycles");
+            L.add("V_tidal");
+            L.add("V_tidal_prev");
+            L.add("V_E");
+            L.add("RR_ms");
+            //L.add("timer_insp");
+            L.add("s_Fl1_flow");
+            L.add("p_Fl1_flow");
+            L.add("peak_flow");
+            L.add("s_Fl2_flow");
+            L.add("p_Fl2_flow");
+            L.add("switch_ready");
+            L.add("b_powerOff");
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
-            F.add(ds->ds.get(E));
-            F.add(ds->ds.get(I));
-            F.add(ds->ds.get(Ip));
-            F.add(ds->ds.get(EIp));
-            F.add(ds->ds.get(EIpI));
-            F.add(ds->ds.getTimeDelta());
-            F.add(ds->ds.getTimeReal());
-            ArrayList<String> L = new ArrayList<>();
-            L.add("E");
-            L.add("I");
-            L.add("Ip");
-            L.add("EIp");
-            L.add("EIpI");
+            //F.add(ds->ds.get(init_succ));
+            //F.add(ds->ds.get(conn_patient));
+            F.add(ds->ds.get(fs));
+            F.add(ds->ds.get(a_LED));
+            //F.add(ds->ds.get(timer_PCV_insp));
+            //F.add(ds->ds.get(timer_insp));
+            F.add(ds->ds.get(a_IN_valve));
+            F.add(ds->ds.get(a_OUT_valve));
+            F.add(ds->ds.get(Status));
+            F.add(ds->ds.get(phase));
+            F.add(ds->ds.get(s_PS_ins_pressure));
+            F.add(ds->ds.get(p_PS_ins_pressure));
+            F.add(ds->ds.get(s_PS_exp_pressure));
+            F.add(ds->ds.get(p_PS_exp_pressure));
+            //F.add(ds->ds.get(timer_PCV_exp));
+            F.add(ds->ds.get(timer_insp));
+            F.add(ds->ds.get(timer_exp));
+            F.add(ds->ds.get(timer_PSV_exp));
+            F.add(ds->ds.get(drop_PAW));
+            F.add(ds->ds.get(timer_triggerDelay));
+            F.add(ds->ds.get(cycle_done));
+            F.add(ds->ds.get(counter_cycles));
+            //F.add(ds->ds.get(comm_sens_valves_ok));
+            //F.add(ds->ds.get(comm_cont_gui_ok));
+            F.add(ds->ds.get(V_tidal));
+            F.add(ds->ds.get(V_tidal_prev));
+            F.add(ds->ds.get(V_E));
+            F.add(ds->ds.get(RR_ms));
+            //F.add(ds->ds.get(timer_insp));
+            F.add(ds -> ds.get(s_Fl1_flow));
+            F.add(ds -> ds.get(p_Fl1_flow));
+            F.add(ds -> ds.get(peak_flow));
+            F.add(ds -> ds.get(s_Fl2_flow));
+            F.add(ds -> ds.get(p_Fl2_flow));
+            F.add(ds -> ds.get(switch_ready));
+            F.add(ds -> ds.get(b_powerOff));
 
-            double[][] minMax = printLMinMaxData(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND);
+            printLData(rand,L,F,system,110,1);
 
-            double[][] minMax_001_100 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(0.001,100));
-            double[][] minMax_001_500 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(0.001,500));
-            double[][] minMax_10_1000 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(10,1000));
-
-            double normalisation_001_100 = Math.max(minMax[1][I],minMax_001_100[1][I])*1.1;
-            double normalisation_001_500 = Math.max(minMax[1][I],minMax_001_500[1][I])*1.1;
-            double normalisation_10_1000 = Math.max(minMax[1][I],minMax_10_1000[1][I])*1.1;
-
-            double[][] minMax_1_500 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(1,500));
-            double[][] minMax_10_100 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(10,100));
-            double[][] minMax_50_300 = printPerturbed(rand, L, F, system, RIGHT_BOUND, size, LEFT_BOUND, RIGHT_BOUND,pertEandIp(50,300));
-
-            double normalisation_1_500 = Math.max(minMax[1][I],minMax_1_500[1][I])*1.1;
-            double normalisation_10_100 = Math.max(minMax[1][I],minMax_10_100[1][I])*1.1;
-            double normalisation_50_300 = Math.max(minMax[1][I],minMax_50_300[1][I])*1.1;
-
-            /*
-            Definition of distance expressions evaluating the Wasserstein distance between the
-            distributions reached, at a given time step, in the nominal system and the perturbed one,
-            each considering the proper normalisation factor according to the perturbation that is applied.
-            */
-
-            DistanceExpression atomic_001_100 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_001_100,(v1, v2) -> Math.abs(v2-v1));
-
-            DistanceExpression atomic_001_500 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_001_500,(v1, v2) -> Math.abs(v2-v1));
-
-            DistanceExpression atomic_10_1000 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_10_1000,(v1, v2) -> Math.abs(v2-v1));
-
-            DistanceExpression atomic_1_500 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_1_500,(v1, v2) -> Math.abs(v2-v1));
-
-            DistanceExpression atomic_10_100 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_10_100,(v1, v2) -> Math.abs(v2-v1));
-
-            DistanceExpression atomic_50_300 = new AtomicDistanceExpression(ds->ds.get(I)/normalisation_50_300,(v1, v2) -> Math.abs(v2-v1));
-
-            /*
-            Extension in time of the atomic distances.
-            We consider the maximum over the interval [400,1000]
-            */
-
-            DistanceExpression distance_001_100 = new MaxIntervalDistanceExpression(
-                    atomic_001_100,
-                    400,
-                    RIGHT_BOUND);
-
-            DistanceExpression distance_001_500 = new MaxIntervalDistanceExpression(
-                    atomic_001_500,
-                    400,
-                    RIGHT_BOUND);
-
-            DistanceExpression distance_10_1000 = new MaxIntervalDistanceExpression(
-                    atomic_10_1000,
-                    400,
-                    RIGHT_BOUND);
-
-            DistanceExpression distance_1_500 = new MaxIntervalDistanceExpression(
-                    atomic_1_500,
-                    400,
-                    RIGHT_BOUND);
-
-            DistanceExpression distance_10_100 = new MaxIntervalDistanceExpression(
-                    atomic_10_100,
-                    400,
-                    RIGHT_BOUND);
-
-            DistanceExpression distance_50_300 = new MaxIntervalDistanceExpression(
-                    atomic_50_300,
-                    400,
-                    RIGHT_BOUND);
-
-            // Pointwise evaluation of distances
-
-            System.out.println("Starting evaluation of distances");
-
-            double[][] direct_evaluation_001_100 = new double[1000][1];
-            double[][] direct_evaluation_001_500 = new double[1000][1];
-            double[][] direct_evaluation_10_1000 = new double[1000][1];
-            double[][] direct_evaluation_1_500 = new double[1000][1];
-            double[][] direct_evaluation_10_100 = new double[1000][1];
-            double[][] direct_evaluation_50_300 = new double[1000][1];
-
-
-            for (int i = 0; i<1000; i++){
-                direct_evaluation_001_100[i][0] = atomic_001_100.compute(i+200, sequence, sequence_001_100);
-                direct_evaluation_001_500[i][0] = atomic_001_500.compute(i+200, sequence, sequence_001_500);
-                direct_evaluation_10_1000[i][0] = atomic_10_1000.compute(i+200, sequence, sequence_10_1000);
-
-                direct_evaluation_1_500[i][0] = atomic_1_500.compute(i+200, sequence, sequence_1_500);
-                direct_evaluation_10_100[i][0] = atomic_10_100.compute(i+200, sequence, sequence_10_100);
-                direct_evaluation_50_300[i][0] = atomic_50_300.compute(i+200, sequence, sequence_50_300);
+            double[][] val_test = new double[10][1];
+            for(int i = 0; i<10; i++) {
+                int step = i*30;
+                TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_test).eval(60, step, sequence);
+                System.out.println("Phi_test evaluation at step "+step+": " + value1);
+                if (value1 == TruthValues.TRUE) {
+                    val_test[i][0] = 1;
+                } else {
+                    if (value1 == TruthValues.UNKNOWN) {
+                        val_test[i][0] = 0;
+                    } else {
+                        val_test[i][0] = -1;
+                    }
+                }
             }
 
-            Util.writeToCSV("./atomic_001_100.csv",direct_evaluation_001_100);
-            Util.writeToCSV("./atomic_001_500.csv",direct_evaluation_001_500);
-            Util.writeToCSV("./atomic_10_1000.csv",direct_evaluation_10_1000);
-            Util.writeToCSV("./atomic_1_500.csv",direct_evaluation_1_500);
-            Util.writeToCSV("./atomic_10_100.csv",direct_evaluation_10_100);
-            Util.writeToCSV("./atomic_50_300.csv",direct_evaluation_50_300);
-
-            System.out.println("Evaluation of distances completed");
-
-            // ROBUSTNESS FORMULAE
-
-            /* The following formula tells us whether the difference expressed by <code>distance</cod> between the nominal
-            system and its version perturbed by <code>pertEandIp</code> is bound by THRESHOLD.
-            The result of the evaluation of the formula is printed out by the subsequent two lines of code.
-            */
-
-            RobustnessFormula robF_001_100 = new AtomicRobustnessFormula(pertEandIp(0.001,100),
-                    distance_001_100,
-                    RelationOperator.LESS_OR_EQUAL_THAN,
-                    THRESHOLD);
-
-            RobustnessFormula robF_001_500 = new AtomicRobustnessFormula(pertEandIp(0.001,500),
-                    distance_001_500,
-                    RelationOperator.LESS_OR_EQUAL_THAN,
-                    THRESHOLD);
-
-            RobustnessFormula robF_10_1000 = new AtomicRobustnessFormula(pertEandIp(10,1000),
-                    distance_10_1000,
-                    RelationOperator.LESS_OR_EQUAL_THAN,
-                    THRESHOLD);
-
-            RobustnessFormula robF_1_500 = new AtomicRobustnessFormula(pertEandIp(1,500),
-                    distance_1_500,
-                    RelationOperator.LESS_OR_EQUAL_THAN,
-                    THRESHOLD);
-
-            RobustnessFormula robF_10_100 = new AtomicRobustnessFormula(pertEandIp(10,100),
-                    distance_10_100,
-                    RelationOperator.LESS_OR_EQUAL_THAN,
-                    THRESHOLD);
-
-            RobustnessFormula robF_50_300 = new AtomicRobustnessFormula(pertEandIp(50,300),
-                    distance_50_300,
-                    RelationOperator.LESS_OR_EQUAL_THAN,
-                    THRESHOLD);
-
-            System.out.println("Starting evaluation of formulae");
-
-            TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_001_100).eval(5, 0, sequence);
-            System.out.println("\n robF_001_100 evaluation at 0: " + value1);
-
-            TruthValues value2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_001_500).eval(5, 0, sequence);
-            System.out.println("\n robF_001_500 evaluation at 0: " + value2);
-
-            TruthValues value3 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_10_1000).eval(5, 0, sequence);
-            System.out.println("\n robF_10_1000 evaluation at 0: " + value3);
-
-            TruthValues value4 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_1_500).eval(5, 0, sequence);
-            System.out.println("\n robF_001_100 evaluation at 0: " + value4);
-
-            TruthValues value5 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_10_100).eval(5, 0, sequence);
-            System.out.println("\n robF_001_500 evaluation at 0: " + value5);
-
-            TruthValues value6 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robF_50_300).eval(5, 0, sequence);
-            System.out.println("\n robF_10_1000 evaluation at 0: " + value6);
-
-
-            System.out.println("Evaluation of formulae completed");
-
-
+            Util.writeToCSV("./slow_novel_03.csv",val_test);
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
     }
 
-
-    /* This method will simulate <code>size</code> runs of length <code>steps</code> of system <code>s</code>.
-       For each time step, each data state expression in list <code>F</code> is evaluated on all <code>s</code>
-       systems and the average value is printed.
-       The method returns a double[][], where:
-       - double[1,j] contains the maximum value of jth expression in F
-    */
-
-    private static double[][] printLMinMaxData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
-        double[][] result = new double[2][NUMBER_OF_VARIABLES];
+    //Used for the simulation
+    private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size) {
         System.out.println(label);
-        double[][] data_av = SystemState.sample(rg, F, s, steps, size);
-        double[][] data_max = SystemState.sample_max(rg, F, s, steps, size);
-        double[] max = new double[NUMBER_OF_VARIABLES];
-        Arrays.fill(max, Double.NEGATIVE_INFINITY);
-        for (int i = 0; i < data_av.length; i++) {
+        double[][] data = SystemState.sample(rg, F, s, steps, size);
+        for (int i = 0; i < data.length; i++) {
             System.out.printf("%d>   ", i);
-            for (int j = 0; j < data_av[i].length -1 ; j++) {
-                System.out.printf("%f   ", data_av[i][j]);
-                if (j<NUMBER_OF_VARIABLES & leftbound <= i & i <= rightbound) {
-                    if (max[j] < data_max[i][j]) {
-                        max[j] = data_max[i][j];
-                        result[1][j]=data_max[i][j];
-                    }
-                }
+            for (int j = 0; j < data[i].length -1; j++) {
+                System.out.printf("%f   ", data[i][j]);
             }
-            System.out.printf("%f\n", data_av[i][data_av[i].length -1]);
+            System.out.printf("%f\n", data[i][data[i].length -1]);
         }
-        System.out.printf("%s   ", "max:");
-        for(int j=0; j<NUMBER_OF_VARIABLES-1; j++){
-            System.out.printf("%f   ", max[j]);
+    }
+
+    // PENALTY FUNCTIONS
+    //TODO: later
+    public static double rho_test(DataState state) {
+        if (state.get(fs) != 0 || (state.get(fs) == 1 && state.get(conn_patient) == 0)){
+            return 0.0;
+        } else {
+            return 1.0;
         }
-        System.out.printf("%f\n", max[NUMBER_OF_VARIABLES-1]);
-        return result;
+    }
+
+    public static double rho_test2(DataState state) {
+        if (state.get(fs) == 0) {
+            return 0.0;
+        } else {
+            return 1.0;
+        }
+    }
+
+    public static double rho_test3(DataState state) {
+        if (state.get(comm_sens_valves_ok) == 1) {
+            return 0.0;
+        } else {
+            return 1.0;
+        }
+    }
+
+    public static double rho_test4(DataState state) {
+        if (state.get(ind_var) == 0) {
+            return 0.0;
+        } else {
+            return 1.0;
+        }
+    }
+
+    // CONTROLLER OF the MLV
+
+    public static Controller getController_MLV() {
+
+        ControllerRegistry registry = new ControllerRegistry();
+
+        //Start-up mode
+        registry.set("P", Controller.ifThenElse(
+                    DataState.equalsTo(b_powerOn, 1),
+                    Controller.doAction(
+                            (rg, ds) -> List.of(new DataStateUpdate(Status, 3)),
+                            registry.reference("P_checkcond")),
+                    Controller.doTick(registry.reference("P"))
+                )
+
+        );
+
+        registry.set("P_checkcond", Controller.ifThenElse(
+                    DataState.equalsTo(conn_breathing, 1),
+                    Controller.doTick(registry.reference("P_checkcond1")),
+                    Controller.doTick(registry.reference("P_RepNotConnBreath"))
+                )
+        );
+
+        registry.set("P_checkcond1", Controller.ifThenElse(
+                    DataState.equalsTo(conn_air_supply, 1),
+                    Controller.doTick(registry.reference("P_checkcond2")),
+                    Controller.doTick(registry.reference("P_RepNotConnAir"))
+                )
+        );
+
+        registry.set("P_checkcond2", Controller.ifThenElse(
+                    DataState.equalsTo(conn_power_source, 1),
+                    Controller.doTick(registry.reference("P_checkcond3")),
+                    Controller.doTick(registry.reference("P_RepNotConnPower"))
+                )
+        );
+
+        registry.set("P_checkcond3", Controller.ifThenElse(
+                    DataState.equalsTo(conn_patient, 0),
+                    Controller.doTick(registry.reference("P_start-up")),
+                    Controller.doTick(registry.reference("P_repConnPatient"))
+                )
+        );
+
+        registry.set("P_RepNotConnBreath", Controller.doAction(
+                (rg, ds) -> List.of(new DataStateUpdate(conn_failToPowerOn, 1)),
+                    registry.reference("P")
+                )
+        );
+        registry.set("P_RepNotConnAir", Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(conn_failToPowerOn, 2)),
+                        registry.reference("P")
+                )
+        );
+        registry.set("P_RepNotConnPower", Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(conn_failToPowerOn, 3)),
+                        registry.reference("P")
+                )
+        );
+        registry.set("P_RepConnPatient", Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(conn_failToPowerOn, 4)),
+                        registry.reference("P")
+                )
+        );
+
+        registry.set("P_start-up", Controller.ifThenElse(
+                    DataState.equalsTo(b_powerOff, 1),
+                    Controller.doAction(
+                            (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                            registry.reference("P_final")
+                    ),
+                    Controller.doAction(
+                            (rg, ds) -> List.of(new DataStateUpdate(rr_pcv, RR_PCV),
+                                    new DataStateUpdate(ie_pcv, IE_PCV),
+                                    new DataStateUpdate(p_insp_pcv, P_INSP_PCV)
+                            ),
+                            Controller.ifThenElse(
+                                    DataState.equalsTo(comm_sens_valves_ok, 1),
+                                    Controller.doAction(
+                                            (rg, ds) -> List.of(new DataStateUpdate(nr_of_retries, 0)),
+                                            registry.reference("P_start-up1")
+                                    ),
+                                    Controller.doAction(
+                                            (rg, ds) -> List.of(
+                                                    new DataStateUpdate(nr_of_retries, 1 + ds.get(nr_of_retries))),
+                                            registry.reference("P_retrySensor")
+                                    )
+                            )
+                    )
+                )
+        );
+
+        registry.set("P_retrySensor", Controller.ifThenElse(
+                DataState.greaterOrEqualThan(nr_of_retries, 5),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(nr_of_retries, 0)),
+                        registry.reference("P_failSafe")
+                ),
+                Controller.doTick(registry.reference("P_start-up"))
+        ));
+
+        registry.set("P_start-up1", Controller.ifThenElse(
+                        DataState.equalsTo(b_powerOff, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                                registry.reference("P_final")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(conn_power_source, 1),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(nr_of_retries_p, 0)),
+                                        registry.reference("P_start-up2")
+                                ),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(
+                                                new DataStateUpdate(nr_of_retries_p, 1 + ds.get(nr_of_retries_p))),
+                                        registry.reference("P_retryPower")
+                                )
+                        )
+                )
+        );
+
+        registry.set("P_retryPower", Controller.ifThenElse(
+                DataState.greaterOrEqualThan(nr_of_retries_p, 5),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(nr_of_retries_p, 0)),
+                        registry.reference("P_failSafe")
+                ),
+                Controller.doTick(registry.reference("P_start-up1"))
+        ));
+
+        registry.set("P_start-up2", Controller.ifThenElse(
+                    DataState.equalsTo(b_powerOff, 1),
+                    Controller.doAction(
+                            (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                            registry.reference("P_final")
+                    ),
+                    Controller.ifThenElse(
+                            DataState.equalsTo(comm_memory, 1).and(DataState.equalsTo(comm_cont_gui_ok, 1)),
+                            Controller.doAction(
+                                    (rg,ds) ->
+                                            List.of(new DataStateUpdate(init_succ, 1)),
+                                    registry.reference("P_self-test")
+                            ),
+                            Controller.doTick(registry.reference("P_start-upFail"))
+                    )
+                )
+        );
+
+        registry.set("P_start-upFail", Controller.doAction(
+                    (rg, ds)-> List.of(new DataStateUpdate(init_succ, -1),
+                            new DataStateUpdate(sys_out_of_service, 1), new DataStateUpdate(a_IN_valve, 0),
+                            new DataStateUpdate(a_OUT_valve, 1)),
+                    registry.reference("P_failSafe")
+                )
+        );
+
+        //Self-test mode
+        registry.set("P_self-test", Controller.doAction(
+                    (rg,ds) -> List.of(new DataStateUpdate(init_succ, 0),
+                            new DataStateUpdate(Status, 4)),
+                    Controller.ifThenElse(
+                            DataState.equalsTo(b_powerOff, 1),
+                            Controller.doAction(
+                                    (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                                    registry.reference("P_final")
+                            ),
+                            Controller.ifThenElse(
+                                    (DataState.equalsTo(gui_req_res_ven, 1).or(
+                                            DataState.equalsTo(power_switch_ok, 1).and(
+                                                    DataState.equalsTo(no_leaks_breathing_circuit, 1)).and(
+                                                            DataState.equalsTo(out_valve_ok, 1).and(
+                                                                    DataState.equalsTo(alarms_ok, 1))
+                                            ))).and((DataState.equalsTo(fs, 1)).negate()),
+                                    Controller.doTick(registry.reference("P_VentOff")
+                                    ),
+                                    Controller.doAction(
+                                            (rg,ds) -> List.of(
+                                                    new DataStateUpdate(selfTest_fail, 1),
+                                                    new DataStateUpdate(sys_out_of_service, 1)),
+                                            registry.reference("P_failSafe")
+                                    )
+                            )
+                    )
+                )
+        );
+
+        registry.set("P_VentOff", Controller.doAction(
+                    (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                        new DataStateUpdate(a_OUT_valve, 1),
+                        new DataStateUpdate(Status, 5),
+                        new DataStateUpdate(phase, 0),
+                        new DataStateUpdate(timer_insp, 0),
+                        new DataStateUpdate(timer_exp, 0)),
+                    Controller.ifThenElse(
+                            DataState.equalsTo(b_powerOff, 1),
+                            Controller.doAction(
+                                    (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                                    registry.reference("P_final")
+                            ),
+                            Controller.ifThenElse(
+                                    DataState.equalsTo(fs, 1),
+                                    Controller.doAction(
+                                            (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                                    new DataStateUpdate(a_OUT_valve, 0)),
+                                            registry.reference("P_failSafe")
+                                    ),
+                                    Controller.ifThenElse(
+                                            DataState.equalsTo(conn_patient, 0),
+                                            Controller.doAction(
+                                                    (rg, ds) -> List.of(new DataStateUpdate(ind_var, 1)),
+                                                    registry.reference("P_VentOff")),
+                                            Controller.ifThenElse(
+                                                    DataState.equalsTo(gui_req_change_mode_PCV, 1),
+                                                    Controller.doTick(registry.reference("P_PCV")),
+                                                    Controller.ifThenElse(
+                                                            DataState.equalsTo(gui_req_change_mode_PSV, 1),
+                                                            Controller.doTick(registry.reference("P_PSV")),
+                                                            Controller.doTick(registry.reference("P_VentOff"))
+                                                    )
+                                            )
+                                    )
+                            )
+                    )
+                )
+        );
+
+        registry.set("P_PCV", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0),
+                                new DataStateUpdate(cycle_done, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, 0),
+                                        new DataStateUpdate(timer_PCV_insp, (60.0*ds.get(ie_pcv))/((ds.get(rr_pcv)) *(1+ds.get(ie_pcv)))),
+                                        new DataStateUpdate(a_IN_valve, ds.get(p_insp_pcv)),
+                                        new DataStateUpdate(a_OUT_valve, 0),
+                                        new DataStateUpdate(Status, 1),
+                                        new DataStateUpdate(phase, 1),
+                                        new DataStateUpdate(phase_changed, 1),
+                                        new DataStateUpdate(cycle_done, 0)),
+                                registry.reference("P_PCV_insp")
+                        )
+                )
+
+        ));
+
+        registry.set("P_PCV_insp", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0),
+                                new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(gui_req_stop_vent, 1),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp)+1)),
+                                        registry.reference("P_VentOff")
+                                ),
+                                Controller.ifThenElse(
+                                        DataState.greaterThan(p_PS_ins_pressure, MAX_P_INSP),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                registry.reference("P_PCV_exp0")
+                                        ),
+                                        Controller.ifThenElse(
+                                                DataState.greaterThan(timer_PCV_insp, 0),
+                                                Controller.doAction(
+                                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) +1),
+                                                                new DataStateUpdate(timer_PCV_insp, ds.get(timer_PCV_insp)-1)),
+                                                        registry.reference("P_PCV_insp")
+                                                ),
+                                                Controller.ifThenElse(
+                                                        DataState.equalsTo(gui_req_IP, 1),
+                                                        Controller.doAction(
+                                                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                                                        new DataStateUpdate(a_OUT_valve, 0),
+                                                                        new DataStateUpdate(timer_IP, MAX_T_IP),
+                                                                        new DataStateUpdate(phase, 2),
+                                                                        new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                                registry.reference("P_IP_PCV")
+                                                        ),
+                                                        Controller.ifThenElse(
+                                                                DataState.equalsTo(gui_req_RM, 1),
+                                                                Controller.doAction(
+                                                                        (rg, ds) -> List.of(new DataStateUpdate(timer_RM, RM_TIME),
+                                                                                new DataStateUpdate(a_IN_valve, PRM),
+                                                                                new DataStateUpdate(a_OUT_valve, 0),
+                                                                                new DataStateUpdate(phase, 5),
+                                                                                new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                                        registry.reference("P_RM")
+                                                                ),
+                                                                Controller.ifThenElse(
+                                                                        DataState.equalsTo(switch_ready, 1),
+                                                                        Controller.doAction(
+                                                                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1),
+                                                                                        new DataStateUpdate(switch_ready, 0),
+                                                                                        new DataStateUpdate(gui_req_change_mode_PSV, 0)),
+                                                                                registry.reference("P_PSV_exp0")
+                                                                        ),
+                                                                        Controller.doAction(
+                                                                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                                                registry.reference("P_PCV_exp0")
+                                                                        )
+                                                                )
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ));
+
+
+        registry.set("P_IP_PCV", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(gui_req_IP, 0),
+                                Controller.ifThenElse(
+                                        DataState.equalsTo(switch_ready, 1),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp)+1),
+                                                        new DataStateUpdate(switch_ready, 0),
+                                                        new DataStateUpdate(gui_req_change_mode_PSV, 0)),
+                                                registry.reference("P_PSV_exp0")
+                                        ),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp)+1)),
+                                                registry.reference("P_PCV_exp0")
+                                        )
+                                ),
+                                Controller.ifThenElse(
+                                        DataState.greaterThan(timer_IP, 0),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_IP, ds.get(timer_IP)-1),
+                                                        new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                registry.reference("P_IP_PCV")
+                                        ),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                registry.reference("P_PCV_exp0")
+                                        )
+                                )
+                        )
+                )
+        ));
+
+        registry.set("P_RM", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(gui_req_RM, 0),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                        registry.reference("P_PCV_exp0")
+                                ),
+                                Controller.ifThenElse(
+                                        DataState.greaterThan(timer_RM, 0),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_RM, ds.get(timer_RM) - 1),
+                                                        new DataStateUpdate(timer_insp, ds.get(timer_insp)-1)),
+                                                registry.reference("P_RM")
+                                        ),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                registry.reference("P_PCV_exp0")
+                                        )
+                                )
+                        )
+                )
+        ));
+
+        registry.set("P_switch", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(gui_req_change_mode_PSV, 0)),
+                                Controller.ifThenElse(
+                                        DataState.equalsTo(gui_param_psv_ok, 1),
+                                        Controller.doTick(registry.reference("P_PSV")),
+                                        Controller.doTick(registry.reference("P_switch"))
+                                )
+                        )
+                )
+        ));
+
+        registry.set("P_PCV_exp0", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 0)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(timer_PCV_exp, 60/(ds.get(rr_pcv) * (1+ds.get(ie_pcv)))),
+                                        new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1),
+                                        new DataStateUpdate(timer_triggerDelay, TRIGGER_WINDOW_DELAY),
+                                        new DataStateUpdate(phase, 3),
+                                        new DataStateUpdate(phase_changed, 1),
+                                        new DataStateUpdate(timer_exp, 0)),
+                                registry.reference("P_PCV_exp")
+                        )
+                )
+        ));
+
+        registry.set("P_PCV_exp", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(gui_req_stop_vent, 1),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) +1)),
+                                        registry.reference("P_VentOff")
+                                ),
+                                Controller.ifThenElse(
+                                        DataState.greaterThan(timer_triggerDelay, 0),
+                                        Controller.ifThenElse(
+                                                DataState.greaterThan(timer_PCV_exp, 0),
+                                                Controller.doAction(
+                                                        (rg, ds) -> List.of(new DataStateUpdate(timer_PCV_exp, ds.get(timer_PCV_exp) - 1),
+                                                                new DataStateUpdate(timer_triggerDelay, ds.get(timer_triggerDelay)-1),
+                                                                new DataStateUpdate(timer_exp, ds.get(timer_exp)+1)),
+                                                        registry.reference("P_PCV_exp")
+                                                ),
+                                                Controller.ifThenElse(
+                                                        DataState.equalsTo(gui_req_EP, 1),
+                                                        Controller.doAction(
+                                                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                                                        new DataStateUpdate(a_OUT_valve, 0),
+                                                                        new DataStateUpdate(timer_EP, MAX_T_EP),
+                                                                        new DataStateUpdate(phase, 4),
+                                                                        new DataStateUpdate(timer_exp, ds.get(timer_exp)+1)),
+                                                                registry.reference("P_EP_PCV")
+                                                        ),
+                                                        Controller.doAction(
+                                                                (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) +1),
+                                                                        new DataStateUpdate(cycle_done, 1)),
+                                                                registry.reference("P_PCV")
+                                                        )
+                                                )
+                                        ),
+                                        Controller.ifThenElse(
+                                                DataState.greaterThan(drop_PAW, ITS_PCV),
+                                                Controller.doAction(
+                                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp)+1),
+                                                                new DataStateUpdate(cycle_done, 1)),
+                                                        registry.reference("P_PCV")
+                                                ),
+                                                Controller.ifThenElse(
+                                                        DataState.greaterThan(timer_PCV_exp, 0),
+                                                        Controller.doAction(
+                                                                (rg, ds) -> List.of(new DataStateUpdate(timer_PCV_exp, ds.get(timer_PCV_exp)-1),
+                                                                        new DataStateUpdate(timer_exp, ds.get(timer_exp)+1)),
+                                                                registry.reference("P_PCV_exp")
+                                                        ),
+                                                        Controller.ifThenElse(
+                                                                DataState.equalsTo(gui_req_EP, 1),
+                                                                Controller.doAction(
+                                                                        (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                                                                new DataStateUpdate(a_OUT_valve, 1),
+                                                                                new DataStateUpdate(timer_EP, MAX_T_EP),
+                                                                                new DataStateUpdate(phase, 4),
+                                                                                new DataStateUpdate(timer_exp, ds.get(timer_exp) +1)),
+                                                                        registry.reference("P_EP_PCV")
+                                                                ),
+                                                                Controller.doAction(
+                                                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1),
+                                                                                new DataStateUpdate(cycle_done, 1)),
+                                                                        registry.reference("P_PCV")
+                                                                )
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ));
+
+        registry.set("P_EP_PCV", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(gui_req_EP, 0),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1),
+                                                new DataStateUpdate(cycle_done, 1)),
+                                        registry.reference("P_PCV")
+                                ),
+                                Controller.ifThenElse(
+                                        DataState.greaterThan(timer_EP, 0),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_EP, ds.get(timer_EP)-1),
+                                                        new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1)),
+                                                registry.reference("P_EP_PCV")
+                                        ),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1),
+                                                        new DataStateUpdate(cycle_done, 1)),
+                                                registry.reference("P_PCV")
+                                        )
+                                )
+                        )
+                )
+        ));
+
+        registry.set("P_PSV", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0),
+                                new DataStateUpdate(cycle_done, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, 0),
+                                        new DataStateUpdate(timer_PSV_insp, MAX_INSP_TIME_PSV),
+                                        new DataStateUpdate(a_IN_valve, P_INSP_PSV),
+                                        new DataStateUpdate(a_OUT_valve, 0),
+                                        new DataStateUpdate(Status, 2),
+                                        new DataStateUpdate(phase, 1),
+                                        new DataStateUpdate(phase_changed, 1),
+                                        new DataStateUpdate(cycle_done, 0)),
+                                registry.reference("P_PSV_insp")
+                        )
+                )
+
+        ));
+
+        registry.set("P_PSV_insp", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0),
+                                new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(gui_req_stop_vent, 1),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp)+1)),
+                                        registry.reference("P_VentOff")
+                                ),
+                                Controller.ifThenElse(
+                                        (rg, ds) -> ds.get(p_PS_ins_pressure) > MAX_P_INSP || ds.get(s_Fl1_flow) <= ds.get(peak_flow)*ETS,
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                registry.reference("P_PSV_exp0")
+                                        ),
+                                        Controller.ifThenElse(
+                                                DataState.greaterThan(timer_PSV_insp, 0),
+                                                Controller.doAction(
+                                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) +1),
+                                                                new DataStateUpdate(timer_PSV_insp, ds.get(timer_PSV_insp)-1)),
+                                                        registry.reference("P_PSV_insp")
+                                                ),
+                                                Controller.ifThenElse(
+                                                        DataState.equalsTo(gui_req_IP, 1),
+                                                        Controller.doAction(
+                                                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                                                        new DataStateUpdate(a_OUT_valve, 0),
+                                                                        new DataStateUpdate(timer_IP, MAX_T_IP),
+                                                                        new DataStateUpdate(phase, 2),
+                                                                        new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                                registry.reference("P_IP_PSV")
+                                                        ),
+                                                        Controller.ifThenElse(
+                                                                DataState.equalsTo(gui_req_RM, 1),
+                                                                Controller.doAction(
+                                                                        (rg, ds) -> List.of(new DataStateUpdate(timer_RM, RM_TIME),
+                                                                                new DataStateUpdate(a_IN_valve, PRM),
+                                                                                new DataStateUpdate(a_OUT_valve, 0),
+                                                                                new DataStateUpdate(phase, 5),
+                                                                                new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                                        registry.reference("P_RM_PSV")
+                                                                ),
+                                                                Controller.doAction(
+                                                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                                        registry.reference("P_PSV_exp0")
+                                                                )
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ));
+
+        registry.set("P_IP_PSV", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(gui_req_IP, 0),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                        registry.reference("P_PSV_exp0")
+                                ),
+                                Controller.ifThenElse(
+                                        DataState.greaterThan(timer_IP, 0),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_IP, ds.get(timer_IP)-1),
+                                                        new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                registry.reference("P_IP_PSV")
+                                        ),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                registry.reference("P_PSV_exp0")
+                                        )
+                                )
+                        )
+                )
+        ));
+
+        registry.set("P_RM_PSV", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(gui_req_RM, 0),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                        registry.reference("P_PSV_exp0")
+                                ),
+                                Controller.ifThenElse(
+                                        DataState.greaterThan(timer_RM, 0),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_RM, ds.get(timer_RM) - 1),
+                                                        new DataStateUpdate(timer_insp, ds.get(timer_insp)-1)),
+                                                registry.reference("P_RM_PSV")
+                                        ),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
+                                                registry.reference("P_PSV_exp0")
+                                        )
+                                )
+                        )
+                )
+        ));
+
+        registry.set("P_PSV_exp0", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 0)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(timer_PSV_exp, T_APNEALAG),
+                                        new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1),
+                                        new DataStateUpdate(timer_triggerDelay, 0.5*(ds.get(timer_insp))),
+                                        new DataStateUpdate(phase, 3),
+                                        new DataStateUpdate(phase_changed, 1),
+                                        new DataStateUpdate(timer_exp, 0),
+                                        new DataStateUpdate(Status, 2)),
+                                registry.reference("P_PSV_exp")
+                        )
+                )
+        ));
+
+        registry.set("P_PSV_exp", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(gui_req_stop_vent, 1),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1)),
+                                        registry.reference("P_VentOff")
+                                ),
+                                Controller.ifThenElse(
+                                        DataState.greaterThan(timer_triggerDelay, 0),
+                                        Controller.ifThenElse(
+                                                DataState.greaterThan(timer_PSV_exp, 0),
+                                                Controller.doAction(
+                                                        (rg, ds) -> List.of(new DataStateUpdate(timer_PSV_exp, ds.get(timer_PSV_exp) - 1),
+                                                                new DataStateUpdate(timer_triggerDelay, ds.get(timer_triggerDelay)-1),
+                                                                new DataStateUpdate(timer_exp, ds.get(timer_exp)+1)),
+                                                        registry.reference("P_PSV_exp")
+                                                ),
+                                                Controller.ifThenElse(
+                                                        DataState.equalsTo(gui_req_EP, 1),
+                                                        Controller.doAction(
+                                                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                                                        new DataStateUpdate(a_OUT_valve, 0),
+                                                                        new DataStateUpdate(timer_EP, MAX_T_EP),
+                                                                        new DataStateUpdate(phase, 4),
+                                                                        new DataStateUpdate(timer_exp, ds.get(timer_exp)+1)),
+                                                                registry.reference("P_EP_PSV")
+                                                        ),
+                                                        Controller.doAction(
+                                                                (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) +1),
+                                                                        new DataStateUpdate(cycle_done, 1),
+                                                                        new DataStateUpdate(rr_pcv, RR_AP),
+                                                                        new DataStateUpdate(p_insp_pcv, P_INSP_AP),
+                                                                        new DataStateUpdate(ie_pcv, IE_AP)),
+                                                                registry.reference("P_PCV")
+                                                        )
+                                                )
+                                        ),
+                                        Controller.ifThenElse(
+                                                DataState.greaterThan(drop_PAW, ITS_PSV),
+                                                Controller.doAction(
+                                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp)+1),
+                                                                new DataStateUpdate(cycle_done, 1)),
+                                                        registry.reference("P_PSV")
+                                                ),
+                                                Controller.ifThenElse(
+                                                        DataState.greaterThan(timer_PSV_exp, 0),
+                                                        Controller.doAction(
+                                                                (rg, ds) -> List.of(new DataStateUpdate(timer_PSV_exp, ds.get(timer_PSV_exp)-1),
+                                                                        new DataStateUpdate(timer_exp, ds.get(timer_exp)+1)),
+                                                                registry.reference("P_PSV_exp")
+                                                        ),
+                                                        Controller.ifThenElse(
+                                                                DataState.equalsTo(gui_req_EP, 1),
+                                                                Controller.doAction(
+                                                                        (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                                                                new DataStateUpdate(a_OUT_valve, 1),
+                                                                                new DataStateUpdate(timer_EP, MAX_T_EP),
+                                                                                new DataStateUpdate(phase, 4),
+                                                                                new DataStateUpdate(timer_exp, ds.get(timer_exp) +1)),
+                                                                        registry.reference("P_EP_PSV")
+                                                                ),
+                                                                Controller.doAction(
+                                                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1),
+                                                                                new DataStateUpdate(cycle_done, 1),
+                                                                                new DataStateUpdate(rr_pcv, RR_AP),
+                                                                                new DataStateUpdate(p_insp_pcv, P_INSP_AP),
+                                                                                new DataStateUpdate(ie_pcv, IE_AP)),
+                                                                        registry.reference("P_PCV")
+                                                                )
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                )
+        ));
+
+        registry.set("P_EP_PSV", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.ifThenElse(
+                        DataState.equalsTo(fs, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("P_failSafe")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.equalsTo(gui_req_EP, 0),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1),
+                                                new DataStateUpdate(cycle_done, 1)),
+                                        registry.reference("P_PSV")
+                                ),
+                                Controller.ifThenElse(
+                                        DataState.greaterThan(timer_EP, 0),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_EP, ds.get(timer_EP)-1),
+                                                        new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1)),
+                                                registry.reference("P_EP_PSV")
+                                        ),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1),
+                                                        new DataStateUpdate(cycle_done, 1),
+                                                        new DataStateUpdate(rr_pcv, RR_AP),
+                                                        new DataStateUpdate(p_insp_pcv, P_INSP_AP),
+                                                        new DataStateUpdate(ie_pcv, IE_AP)),
+                                                registry.reference("P_PCV")
+                                        )
+                                )
+                        )
+                )
+        ));
+
+        registry.set("P_final", Controller.doAction(
+                (rg, ds) -> List.of(new DataStateUpdate(Status, 7),
+                        new DataStateUpdate(phase, 0)),
+                //TODO: possibly store paramaters?
+                registry.reference("P")
+        ));
+
+        registry.set("P_failSafe", Controller.doAction(
+                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
+                        new DataStateUpdate(a_OUT_valve, 1),
+                        new DataStateUpdate(Status, 6),
+                        new DataStateUpdate(init_succ, 0),
+                        new DataStateUpdate(selfTest_fail, 0),
+                        new DataStateUpdate(phase, 0),
+                        new DataStateUpdate(phase_changed, 1),
+                        new DataStateUpdate(fs, 1)),
+                registry.reference("P_failSafeI")
+        ));
+
+        registry.set("P_failSafeI", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
+                        registry.reference("P_final")
+                ),
+                Controller.doTick(registry.reference("P_failSafeI"))
+        ));
+
+        return registry.reference("P");
+
     }
 
 
-    private static double[][] printPerturbed(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound, Perturbation perturbation){
-        double[][] result = new double[2][NUMBER_OF_VARIABLES];
-        System.out.println(label);
-        double[][] data_av = SystemState.sample(rg, F, perturbation, s, steps, size);
-        double[][] data_max = SystemState.sample_max(rg, F, perturbation, s, steps, size);
-        double[] max = new double[NUMBER_OF_VARIABLES];
-        Arrays.fill(max, Double.NEGATIVE_INFINITY);
-        for (int i = 0; i < data_av.length; i++) {
-            System.out.printf("%d>   ", i);
-            for (int j = 0; j < data_av[i].length -1 ; j++) {
-                System.out.printf("%f   ", data_av[i][j]);
-                if (j<NUMBER_OF_VARIABLES & leftbound <= i & i <= rightbound) {
-                    if (max[j] < data_max[i][j]) {
-                        max[j] = data_max[i][j];
-                        result[1][j]=data_max[i][j];
-                    }
-                }
-            }
-            System.out.printf("%f\n", data_av[i][data_av[i].length -1]);
-        }
-        System.out.printf("%s   ", "max:");
-        for(int j=0; j<NUMBER_OF_VARIABLES-1; j++){
-            System.out.printf("%f   ", max[j]);
-        }
-        System.out.printf("%f\n", max[NUMBER_OF_VARIABLES-1]);
-        return result;
+    //  CONTROLLER OF the alarm component
+
+    public static Controller getController_alarm() {
+
+        ControllerRegistry registry = new ControllerRegistry();
+
+        registry.set("P_alarms", Controller.ifThenElse(
+                DataState.equalsTo(Status, 1).or(DataState.equalsTo(Status, 2)),
+                Controller.ifThenElse(
+                        DataState.greaterThan(s_temp, 75).or(
+                                DataState.greaterThan(s_PS_ins_pressure, MAX_P_INSP)).or(
+                                DataState.greaterThan(s_PS_exp_pressure, MAX_PEEP).or(
+                                        DataState.greaterThan(IE_toolow_counter, 4))).or(
+                                DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 3).and(
+                                        (DataState.equalsTo(a_IN_valve, 0)).negate()
+                                ))
+                        ).or(
+                                DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 1).and(
+                                        (DataState.equalsTo(a_IN_valve, 0))
+                                ))
+                        ).or(
+                                DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 1).and(
+                                        (DataState.equalsTo(a_OUT_valve, 0)).negate()
+                                ))
+                        ).or(
+                                DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 3).and(
+                                        (DataState.equalsTo(a_OUT_valve, 1)).negate()
+                                ))
+                        ).or(DataState.equalsTo(conn_air_supply, 0)),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(fs, 1),
+                                        new DataStateUpdate(a_LED, 1),
+                                        new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("Idle_Alarms")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.greaterOrEqualThan(nr_of_retries_p, 5),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(fs, 1),
+                                                new DataStateUpdate(a_LED, 1),
+                                                new DataStateUpdate(a_IN_valve, 0),
+                                                new DataStateUpdate(a_OUT_valve, 1),
+                                                new DataStateUpdate(nr_of_retries_p, 0)),
+                                        registry.reference("Idle_Alarms")
+                                ),
+                                Controller.ifThenElse(
+                                        DataState.equalsTo(conn_power_source, 0),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(nr_of_retries_p, ds.get(nr_of_retries_p) +1)),
+                                                registry.reference("P_Alarms")
+                                        ),
+                                        Controller.ifThenElse(
+                                                DataState.greaterThan(counter_cycles, 0),
+                                                Controller.ifThenElse(
+                                                        (rg, ds) -> ds.get(Status) == 1,
+                                                        Controller.ifThenElse(
+                                                                (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*ds.get(p_insp_pcv)) ||
+                                                                        ds.get(comm_sens_valves_ok) == 0
+                                                                        || ds.get(V_E) < MIN_V_E || ds.get(s_PS_exp_pressure) < MIN_PEEP ||
+                                                                        ds.get(RR_ms) > MAX_RR || ds.get(RR_ms) < MIN_RR || ds.get(timer_PSV_exp) < 0
+                                                                        || ds.get(comm_cont_gui_ok) == 0
+                                                                ,
+                                                                Controller.doAction(
+                                                                        (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
+                                                                        registry.reference("P_alarms")
+                                                                ),
+                                                                Controller.doTick(registry.reference("P_alarms"))
+                                                        ),
+                                                        Controller.ifThenElse(
+                                                                (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*ds.get(P_INSP_PSV)) || ds.get(comm_sens_valves_ok) == 0
+                                                                        || ds.get(V_E) < MIN_V_E || ds.get(s_PS_exp_pressure) < MIN_PEEP ||
+                                                                        ds.get(RR_ms) > MAX_RR || ds.get(RR_ms) < MIN_RR || ds.get(timer_PSV_exp) < 0
+                                                                        || ds.get(comm_cont_gui_ok) == 0
+                                                                ,
+                                                                Controller.doAction(
+                                                                        (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
+                                                                        registry.reference("P_alarms")
+                                                                ),
+                                                                Controller.doTick(registry.reference("P_alarms"))
+                                                        )
+                                                ),
+                                                //else (counter_cycles == 0)
+                                                Controller.ifThenElse(
+                                                        (rg, ds) -> ds.get(Status) == 1,
+                                                        Controller.ifThenElse(
+                                                                (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*ds.get(p_insp_pcv)) || ds.get(comm_sens_valves_ok) == 0
+                                                                        || ds.get(s_PS_exp_pressure) < MIN_PEEP || ds.get(timer_PSV_exp) < 0
+                                                                        || ds.get(comm_cont_gui_ok) == 0
+                                                                ,
+                                                                Controller.doAction(
+                                                                        (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
+                                                                        registry.reference("P_alarms")
+                                                                ),
+                                                                Controller.doTick(registry.reference("P_alarms"))
+                                                        ),
+                                                        Controller.ifThenElse(
+                                                                (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*P_INSP_PSV) || ds.get(comm_sens_valves_ok) == 0
+                                                                        || ds.get(s_PS_exp_pressure) < MIN_PEEP || ds.get(timer_PSV_exp) < 0
+                                                                        || ds.get(comm_cont_gui_ok) == 0
+                                                                ,
+                                                                Controller.doAction(
+                                                                        (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
+                                                                        registry.reference("P_alarms")
+                                                                ),
+                                                                Controller.doTick(registry.reference("P_alarms"))
+                                                        )
+                                                )
+                                        )
+                                )
+                        )
+                ),
+                Controller.ifThenElse(
+                        DataState.greaterThan(s_temp, 75).or(DataState.equalsTo(conn_air_supply, 0)),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(fs, 1),
+                                        new DataStateUpdate(a_LED, 1),
+                                        new DataStateUpdate(a_IN_valve, 0),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                registry.reference("Idle_Alarms")
+                        ),
+                        Controller.ifThenElse(
+                                DataState.greaterOrEqualThan(nr_of_retries_p, 5),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(fs, 1),
+                                                new DataStateUpdate(a_LED, 1),
+                                                new DataStateUpdate(a_IN_valve, 0),
+                                                new DataStateUpdate(a_OUT_valve, 1),
+                                                new DataStateUpdate(nr_of_retries_p, 0)),
+                                        registry.reference("Idle_Alarms")
+                                ),
+                                Controller.ifThenElse(
+                                        DataState.equalsTo(conn_power_source, 0),
+                                        Controller.doAction(
+                                                (rg, ds) -> List.of(new DataStateUpdate(nr_of_retries_p, ds.get(nr_of_retries_p) +1)),
+                                                registry.reference("P_Alarms")
+                                        ),
+                                        Controller.ifThenElse(
+                                                DataState.equalsTo(comm_sens_valves_ok, 0).or(DataState.equalsTo(comm_cont_gui_ok, 0)),
+                                                Controller.doAction(
+                                                        (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
+                                                        registry.reference("P_alarms")
+                                                ),
+                                                Controller.doTick(registry.reference("P_alarms"))
+                                        )
+                                )
+                        )
+                )
+        ));
+
+        registry.set("Idle_Alarms", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doTick(registry.reference("P_Alarms_final")),
+                Controller.doTick(registry.reference("Idle_Alarms"))
+        ));
+
+        registry.set("P_Alarms_final", Controller.ifThenElse(
+                DataState.equalsTo(b_powerOn, 1),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(Status, 0),
+                                new DataStateUpdate(phase, 0),
+                                new DataStateUpdate(a_LED, 0)),
+                        registry.reference("P_alarms")
+                ),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(Status, 7),
+                                new DataStateUpdate(phase, 0),
+                                new DataStateUpdate(a_LED, 0)),
+                        //TODO: store paramaters?
+                        registry.reference("P_alarms_final")
+                )
+        ));
+
+
+        return registry.reference("P_alarms");
     }
 
+    //  CONTROLLER OF the switch component
 
-    /* PERTURBATIONS:
-    Perturbation <code>pertEandIp</code> perturbs the system state by applying function <code>changeEandIp</code> at the
-    first computation step.
-    It modifies the initial concentration of species E and Ip, by adding
-    x molecules of E, and
-    y molecules of Ip.
-    */
+    public static Controller getController_switch() {
 
-    public static Perturbation pertEandIp(double x, double y){
-        return new AtomicPerturbation(0, (rg,ds)->ds.apply(changeEandIp(rg,ds,x,y)));
+        ControllerRegistry registry = new ControllerRegistry();
+
+        registry.set("P_switch", Controller.ifThenElse(
+                DataState.equalsTo(gui_req_change_mode_PSV, 1),
+                Controller.ifThenElse(
+                        DataState.equalsTo(gui_param_psv_ok, 1),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(switch_ready, 1)),
+                                registry.reference("P_switch")
+                        ),
+                        Controller.doAction(
+                                (rg, ds) -> List.of(new DataStateUpdate(switch_ready, 0)),
+                                registry.reference("P_switch"))
+                ),
+                Controller.doAction(
+                        (rg, ds) -> List.of(new DataStateUpdate(switch_ready, 0)),
+                        registry.reference("P_switch"))
+        ));
+
+        return registry.reference("P_switch");
     }
 
-    private static List<DataStateUpdate> changeEandIp(RandomGenerator rg, DataState state, double x, double y) {
+    // ENVIRONMENT FUNCTION
+
+    public static List<DataStateUpdate> getEnvironmentUpdates(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(E,  x));
-        updates.add(new DataStateUpdate(Ip,  y));
-        return updates;
-    }
-
-    /*
-    The following method selects the time of next reaction, according to Gillespie's algorithm.
-    */
-
-    public static double selectReactionTime(RandomGenerator rg, DataState state){
-        double rate = 0.0;
-        double[] lambda = new double[6];
-        for (int j=0; j<6; j++){
-            double weight = 1.0;
-            for (int i=0; i<5; i++){
-                if(r_input[j][i] > 0) {
-                    weight = weight * Math.pow(state.get(i), r_input[j][i]);
-                }
-            }
-            lambda[j] = r_k[j] * weight;
-            rate = rate + lambda[j];
+        //UPDATING PHYSICAL VALUES
+        double new_battery_level = 0.0;
+        if (state.get(Status) != 1 && state.get(Status) != 2) {
+            new_battery_level = state.get(s_battery_level)- 0.1;
+        } else {
+            new_battery_level = state.get(s_battery_level) -0.5;
         }
+        updates.add(new DataStateUpdate(s_battery_level, new_battery_level));
 
-        double rand = rg.nextDouble();
-        double t = (1/rate)*Math.log(1/rand);
-        return t;
-    }
-
-
-    /*
-    The following method selects the next reaction, according to Gillespie's algorithm,
-    and returns the updates that allow for modifying the state accordingly.
-    */
-
-    public static List<DataStateUpdate> selectAndApplyReaction(RandomGenerator rg, DataState state) {
-        List<DataStateUpdate> updates = new LinkedList<>();
-
-        double[] lambda = new double[6];
-        double[] lambdaParSum = new double[6];
-        double lambdaSum = 0.0;
-
-        for (int j=0; j<6; j++){
-            double weight = 1.0;
-            for (int i=0; i<5; i++){
-                weight = weight * Math.pow(state.get(i),r_input[j][i]);
-            }
-            lambda[j] = r_k[j]* weight;
-            lambdaSum = lambda[j]+lambdaSum;
-            lambdaParSum[j] = lambdaSum;
-        }
-
-        if(lambdaSum > 0){
-
-            double token = 1 - rg.nextDouble();
-
-            int selReaction = 0;
-
-            while (lambdaParSum[selReaction] < token * lambdaSum) {
-                selReaction++;
-            }
-
-            selReaction++;
-
-            if (selReaction == 1) {
-                for (int i = 0; i < 5; i++) {
-                    double newArity = state.get(i) + r1_output[i] - r1_input[i];
-                    updates.add(new DataStateUpdate(i, newArity));
-                }
-            }
-
-            if (selReaction == 2) {
-                for (int i = 0; i < 5; i++) {
-                    double newArity = state.get(i) + r2_output[i] - r2_input[i];
-                    updates.add(new DataStateUpdate(i, newArity));
-                }
-            }
-
-            if (selReaction == 3) {
-                for (int i = 0; i < 5; i++) {
-                    double newArity = state.get(i) + r3_output[i] - r3_input[i];
-                    updates.add(new DataStateUpdate(i, newArity));
-                }
-            }
-
-            if (selReaction == 4) {
-                for (int i = 0; i < 5; i++) {
-                    double newArity = state.get(i) + r4_output[i] - r4_input[i];
-                    updates.add(new DataStateUpdate(i, newArity));
-                }
-            }
-
-            if (selReaction == 5) {
-                for (int i = 0; i < 5; i++) {
-                    double newArity = state.get(i) + r5_output[i] - r5_input[i];
-                    updates.add(new DataStateUpdate(i, newArity));
-                }
-            }
-
-            if (selReaction == 6) {
-                for (int i = 0; i < 5; i++) {
-                    double newArity = state.get(i) + r6_output[i] - r6_input[i];
-                    updates.add(new DataStateUpdate(i, newArity));
-                }
+        double new_pressure_in = 0.0;
+        if ((state.get(Status) == 1 || state.get(Status) == 2)) {
+            if (state.get(a_IN_valve) != 0) {
+                new_pressure_in = state.get(a_IN_valve) + PM_A_PEEP_VALVE;
+            } else if (state.get(phase) !=2 && state.get(phase) != 4) {
+                new_pressure_in = Math.max(PM_A_PEEP_VALVE, state.get(p_PS_ins_pressure)-0.25*state.get(peak_P_insp));
+            } else {
+                new_pressure_in = state.get(p_PS_ins_pressure);
             }
         } else {
-            System.out.println("Missing reagents");
+            new_pressure_in = Math.max(0.0, state.get(p_PS_ins_pressure)*0.7 - 0.5);
+        }
+
+        updates.add(new DataStateUpdate(p_PS_ins_pressure, new_pressure_in));
+
+        double new_pressure_out = 0.0;
+        if ((state.get(Status) == 1 || state.get(Status) == 2)) {
+            if (state.get(a_OUT_valve) == 0) {
+                new_pressure_out = PM_A_PEEP_VALVE;
+            } else if (state.get(timer_exp) == 0) {
+                new_pressure_out = Math.max(PM_A_PEEP_VALVE, PM_A_PEEP_VALVE + 0.2*state.get(peak_P_insp));
+            } else {
+                new_pressure_out = Math.max(PM_A_PEEP_VALVE, state.get(p_PS_exp_pressure) - 0.15*state.get(peak_P_insp));
+            }
+        } else {
+            new_pressure_out = Math.max(0.0, state.get(p_PS_exp_pressure)*0.7 - 0.5);
+        }
+
+        updates.add(new DataStateUpdate(p_PS_exp_pressure, new_pressure_out));
+
+        updates.add(new DataStateUpdate(p_GB_pressure, PM_A_GB_PRESSURE));
+        updates.add(new DataStateUpdate(p_OS, PM_A_GB_FiO2));
+
+        double new_flow_in = 0.0;
+        if ((state.get(Status) == 1 || state.get(Status) == 2)) {
+            if (state.get(timer_insp) == 0) {
+                new_flow_in = HIGH_FLOW;
+            } else if (state.get(phase) == 1) {
+                new_flow_in = Math.max(0, 0.85*state.get(p_Fl1_flow)-0.5);
+            } else {
+                new_flow_in = 0;
+            }
+        } else {
+            new_flow_in = 0.0;
+        }
+
+        updates.add(new DataStateUpdate(p_Fl1_flow, new_flow_in));
+
+        double new_flow_out = 0.0;
+        if ((state.get(Status) == 1 || state.get(Status) == 2)) {
+            if (state.get(timer_exp) == 0) {
+                new_flow_out = -HIGH_FLOW;
+            } else if (state.get(phase) == 3) {
+                new_flow_out = Math.min(0, 0.7*state.get(p_Fl2_flow)+0.5);
+            } else {
+                new_flow_out = 0;
+            }
+        } else {
+            new_flow_out = Math.min(0.0, state.get(p_Fl2_flow)*0.7 + 0.5);
+        }
+
+        updates.add(new DataStateUpdate(p_Fl2_flow, new_flow_out));
+
+        //store previous_PAW
+        updates.add(new DataStateUpdate(previous_PAW, state.get(s_PS_ins_pressure))); //TODO: double check if this update is already known when I 'get'it later on
+                                        // Note: it is not, why later on I use 'state.get(s_PS_ins_pressure' instead of state.get(previous_PAW)
+
+        //UPDATING SENSOR VALUES
+        double u = 1;
+        double t = Math.random()*2*u - u;
+
+        double uu = 0.3;
+        double tt = Math.random()*2*uu - uu;
+
+        updates.add(new DataStateUpdate(s_GB_pressure, state.get(p_GB_pressure)+t));
+        t = Math.random()*2*u - u;
+        updates.add(new DataStateUpdate(s_PS_ins_pressure, new_pressure_in+t));
+        t = Math.random()*2*u - u;
+        updates.add(new DataStateUpdate(s_PS_exp_pressure, new_pressure_out+t));
+        t = Math.random()*2*u - u;
+        updates.add(new DataStateUpdate(s_OS, state.get(p_OS)+t));
+        updates.add(new DataStateUpdate(s_Fl2_flow, new_flow_out+tt));
+        tt = Math.random()*2*uu - uu;
+        updates.add(new DataStateUpdate(s_Fl1_flow, new_flow_in+tt));
+        if (state.get(p_GB_pressure) == 0) {
+            updates.add(new DataStateUpdate(s_GB_pressure, 0.0));
+        }
+        if (state.get(p_OS) == 0) {
+            updates.add(new DataStateUpdate(s_OS, 0.0));
+        }
+        if (new_flow_out == 0) {
+            updates.add(new DataStateUpdate(s_Fl2_flow, 0.0));
+        }
+        if (new_flow_in == 0) {
+            updates.add(new DataStateUpdate(s_Fl1_flow, 0.0));
+        }
+        if (new_pressure_in == 0) {
+            updates.add(new DataStateUpdate(s_PS_ins_pressure, 0.0));
+        }
+        if (new_pressure_out == 0) {
+            updates.add(new DataStateUpdate(s_PS_exp_pressure, 0.0));
+        }
+
+        double uuu = 0.1;
+        double ttt = Math.random()*2*uuu - uuu;
+        updates.add(new DataStateUpdate(s_temp, state.get(p_temp)+ttt));
+        //no inaccuracies in power source, fan, battery level
+        updates.add(new DataStateUpdate(s_power_source, state.get(p_power_source)));
+        updates.add(new DataStateUpdate(s_fan, state.get(p_fan)));
+
+        //ENVIRONMENT ENVIRONMENT VARIABLES
+        if (state.get(init_succ) == 1) {
+            updates.add(new DataStateUpdate(conn_patient, 1));
+        }
+
+        //ensure that the led-light turns of after a random amount of time
+        if (state.get(a_LED) == 1 && state.get(alarm_counter) == -1) { //we've not initialized the counter yet
+            updates.add(new DataStateUpdate(alarm_counter, Math.ceil(rg.nextDouble()*10)));
+        } else if (state.get(a_LED) == 1 && state.get(alarm_counter) > 0) {
+            updates.add(new DataStateUpdate(alarm_counter, state.get(alarm_counter) - 1));
+        } else if (state.get(a_LED) == 1) {
+            //so the counter has run out
+            updates.add(new DataStateUpdate(a_LED, 0));
+            updates.add(new DataStateUpdate(alarm_counter, -1));
+        }
+
+        if (state.get(cycle_done) == 1){
+            updates.add(new DataStateUpdate(counter_cycles, state.get(counter_cycles)+1));
+            //updates.add(new DataStateUpdate(cycle_done, 0));
+        }
+
+        //COMMUNICATING VALUES / COMPUTING VARIABLES
+        double new_RR = 0.0;
+        double new_IE = 0.0;
+        if (state.get(cycle_done) == 1) {
+            new_RR = 60/(state.get(timer_insp) + state.get(timer_exp));
+            new_IE = state.get(timer_insp)/state.get(timer_exp);
+        } else if (state.get(Status) != 1 && state.get(Status) != 2) {
+            new_RR = 0.0;
+            new_IE = 0.0;
+        } else {
+            new_RR = state.get(RR_ms);
+            new_IE = state.get(IE_ms);
+        }
+        updates.add(new DataStateUpdate(RR_ms, new_RR));
+        updates.add(new DataStateUpdate(IE_ms, new_IE));
+
+        double new_IE_counter = 0.0;
+        if (state.get(cycle_done) == 1 && state.get(timer_insp)/state.get(timer_exp) < 0.01) {
+            new_IE_counter = state.get(IE_toolow_counter) + 1;
+        } else if (state.get(cycle_done) == 1) {
+            new_IE_counter = 0;
+        } else { //we're not in a new breathing cycle so should do nothing
+            new_IE_counter = state.get(IE_toolow_counter);
+        }
+        updates.add(new DataStateUpdate(IE_toolow_counter, new_IE_counter));
+
+        double new_V_tidal = 0.0;
+        double new_V_tidal_prev = 0.0;
+        if (state.get(Status) == 1 || state.get(Status) == 2) {
+            if (state.get(phase) == 1 || state.get(phase) == 2) {
+                new_V_tidal = state.get(V_tidal) + (new_flow_in+tt)*1; //TODO: update later 1 to be the time step of 1 iteration
+                new_V_tidal_prev = state.get(V_tidal_prev);
+            } else if (state.get(phase_changed) == 1 && state.get(phase) == 3) {
+                new_V_tidal = 0;
+                new_V_tidal_prev = state.get(V_tidal);
+            } else {
+                new_V_tidal = state.get(V_tidal);
+                new_V_tidal_prev = state.get(V_tidal_prev);
+            }
+        } else {
+            new_V_tidal = 0.0;
+            new_V_tidal_prev = state.get(V_tidal);
+        }
+
+        updates.add(new DataStateUpdate(V_tidal, new_V_tidal));
+        updates.add(new DataStateUpdate(V_tidal_prev, new_V_tidal_prev));
+
+
+        double new_V_E = 0.0;
+        if (state.get(cycle_done) == 1) {
+            new_V_E = (state.get(V_tidal_prev) * 60/(state.get(timer_insp) + state.get(timer_exp)))/1000;
+        } else if (state.get(Status) != 1 && state.get(Status) != 2) {
+            new_V_E = 0.0;
+        } else {
+            new_V_E = state.get(V_E);
+        }
+        updates.add(new DataStateUpdate(V_E, new_V_E));
+
+        double new_peak_flow = 0.0;
+        if (state.get(peak_flow) < state.get(s_Fl1_flow)) {
+            new_peak_flow = state.get(s_Fl1_flow);
+        } else if (state.get(phase_changed) == 1 && state.get(phase) == 1 || (state.get(Status) != 1 & state.get(Status) != 2)) {
+            new_peak_flow = 0;
+        } else {
+            new_peak_flow = state.get(peak_flow);
+        }
+        updates.add(new DataStateUpdate(peak_flow, new_peak_flow));
+
+        double new_peak_P_insp = 0.0;
+        if (state.get(peak_P_insp) < state.get(s_PS_ins_pressure)) {
+            new_peak_P_insp = state.get(s_PS_ins_pressure);
+        } else if (state.get(phase_changed) == 1 && state.get(phase) == 1 || (state.get(Status) != 1 & state.get(Status) != 2)) {
+            new_peak_P_insp = 0;
+        } else {
+            new_peak_P_insp = state.get(peak_P_insp);
+        }
+        updates.add(new DataStateUpdate(peak_P_insp, new_peak_P_insp));
+
+        double new_phase_change = 0.0;
+        if (state.get(phase_changed) == 1) {
+            new_phase_change = 0;
+        } else {
+            new_phase_change = state.get(phase_changed);
+        }
+        updates.add(new DataStateUpdate(phase_changed, new_phase_change));
+
+        updates.add(new DataStateUpdate(drop_PAW, (state.get(s_PS_ins_pressure) - new_pressure_in)/(1)));//TODO: update later to divide by time^2
+
+        //TODO: think about how to update the 'environment' options, where the GUI/environment just randomly clicks buttons
+        if (state.get(counter_cycles) == 2 && state.get(p_insp_pcv) != P_INSP_AP) {
+            updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 1));
+            updates.add(new DataStateUpdate(gui_param_psv_ok, 1));
+        }
+
+        if (state.get(counter_cycles) == 4 && state.get(cycle_done) == 1) {
+            updates.add(new DataStateUpdate(b_powerOff, 1));
+            updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 0));
+            updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 0));
+        }
+
+        //ensure that the request to switch to PSV turns off after a random CLOCK amount of time
+        if (state.get(gui_req_change_mode_PSV) == 1 && state.get(req_counter) == -1) { //we've not initialized the counter yet
+            updates.add(new DataStateUpdate(req_counter, Math.ceil(rg.nextDouble()*10) + 5));
+        } else if (state.get(gui_req_change_mode_PSV) == 1 && state.get(req_counter) > 0) {
+            updates.add(new DataStateUpdate(req_counter, state.get(req_counter) - 1));
+        } else if (state.get(gui_req_change_mode_PSV) == 1) {
+            //so the counter has run out
+            updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 0));
+            updates.add(new DataStateUpdate(req_counter, -1));
         }
 
         return updates;
-
     }
 
-    // INITIALISATION OF DATA STATE. The initial value for all variables are randomly chosen between 1 and 100.
+    // PERTURBATIONS
+    //TODO: later
+    private static Perturbation getTestPerturbation() {
+        return new AtomicPerturbation(TIMER_INIT-1, Main::testPerturbation);
+    }
 
-    public static DataState getInitialState(RandomGenerator rand, double gran, double Tstep, double Treal, double Tdelta) {
+    private static DataState testPerturbation(RandomGenerator rg, DataState state) {
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(comm_sens_valves_ok, 0));
+        return state.apply(updates);
+    }
+
+
+    // INITIALISATION OF DATA STATE
+
+    public static DataState getInitialState( ) {
         Map<Integer, Double> values = new HashMap<>();
+        // INITIAL DATA FOR ALL VARIABLES
+        values.put(p_GB_pressure, (double) PM_A_GB_PRESSURE);
+        values.put(s_GB_pressure, (double) PM_A_GB_PRESSURE);
+        values.put(p_PS_ins_pressure, (double) 0);
+        values.put(s_PS_ins_pressure, (double) 0);
+        values.put(p_PS_exp_pressure, (double) 0);
+        values.put(s_PS_exp_pressure, (double) 0);
+        values.put(p_OS, (double) PM_A_GB_FiO2);
+        values.put(s_OS, (double) PM_A_GB_FiO2);
+        values.put(p_Fl1_flow, (double) 0);
+        values.put(s_Fl1_flow, (double) 0);
+        values.put(p_Fl2_flow, (double) 0);
+        values.put(s_Fl2_flow, (double) 0);
+        values.put(p_temp, (double) 37);
+        values.put(s_temp, (double) 37);
+        values.put(p_power_source, (double) 0);
+        values.put(s_power_source, (double) 0);
+        values.put(s_battery_level, (double) 100);
+        values.put(p_fan, (double) 0);
+        values.put(s_fan, (double) 0);
+        values.put(a_IN_valve, (double) 0);
+        values.put(a_OUT_valve, (double) 0);
+        values.put(a_LED, (double) 0);
+        values.put(RR_ms, (double) 0);
+        values.put(peak_P_insp, (double) 0);
+        values.put(V_tidal, (double) 0);
+        values.put(V_E, (double) 0);
+        values.put(t_RM_remaining, (double) 0);
+        values.put(Status, (double) 0);
+        values.put(IE_ms, (double) 0);
+        values.put(b_powerOn, (double) 1);
+        values.put(conn_power_source, (double) 1);
+        values.put(conn_air_supply, (double) 1);
+        values.put(conn_patient, (double) 0);
+        values.put(conn_breathing, (double) 1);
+        values.put(comm_sens_valves_ok, (double) 1);
+        values.put(comm_memory, (double) 1);
+        values.put(comm_cont_gui_ok, (double) 1);
+        values.put(init_succ, (double) 0);
+        values.put(conn_failToPowerOn, (double) 0);
+        values.put(sys_out_of_service, (double) 0);
+        values.put(selfTest_fail, (double) 0);
+        values.put(gui_req_res_ven, (double) 0);
+        values.put(power_switch_ok, (double) 1);
+        values.put(no_leaks_breathing_circuit, (double) 1);
+        values.put(out_valve_ok, (double) 1);
+        values.put(alarms_ok, (double) 1);
+        values.put(nr_of_retries, (double) 0);
+        values.put(nr_of_retries_p, (double) 0);
+        values.put(timer_PSV_exp, (double) 0);
+        values.put(gui_req_change_mode_PCV, (double) 1);
+        values.put(gui_req_change_mode_PSV, (double) 0);
+        values.put(gui_req_stop_vent, (double) 0);
+        values.put(timer_PCV_insp, (double) 0);
+        values.put(timer_PSV_insp, (double) 0);
+        values.put(timer_PCV_exp, (double) 0);
+        values.put(drop_PAW, (double) 0);
+        values.put(gui_req_IP, (double) 0);
+        values.put(gui_req_RM, (double) 0);
+        values.put(gui_req_EP, (double) 0);
+        values.put(timer_IP, (double) 0);
+        values.put(timer_EP, (double) 0);
+        values.put(timer_RM, (double) 0);
+        values.put(timer_triggerDelay, (double) 0);
+        values.put(min_exp_time_psv, 0.4);
+        values.put(b_powerOff, (double) 0);
+        values.put(gui_param_psv_ok, (double) 0);
+        values.put(phase, (double) 0);
+        values.put(phase_changed, (double) 0);
+        values.put(IE_toolow_counter, (double) 0);
+        values.put(timer_insp, (double) 0);
+        values.put(timer_exp, (double) 0);
+        values.put(cycle_done, (double) 0);
+        values.put(fs, (double) 0);
+        values.put(previous_PAW, (double) 0);
+        values.put(peak_flow, (double) 0);
+        values.put(V_tidal_prev, (double) 0);
+        values.put(rr_pcv, (double) 12);
+        values.put(ie_pcv, 0.5);
+        values.put(p_insp_pcv, (double) 15);
+        values.put(ind_var, (double) 0); //TODO: remove this after my test
+        values.put(alarm_counter, (double) -1);
+        values.put(counter_cycles, (double) 0);
+        values.put(switch_ready, (double) 0);
+        values.put(req_counter, (double) -1);
 
-        double initE = Math.ceil(100 * rand.nextDouble());
-        double initI = Math.ceil(100 * rand.nextDouble());
-        double initIp = Math.ceil(100 * rand.nextDouble());
-        double initEIp = Math.ceil(100 * rand.nextDouble());
-        double initEIpI = Math.ceil(100 * rand.nextDouble());
-        values.put(E, initE);
-        values.put(I, initI);
-        values.put(Ip, initIp);
-        values.put(EIp, initEIp);
-        values.put(EIpI, initEIpI);
-        return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN), gran, Tstep, Treal, Tdelta);
+        return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN));
+        // if a variable is not initialized then it's automatically set to 0 (in the above line)
     }
 
 }

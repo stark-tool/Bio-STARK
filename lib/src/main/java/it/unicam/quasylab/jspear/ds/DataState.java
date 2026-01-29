@@ -196,6 +196,8 @@ public class DataState {
         return ds -> ds.get(idx)>value;
     }
 
+    public static Predicate<DataState> lessThan(int idx, double value) { return ds -> ds.get(idx)<value; }
+
     public static Predicate<DataState> lessOrEqualThan(int idx, double value) {
         return ds -> ds.get(idx)<=value;
     }
