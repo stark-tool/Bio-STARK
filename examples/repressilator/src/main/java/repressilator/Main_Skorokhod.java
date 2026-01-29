@@ -681,8 +681,8 @@ public class Main_Skorokhod {
             int leftBound = 550;
             int rightBound = 1000;
             int normalisationTime = 1000;
-            int scanWidth = 400;
-            int offsetEvaluationCount = 150;
+            int scanWidth = 1; // 400;
+            int offsetEvaluationCount = 1; //150;
 
             SkorokhodDistanceExpression skorokhodZ1 = new SkorokhodDistanceExpression(ds->ds.get(Z1)/normalisationZ1,
                     (v1, v2) -> Math.abs(v2-v1),
@@ -902,6 +902,22 @@ public class Main_Skorokhod {
             double[][] distEvaluations = new double[20][2];
             double[][] distEvaluationsSkor = new double[20][2];
 
+            skorokhodZ1.Reset();
+            skorokhodZ2.Reset();
+            skorokhodZ3.Reset();
+
+
+            DistanceExpression dMaxSkorr = new MaxDistanceExpression(
+                    skorokhodZ1,
+                    new MaxDistanceExpression(skorokhodZ2, skorokhodZ3)
+            );
+
+            DistanceExpression intdMaxSkorr = new MaxIntervalDistanceExpression(
+                    dMaxSkorr,
+                    leftRBound,
+                    rightRBound
+            );
+
             int index=0;
             double thresholdB = 5;
             for(int i = 0; i < 20 ; i++){
@@ -909,9 +925,10 @@ public class Main_Skorokhod {
                 threshold = threshold / 100;
 
                 ThresholdDistanceExpression thresholdExpr = new ThresholdDistanceExpression(intdMax, RelationOperator.LESS_OR_EQUAL_THAN, threshold);
-                ThresholdDistanceExpression thresholdExprSkor = new ThresholdDistanceExpression(intdMaxSkor, RelationOperator.LESS_OR_EQUAL_THAN, threshold);
+                ThresholdDistanceExpression thresholdExprSkor = new ThresholdDistanceExpression(intdMaxSkorr, RelationOperator.LESS_OR_EQUAL_THAN, threshold);
 
                 double value = thresholdExpr.compute(0, sequence, sequence_p);
+
                 double valueSkor = thresholdExprSkor.compute(0, sequence, sequence_p);
 
 
@@ -946,19 +963,40 @@ public class Main_Skorokhod {
 
             index=0;
             thresholdB = 5;
+            DistanceExpression dMaxSkorrr;
+            DistanceExpression intdMaxSkorrr;
             for(int i = 0; i < 20 ; i++){
+
                 double threshold = thresholdB + i;
                 threshold = threshold / 100;
+
                 robustF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
                         intdMax,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         threshold);
+
+                skorokhodZ1.Reset();
+                skorokhodZ2.Reset();
+                skorokhodZ3.Reset();
+
+                dMaxSkorrr = new MaxDistanceExpression(
+                        skorokhodZ1,
+                        new MaxDistanceExpression(skorokhodZ2, skorokhodZ3)
+                );
+
+                intdMaxSkorrr = new MaxIntervalDistanceExpression(
+                        dMaxSkorrr,
+                        leftRBound,
+                        rightRBound
+                );
+
                 robustFSkor = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
-                        intdMaxSkor,
+                        intdMaxSkorrr,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         threshold);
-                boolean value = new BooleanSemanticsVisitor(true).eval(robustF).eval(5, 0, sequence);
-                boolean valueSkor = new BooleanSemanticsVisitor(true).eval(robustFSkor).eval(5, 0, sequence);
+
+                boolean value = new BooleanSemanticsVisitor(true).eval(robustF).eval(2, 0, sequence);
+                boolean valueSkor = new BooleanSemanticsVisitor(true).eval(robustFSkor).eval(2, 0, sequence);
 
                 System.out.println(" ");
                 System.out.println("\n robustF evaluation at " + threshold + ": " + value);
