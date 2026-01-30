@@ -965,7 +965,7 @@ public class Main_Skorokhod {
             thresholdB = 5;
             DistanceExpression dMaxSkorrr;
             DistanceExpression intdMaxSkorrr;
-            for(int i = 0; i < 20 ; i++){
+            for(int i = 0; i < 20 ; i=i+2){
 
                 double threshold = thresholdB + i;
                 threshold = threshold / 100;
