@@ -678,11 +678,26 @@ public class Main_Skorokhod {
 
 
             System.out.println("Step-by-step evaluation of distances between nominal and perturbed system");
-            int leftBound = 200;
+            int leftBound = 300;
             int rightBound = 500;
             int normalisationTime = 1000;
             int scanWidth = 100; // 400;
             int offsetEvaluationCount = 100; //150;
+
+
+            SkorokhodDistanceExpression skorrAtomicZ1 = new SkorokhodDistanceExpression(ds -> ds.get(Z1) / normalisationZ1,
+                    (v1, v2) -> Math.abs(v2 - v1),
+                    //(a, b) -> b,
+                    (a, b) -> Math.max(a, b),
+                    offset -> ((double) offset / (double) normalisationTime),
+                    leftBound, rightBound, false, offsetEvaluationCount, scanWidth);
+            double v = skorrAtomicZ1.compute(leftBound, sequence, sequence_p);
+
+
+
+
+
+
 
             double[][] evaluation_maxint_atomic_Z1 = new double[100][1];
             double[][] evaluation_skorokhod_Z1 = new double[100][1];
@@ -692,21 +707,12 @@ public class Main_Skorokhod {
                 MaxIntervalDistanceExpression maxIntAtomicZ1 = new MaxIntervalDistanceExpression(atomicZ1, i + leftBound, i + leftBound +100);
                 SkorokhodDistanceExpression skorAtomicZ1 = new SkorokhodDistanceExpression(ds -> ds.get(Z1) / normalisationZ1,
                         (v1, v2) -> Math.abs(v2 - v1),
-                        //(a, b) -> b,
-                        (a, b) -> Math.max(a, b),
+                        (a, b) -> b,
+                        //(a, b) -> Math.max(a, b),
                         offset -> ((double) offset / (double) normalisationTime),
                         leftBound, rightBound, false, offsetEvaluationCount, scanWidth);
                 evaluation_maxint_atomic_Z1[i][0] = maxIntAtomicZ1.compute(i, sequence, sequence_p);
                 evaluation_skorokhod_Z1[i][0] = skorAtomicZ1.compute(i, sequence, sequence_p);
-                //if (evaluation_maxint_atomic_Z1[i][0] < evaluation_skorokhod_Z1[i][0]) {
-                    System.out.println("Situation at step " + i);
-                    System.out.println(skorAtomicZ1.GetOffsetArray().length);
-                    for (int j = 0; j < skorAtomicZ1.GetOffsetArray().length; j++) {
-                        int z = leftBound+i+j;
-                        System.out.println(z + " mapped to "  + skorAtomicZ1.GetOffsetArray()[j]);
-                    }
-               // }
-
                 avg_diff_maxInt_skor = avg_diff_maxInt_skor + evaluation_maxint_atomic_Z1[i][0] - evaluation_skorokhod_Z1[i][0];
             }
 
