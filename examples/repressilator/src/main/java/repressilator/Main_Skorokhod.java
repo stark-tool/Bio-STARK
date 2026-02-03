@@ -356,7 +356,7 @@ public class Main_Skorokhod {
             <code>getInitialState</code>, which will be defined later and assigns the initial value to all 30
             variables defined above.
              */
-            DataState state = getInitialState(1.0,0.0,0.0,0.0);
+            DataState state = getInitialState(1.0, 0.0, 0.0, 0.0);
 
             /*
             We define the <code>TimedSystem</code> <code>system</code>, which will be the starting configuration from
@@ -377,7 +377,7 @@ public class Main_Skorokhod {
              */
             RandomGenerator rand = new DefaultRandomGenerator();
 
-            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds->selectReactionTime(rand,ds));
+            TimedSystem system = new TimedSystem(controller, (rg, ds) -> ds.apply(selectAndApplyReaction(rg, ds)), state, ds -> selectReactionTime(rand, ds));
 
 
             /*
@@ -396,7 +396,7 @@ public class Main_Skorokhod {
             and sample sets by class <code>SampleSet</code>.
             In this context, <code>size</code> is the cardinality of those sample sets.
             */
-            int size = 10;
+            int size = 50;
 
             /*
             The evolution sequence <code>sequence></code> created by the following instruction consists in a sequence of
@@ -413,18 +413,18 @@ public class Main_Skorokhod {
             from a data state
              */
             ArrayList<DataStateExpression> F = new ArrayList<>();
-            F.add(ds->ds.get(G1));
-            F.add(ds->ds.get(AG1));
-            F.add(ds->ds.get(X1));
-            F.add(ds->ds.get(Z1));
-            F.add(ds->ds.get(G2));
-            F.add(ds->ds.get(AG2));
-            F.add(ds->ds.get(X2));
-            F.add(ds->ds.get(Z2));
-            F.add(ds->ds.get(G3));
-            F.add(ds->ds.get(AG3));
-            F.add(ds->ds.get(X3));
-            F.add(ds->ds.get(Z3));
+            F.add(ds -> ds.get(G1));
+            F.add(ds -> ds.get(AG1));
+            F.add(ds -> ds.get(X1));
+            F.add(ds -> ds.get(Z1));
+            F.add(ds -> ds.get(G2));
+            F.add(ds -> ds.get(AG2));
+            F.add(ds -> ds.get(X2));
+            F.add(ds -> ds.get(Z2));
+            F.add(ds -> ds.get(G3));
+            F.add(ds -> ds.get(AG3));
+            F.add(ds -> ds.get(X3));
+            F.add(ds -> ds.get(Z3));
 
             ArrayList<String> L = new ArrayList<>();
             L.add("G1      ");
@@ -487,9 +487,9 @@ public class Main_Skorokhod {
             double x = -3.0; // x positive: higher values for Z1, lower for Z2, higher for Z3
             // x negative: lower values for Z1, higher for Z2, lower for Z3
 
-            int w1=50;
-            int w2=50;
-            int replica= 5;
+            int w1 = 50;
+            int w2 = 50;
+            int replica = 5;
 
             double[][] plot_z1 = new double[N][1];
             double[][] plot_z2 = new double[N][1];
@@ -500,6 +500,7 @@ public class Main_Skorokhod {
             double[][] plot_x3 = new double[N][1];
 
             double[][] data = SystemState.sample(rand, F, system, N, size);
+            /* temporarily removed
             for (int i = 0; i<N; i++){
                 plot_z1[i][0] = data[i][3];
                 plot_z2[i][0] = data[i][7];
@@ -543,7 +544,7 @@ public class Main_Skorokhod {
             Util.writeToCSV("./AS_new_pplotX2.csv",plot_px2);
             Util.writeToCSV("./AS_new_pplotX3.csv",plot_px3);
 
-
+            */
 
 
 
@@ -552,6 +553,7 @@ public class Main_Skorokhod {
             .cvs files, the following portion of code allows us to print them.
             */
 
+            /*
             System.out.println("");
             System.out.println("Simulation of nominal system - data average values:");
             System.out.println("");
@@ -560,7 +562,7 @@ public class Main_Skorokhod {
             System.out.println("Simulation of perturbed system - data average values:");
             System.out.println("");
             printAvgDataPerturbed(rand, L, F, system, N, size, 0, N, itZ1TranslRate(x, w1, w2, replica));
-
+            */
 
 
 
@@ -597,15 +599,15 @@ public class Main_Skorokhod {
 
             System.out.println("");
             System.out.println("Simulation of nominal system - Data maximal values:");
-            double[] dataMax = printMaxData(rand, L, F, system, N, size, w1+w2, 2*N);
+            double[] dataMax = printMaxData(rand, L, F, system, N, size, w1 + w2, 2 * N);
             System.out.println("");
             System.out.println("Simulation of perturbed system - Data maximal values:");
             System.out.println("");
-            double[] dataMax_p = printMaxDataPerturbed(rand, L, F, system, N, size, w1+w2, 2*N, itZ1TranslRate(x,w1,w2,replica));
+            double[] dataMax_p = printMaxDataPerturbed(rand, L, F, system, N, size, w1 + w2, 2 * N, itZ1TranslRate(x, w1, w2, replica));
 
-            double normalisationZ1 = Math.max(dataMax[Z1],dataMax_p[Z1])*1.1;
-            double normalisationZ2 = Math.max(dataMax[Z2],dataMax_p[Z2])*1.1;
-            double normalisationZ3 = Math.max(dataMax[Z3],dataMax_p[Z3])*1.1;
+            double normalisationZ1 = Math.max(dataMax[Z1], dataMax_p[Z1]) * 1.1;
+            double normalisationZ2 = Math.max(dataMax[Z2], dataMax_p[Z2]) * 1.1;
+            double normalisationZ3 = Math.max(dataMax[Z3], dataMax_p[Z3]) * 1.1;
 
             /*
             The following instruction allows us to create the evolution sequence <code>sequence_p</code>, which is
@@ -616,8 +618,8 @@ public class Main_Skorokhod {
             of <code>sequence</code> multiplied by <code>scale</code>
             */
 
-            int scale=5;
-            EvolutionSequence sequence_p = sequence.apply(itZ1TranslRate(x, w1, w2, replica),0,scale);
+            int scale = 5;
+            EvolutionSequence sequence_p = sequence.apply(itZ1TranslRate(x, w1, w2, replica), 0, scale);
 
 
             /*
@@ -646,11 +648,10 @@ public class Main_Skorokhod {
 
             */
 
-            AtomicDistanceExpression atomicZ1 = new AtomicDistanceExpression(ds->ds.get(Z1)/normalisationZ1,(v1, v2) -> Math.abs(v2-v1));
-
-            AtomicDistanceExpression atomicZ2 = new AtomicDistanceExpression(ds->ds.get(Z2)/normalisationZ2,(v1, v2) -> Math.abs(v2-v1));
-
-            AtomicDistanceExpression atomicZ3 = new AtomicDistanceExpression(ds->ds.get(Z3)/normalisationZ3,(v1, v2) -> Math.abs(v2-v1));
+            AtomicDistanceExpression atomicZ1 = new AtomicDistanceExpression(ds -> ds.get(Z1) / normalisationZ1, (v1, v2) -> Math.abs(v2 - v1));
+            MaxIntervalDistanceExpression intAtomicZ1 = new MaxIntervalDistanceExpression(atomicZ1, 400, 700);
+            AtomicDistanceExpression atomicZ2 = new AtomicDistanceExpression(ds -> ds.get(Z2) / normalisationZ2, (v1, v2) -> Math.abs(v2 - v1));
+            AtomicDistanceExpression atomicZ3 = new AtomicDistanceExpression(ds -> ds.get(Z3) / normalisationZ3, (v1, v2) -> Math.abs(v2 - v1));
 
 
 
@@ -676,273 +677,57 @@ public class Main_Skorokhod {
             */
 
 
-
-
-            int leftBound = 550;
-            int rightBound = 1000;
+            System.out.println("Step-by-step evaluation of distances between nominal and perturbed system");
+            int leftBound = 200;
+            int rightBound = 500;
             int normalisationTime = 1000;
-            int scanWidth = 1; // 400;
-            int offsetEvaluationCount = 1; //150;
+            int scanWidth = 100; // 400;
+            int offsetEvaluationCount = 100; //150;
 
-            SkorokhodDistanceExpression skorokhodZ1 = new SkorokhodDistanceExpression(ds->ds.get(Z1)/normalisationZ1,
-                    (v1, v2) -> Math.abs(v2-v1),
-                    (a, b) -> b,
-                    // (a, b) -> Math.max(a, b),
-                    offset->((double)offset/(double)normalisationTime),
-                    leftBound,
-                    rightBound,false, offsetEvaluationCount, scanWidth);
+            double[][] evaluation_maxint_atomic_Z1 = new double[100][1];
+            double[][] evaluation_skorokhod_Z1 = new double[100][1];
 
-            SkorokhodDistanceExpression skorokhodZ1Ref = new SkorokhodDistanceExpression(ds->ds.get(Z1)/normalisationZ1,
-                    (v1, v2) -> Math.abs(v2-v1),
-                    (a, b) -> b,
-                    //(a, b) -> Math.max(a, b),
-                    offset->((double)offset/(double)normalisationTime),
-                    leftBound,
-                    rightBound,false, offsetEvaluationCount, scanWidth);
+            double avg_diff_maxInt_skor = 0.0;
+            for (int i = 0; i < 100; i++) {
+                MaxIntervalDistanceExpression maxIntAtomicZ1 = new MaxIntervalDistanceExpression(atomicZ1, i + leftBound, i + leftBound +100);
+                SkorokhodDistanceExpression skorAtomicZ1 = new SkorokhodDistanceExpression(ds -> ds.get(Z1) / normalisationZ1,
+                        (v1, v2) -> Math.abs(v2 - v1),
+                        //(a, b) -> b,
+                        (a, b) -> Math.max(a, b),
+                        offset -> ((double) offset / (double) normalisationTime),
+                        leftBound, rightBound, false, offsetEvaluationCount, scanWidth);
+                evaluation_maxint_atomic_Z1[i][0] = maxIntAtomicZ1.compute(i, sequence, sequence_p);
+                evaluation_skorokhod_Z1[i][0] = skorAtomicZ1.compute(i, sequence, sequence_p);
+                //if (evaluation_maxint_atomic_Z1[i][0] < evaluation_skorokhod_Z1[i][0]) {
+                    System.out.println("Situation at step " + i);
+                    System.out.println(skorAtomicZ1.GetOffsetArray().length);
+                    for (int j = 0; j < skorAtomicZ1.GetOffsetArray().length; j++) {
+                        int z = leftBound+i+j;
+                        System.out.println(z + " mapped to "  + skorAtomicZ1.GetOffsetArray()[j]);
+                    }
+               // }
 
-            SkorokhodDistanceExpression skorokhodZ2 = new SkorokhodDistanceExpression(ds->ds.get(Z2)/normalisationZ2,
-                    (v1, v2) -> Math.abs(v2-v1),
-                    (a, b) -> b,
-                    //(a, b) -> Math.max(a, b),
-                    offset->((double)offset/(double)normalisationTime),
-                    leftBound,
-                    rightBound,false, offsetEvaluationCount, scanWidth);
-
-            SkorokhodDistanceExpression skorokhodZ3 = new SkorokhodDistanceExpression(ds->ds.get(Z3)/normalisationZ3,
-                    (v1, v2) -> Math.abs(v2-v1),
-                    (a, b) -> b,
-                    //(a, b) -> Math.max(a, b),
-                    offset->((double)offset/(double)normalisationTime),
-                    leftBound,
-                    rightBound,false, offsetEvaluationCount, scanWidth);
-
-
-
-            /*
-            All distances <code>atomicZi</code> and <code>skorokhodZi</code> are evaluated, time-point by time-point,
-            over evolution sequence <code>sequence</code> and its perturbed version <code>sequence_p</code> defined above.
-            The time-point to time-point values of the distances are stored in .csv files.
-            */
-
-
-            double[][] direct_evaluation_atomic_Z1 = new double[rightBound][1];
-            double[][] direct_evaluation_atomic_Z2 = new double[rightBound][1];
-            double[][] direct_evaluation_atomic_Z3 = new double[rightBound][1];
-
-            double[][] direct_evaluation_skorokhod_Z1 = new double[rightBound][1];
-            double[][] direct_evaluation_skorokhod_Z2 = new double[rightBound][1];
-            double[][] direct_evaluation_skorokhod_Z3 = new double[rightBound][1];
-
-            double[][] direct_evaluation_skorokhod_Z1_refined = new double[rightBound][1];
-            double[][] direct_evaluation_skorokhod_Z1_refined_diff = new double[rightBound][1];
-
-
-            for (int i = 0; i<(rightBound); i++){
-
-                direct_evaluation_atomic_Z1[i][0] = atomicZ1.compute(i, sequence, sequence_p);
-                direct_evaluation_atomic_Z2[i][0] = atomicZ2.compute(i, sequence, sequence_p);
-                direct_evaluation_atomic_Z3[i][0] = atomicZ3.compute(i, sequence, sequence_p);
-
-                direct_evaluation_skorokhod_Z1[i][0] = skorokhodZ1.compute(i, sequence, sequence_p);
-                skorokhodZ1.Reset();
-                direct_evaluation_skorokhod_Z1_refined[i][0] = skorokhodZ1Ref.computeRefined(i, sequence, sequence_p);
-                direct_evaluation_skorokhod_Z1_refined_diff[i][0] = direct_evaluation_skorokhod_Z1[i][0] - direct_evaluation_skorokhod_Z1_refined[i][0];
-                direct_evaluation_skorokhod_Z2[i][0] = skorokhodZ2.compute(i, sequence, sequence_p);
-                skorokhodZ2.Reset();
-                direct_evaluation_skorokhod_Z3[i][0] = skorokhodZ3.compute(i, sequence, sequence_p);
-                skorokhodZ3.Reset();
-
+                avg_diff_maxInt_skor = avg_diff_maxInt_skor + evaluation_maxint_atomic_Z1[i][0] - evaluation_skorokhod_Z1[i][0];
             }
 
-            for (int i = 0; i<(rightBound); i++){
-
-                if(direct_evaluation_skorokhod_Z1[i][0] > direct_evaluation_atomic_Z1[i][0]) {
-
-                    System.out.println("atomic Z1 distance at step " + i + ": " + direct_evaluation_atomic_Z1[i][0]);
-                    System.out.println("Skorok Z1 distance at step " + i + ": " + direct_evaluation_skorokhod_Z1[i][0]);
-                    System.out.println(" ");
+            for (int i = 0; i<100; i++){
+                System.out.println(" ");
+                int step = i+leftBound;
+                System.out.println("MaxInterv Z1 distance at step " + step + ": " + evaluation_maxint_atomic_Z1[i][0]);
+                System.out.println("Skorokhod Z1 distance at step " + step + ": " + evaluation_skorokhod_Z1[i][0]);
+                double diff = evaluation_maxint_atomic_Z1[i][0] - evaluation_skorokhod_Z1[i][0];
+                if(diff < 0) {
+                    System.out.println("Unexpectedly, Skorokhod distance is higher than max interval distance !!!!!!!!!!!!!!!!!!!!");
+                }
+                else {
+                    System.out.println("At step " + step + " max interval distance = Skorokhod distance + " + diff);
                 }
             }
 
-            Util.writeToCSV("./AS_atomic_Z1.csv",direct_evaluation_atomic_Z1);
-            Util.writeToCSV("./AS_atomic_Z2.csv",direct_evaluation_atomic_Z2);
-            Util.writeToCSV("./AS_atomic_Z3.csv",direct_evaluation_atomic_Z3);
+            avg_diff_maxInt_skor = avg_diff_maxInt_skor / 100.0;
+            System.out.println(" ");
+            System.out.println("Avg difference between maxInterval and Skorokhod: " + avg_diff_maxInt_skor);
 
-            Util.writeToCSV("./AS_skorokhod_Z1.csv",direct_evaluation_skorokhod_Z1);
-            Util.writeToCSV("./AS_skorokhod_Z1_refined.csv",direct_evaluation_skorokhod_Z1_refined);
-            Util.writeToCSV("./AS_skorokhod_Z1_refined_diff.csv",direct_evaluation_skorokhod_Z1_refined_diff);
-            Util.writeToCSV("./AS_skorokhod_Z2.csv",direct_evaluation_skorokhod_Z2);
-            Util.writeToCSV("./AS_skorokhod_Z3.csv",direct_evaluation_skorokhod_Z3);
-
-
-
-
-
-            int[] _offsets1 = skorokhodZ1.GetOffsetArray();
-            int[] _offsets2 = skorokhodZ2.GetOffsetArray();
-            int[] _offsets3 = skorokhodZ3.GetOffsetArray();
-            double[][] offsets1 = new double[rightBound][1];
-            double[][] offsets2 = new double[rightBound][1];
-            double[][] offsets3 = new double[rightBound][1];
-            for (int i = 0; i < offsets1.length; i++) {
-                offsets1[i][0] = _offsets1[i];
-                offsets2[i][0] = _offsets2[i];
-                offsets3[i][0] = _offsets3[i];
-            }
-
-            Util.writeToCSV("./AS_offsets_Z1.csv",offsets1);
-            Util.writeToCSV("./AS_offsets_Z2.csv",offsets2);
-            Util.writeToCSV("./AS_offsets_Z3.csv",offsets3);
-
-
-            /*
-
-            double[][] plot_z1_Skor = new double[N][1];
-            double[][] plot_z2_Skor = new double[N][1];
-            double[][] plot_z3_Skor = new double[N][1];
-
-            double[][] plot_pz1_Skor = new double[N][1];
-            double[][] plot_pz2_Skor = new double[N][1];
-            double[][] plot_pz3_Skor = new double[N][1];
-
-            for (int i = 0; i<N; i++){
-                plot_z1_Skor[i][0] = Arrays.stream(sequence.get(i).evalPenaltyFunction(ds->ds.get(Z1))).average().orElse(Double.NaN);
-                plot_z2_Skor[i][0] = Arrays.stream(sequence.get(i).evalPenaltyFunction(ds->ds.get(Z2))).average().orElse(Double.NaN);
-                plot_z3_Skor[i][0] = Arrays.stream(sequence.get(i).evalPenaltyFunction(ds->ds.get(Z3))).average().orElse(Double.NaN);
-
-                plot_pz1_Skor[i][0] = Arrays.stream(sequence_p.get(i).evalPenaltyFunction(ds->ds.get(Z1))).average().orElse(Double.NaN);
-                plot_pz2_Skor[i][0] = Arrays.stream(sequence_p.get(i).evalPenaltyFunction(ds->ds.get(Z2))).average().orElse(Double.NaN);
-                plot_pz3_Skor[i][0] = Arrays.stream(sequence_p.get(i).evalPenaltyFunction(ds->ds.get(Z3))).average().orElse(Double.NaN);
-            }
-            Util.writeToCSV("./new_plotZ1_Skor.csv",plot_z1);
-            Util.writeToCSV("./new_plotZ2_Skor.csv",plot_z2);
-            Util.writeToCSV("./new_plotZ3_Skor.csv",plot_z3);
-
-            Util.writeToCSV("./new_pplotZ1_Skor.csv",plot_pz1);
-            Util.writeToCSV("./new_pplotZ2_Skor.csv",plot_pz2);
-            Util.writeToCSV("./new_pplotZ3_Skor.csv",plot_pz3);
-
-             */
-
-
-
-            /*
-            USING THE MODEL CHECKER
-
-
-
-             */
-
-            int leftRBound=550;
-            int rightRBound=1000;
-
-            // reset distance expression's stored previous offset
-            skorokhodZ1.Reset();
-            skorokhodZ2.Reset();
-            skorokhodZ2.Reset();
-
-
-            /*
-            We define the distance expression <code>dMax<code> as the max between <code>atomicZ1<code>, <code>atomicZ2<code>
-            and <code>atomicZ3<code>.
-            Analogously, we define the distance expression <code>dMaxSkor<code> as the max between <code>skorokhodZ1<code>,
-            <code>skorokhodZ2<code> and <code>skorokhodZ3<code>.
-            Technically, both <code>dMax<code> and <code>dMaxSkor<code> are instances of <code>MaxDistanceExpression</code>.
-            When we evaluate a <code>MaxDistanceExpression</code> at a given time point, we get the max of the evaluations
-            at that time point of the argument distance expressions.
-
-             */
-
-            DistanceExpression dMax = new MaxDistanceExpression(
-                    atomicZ1,
-                    new MaxDistanceExpression(atomicZ2, atomicZ3)
-            );
-
-            DistanceExpression dMaxSkor = new MaxDistanceExpression(
-                    skorokhodZ1,
-                    new MaxDistanceExpression(skorokhodZ2, skorokhodZ3)
-            );
-
-
-            /*
-            We define the distance expression <code>intdMax<code> as the max of <code>dMax<code> in the interval of time
-            points [<code>leftRBound</code> ,  <code>rightRBound</code>]
-            Analogously, we define the distance expression <code>intdMaxSkor<code> as the max of <code>dMaxSkor<code> in
-            the same interval.
-            Technically, both <code>intdMax<code> and <code>intdMaxSkor<code> are instances of
-            <code>MaxIntervalDistanceExpression</code>.
-            When we evaluate a <code>MaxIntervalDistanceExpression</code> in a given interval, we get the max of the
-            evaluations of the argument distance expression in all time points of that interval.
-
-             */
-            DistanceExpression intdMax = new MaxIntervalDistanceExpression(
-                    dMax,
-                    leftRBound,
-                    rightRBound
-            );
-
-            DistanceExpression intdMaxSkor = new MaxIntervalDistanceExpression(
-                    dMaxSkor,
-                    leftRBound,
-                    rightRBound
-            );
-
-
-
-            /*
-            Below, for 20 different threshold values we define two "threshold" distance expressions <code><thresholdExpr></code>
-            and <code><thresholdExprSkor></code>, which, technically, are instances of <code><ThresholdDistanceExpression></code>.
-            Thresholds distances expressions have as arguments a distance expression, a threshold and a comparison operator.
-            The evaluation of a threshold expression is either 1, if the evaluation of the argument distance and the threshold
-            are related as established by the comparison operator, or 0, otherwise.
-            In this way we can evaluate whether <code>intdMax</code> and <code>intdMaxSkor</code> have an evaluation that is
-            below the thresholds (1+i)/100 for i=1..20. The 0/1 evaluations are printed out and stored in .csv files.
-             */
-
-            double[][] distEvaluations = new double[20][2];
-            double[][] distEvaluationsSkor = new double[20][2];
-
-            skorokhodZ1.Reset();
-            skorokhodZ2.Reset();
-            skorokhodZ3.Reset();
-
-
-            DistanceExpression dMaxSkorr = new MaxDistanceExpression(
-                    skorokhodZ1,
-                    new MaxDistanceExpression(skorokhodZ2, skorokhodZ3)
-            );
-
-            DistanceExpression intdMaxSkorr = new MaxIntervalDistanceExpression(
-                    dMaxSkorr,
-                    leftRBound,
-                    rightRBound
-            );
-
-            int index=0;
-            double thresholdB = 5;
-            for(int i = 0; i < 20 ; i++){
-                double threshold = thresholdB + i;
-                threshold = threshold / 100;
-
-                ThresholdDistanceExpression thresholdExpr = new ThresholdDistanceExpression(intdMax, RelationOperator.LESS_OR_EQUAL_THAN, threshold);
-                ThresholdDistanceExpression thresholdExprSkor = new ThresholdDistanceExpression(intdMaxSkorr, RelationOperator.LESS_OR_EQUAL_THAN, threshold);
-
-                double value = thresholdExpr.compute(0, sequence, sequence_p);
-
-                double valueSkor = thresholdExprSkor.compute(0, sequence, sequence_p);
-
-
-                System.out.println(" ");
-                System.out.println("\n robustF evaluation at " + threshold + ": " + value);
-                System.out.println("\n robustFSkor evaluation at " + threshold + ": " + valueSkor);
-                distEvaluations[index][1]=value;
-                distEvaluations[index][0]=threshold;
-                distEvaluationsSkor[index][1]=valueSkor;
-                distEvaluationsSkor[index][0]=threshold;
-                index++;
-            }
-            Util.writeToCSV("./AS_evalR.csv",distEvaluations);
-            Util.writeToCSV("./AS_evalRSkor.csv",distEvaluationsSkor);
 
 
             /*
@@ -957,57 +742,75 @@ public class Main_Skorokhod {
             The results are printed out and stored in .csv files.
             */
 
+            System.out.println();
+            System.out.println();
+            System.out.println();
+            System.out.println("Using model checker");
+            System.out.println();
+            System.out.println();
+            System.out.println();
 
-            RobustnessFormula robustF;
-            RobustnessFormula robustFSkor;
 
-            index=0;
-            thresholdB = 5;
-            DistanceExpression dMaxSkorrr;
-            DistanceExpression intdMaxSkorrr;
-            for(int i = 0; i < 20 ; i=i+2){
+            double[][] robustnessEvaluationsMaxInt = new double[20][2];
+            double[][] robustnessEvaluationsSkor = new double[20][2];
 
-                double threshold = thresholdB + i;
-                threshold = threshold / 100;
+            RobustnessFormula robustMaxIntZ1;
+            RobustnessFormula robustSkorZ1;
+            int index=0;
+            double baseThreshold = 1.0;
+            for(int thresholdInc = 0; thresholdInc < 20 ; thresholdInc=thresholdInc+1){
 
-                robustF = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
-                        intdMax,
+                double threshold = (baseThreshold + thresholdInc)/100.0;
+                MaxIntervalDistanceExpression maxIntAtomicZ1 = new MaxIntervalDistanceExpression(atomicZ1,leftBound,rightBound);
+
+                robustMaxIntZ1 = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
+                        maxIntAtomicZ1,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         threshold);
 
-                skorokhodZ1.Reset();
-                skorokhodZ2.Reset();
-                skorokhodZ3.Reset();
+                SkorokhodDistanceExpression skorAtomicZ1 = new SkorokhodDistanceExpression(ds->ds.get(Z1)/normalisationZ1,
+                        (v1, v2) -> Math.abs(v2-v1),
+                        (a, b) -> b,
+                        // (a, b) -> Math.max(a, b),
+                        offset->((double)offset/(double)normalisationTime),
+                        leftBound,
+                        rightBound,false, offsetEvaluationCount, scanWidth);
 
-                dMaxSkorrr = new MaxDistanceExpression(
-                        skorokhodZ1,
-                        new MaxDistanceExpression(skorokhodZ2, skorokhodZ3)
-                );
-
-                intdMaxSkorrr = new MaxIntervalDistanceExpression(
-                        dMaxSkorrr,
-                        leftRBound,
-                        rightRBound
-                );
-
-                robustFSkor = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
-                        intdMaxSkorrr,
+                robustSkorZ1 = new AtomicRobustnessFormula(itZ1TranslRate(x,w1,w2,replica),
+                        skorAtomicZ1,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         threshold);
 
-                boolean value = new BooleanSemanticsVisitor(true).eval(robustF).eval(2, 0, sequence);
-                boolean valueSkor = new BooleanSemanticsVisitor(true).eval(robustFSkor).eval(2, 0, sequence);
+                boolean robValue = new BooleanSemanticsVisitor(true).eval(robustMaxIntZ1).eval(3, 0, sequence);
+                boolean robValueSkor = new BooleanSemanticsVisitor(true).eval(robustSkorZ1).eval(3, 0, sequence);
 
                 System.out.println(" ");
-                System.out.println("\n robustF evaluation at " + threshold + ": " + value);
-                System.out.println("\n robustFSkor evaluation at " + threshold + ": " + valueSkor);
-                distEvaluations[index][1]=value? 1.0 : 0.0;
-                distEvaluationsSkor[index][1]=valueSkor? 1.0 : 0.0;
-                distEvaluations[index][0]=threshold;
-                distEvaluationsSkor[index][0]=threshold;
+                System.out.println("\n robustF evaluation at " + threshold + ": " + robValue);
+                System.out.println("\n robustFSkor evaluation at " + threshold + ": " + robValueSkor);
+                robustnessEvaluationsMaxInt[index][1]=robValue? 1.0 : 0.0;
+                robustnessEvaluationsSkor[index][1]=robValueSkor? 1.0 : 0.0;
+                robustnessEvaluationsMaxInt[index][0]=threshold;
+                robustnessEvaluationsSkor[index][0]=threshold;
                 index++;
             }
-            Util.writeToCSV("./AS_evalR.csv",distEvaluations);
+
+            Util.writeToCSV("./AS_evalR.csv",robustnessEvaluationsMaxInt);
+            Util.writeToCSV("./AS_evalR.csv",robustnessEvaluationsSkor);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
