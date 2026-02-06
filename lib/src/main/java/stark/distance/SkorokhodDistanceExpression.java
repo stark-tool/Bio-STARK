@@ -199,6 +199,7 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
      */
     private int FindLambdaSkorokhod(int step, EvolutionSequence seq1, EvolutionSequence seq2, int lambdaCount)
     {
+        System.out.println("FindLambdaSkorokhod for " + step);
         // Do not consider an offset before leftBound
         if (step < this.leftBound) {
             return 0;
@@ -228,6 +229,7 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
             }
 
             // find Max distance over time given this lambda/offset:
+            System.out.println("calling EvaluateLambda for " + step);
             double sampledDistance = EvaluateLambda(step, this.scanWidth ,seq1, seq2, i, smallestDistance);
 
             // calculate time offset that was used:
@@ -254,6 +256,7 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
         }
 
         previousOffset = offset;
+        System.out.println(step + " mapped to " + offset);
         return offset;
     }
 
@@ -277,7 +280,9 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
         int i = 0;
 
         while (i < range)
+
         {
+            System.out.println("Evaluate Lambda, step= " + step + ", range= " + range + "offset= " + offset);
             int currentStep = step + i + offset;
 
             // skip this evaluation if it would sample a negative step
@@ -292,6 +297,7 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
             }
 
             double sampledDistance = sample(step + i, offset, seq1, seq2);
+            System.out.println("sampleDistance =" + sampledDistance);
 
             // if found maximum distance is larger than the current maximum distance by a previous lambda, stop iterating
             // since this lambda is not better
@@ -435,4 +441,6 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
     {
         return this.usedOffsets;
     }
+
+    public int getPreviousOffset() {return this.previousOffset; }
 }
