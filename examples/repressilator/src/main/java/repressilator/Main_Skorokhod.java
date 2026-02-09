@@ -681,7 +681,7 @@ public class Main_Skorokhod {
             int leftBound = 600;
             int rightBound = 1000;
             int normalisationTime = 2000;
-            int scanWidth = 50; // 400;
+            int scanWidth = 100; // 400;
             int offsetEvaluationCount = 50; //150;
 
 
