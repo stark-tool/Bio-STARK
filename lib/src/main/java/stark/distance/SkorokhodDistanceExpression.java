@@ -111,14 +111,29 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
     @Override
     public double compute(int step, EvolutionSequence seq1, EvolutionSequence seq2) {
 
+        System.out.println("I'm method compute, called at step " + step);
+
         // find best fitting offset
+
+        System.out.println("Method compute calls FindlambdaSkorokhod, step argument is " + step);
         int offset = FindLambdaSkorokhod(step, seq1, seq2, this.lambdaCount);
+        System.out.println("FindlambdaSkorokhod for step " + step + " returned offset  " + offset);
 
         // sample wasserstein distance using offset
         double _distance = sample(step, offset, seq1, seq2);
-
+        System.out.println("Method compute for " + step + " returned distance " + _distance + " and the offset was " + offset);
+        double max=0.0;
+        for(int j=step; j<step+scanWidth;j++){
+            if(max < seq1.get(j).distance(this.rho, this.distanceOperator, seq2.get(j))){
+                max = seq1.get(j).distance(this.rho, this.distanceOperator, seq2.get(j));
+            }
+        }
+        System.out.println("note that the max distance in interval [" + step + "," + step+scanWidth+ "] was " + max);
         // for analysis
         this.usedOffsets[step] = offset;
+        //for(int j = 0; j< usedOffsets.length;j++) {
+        //    System.out.println("("+j+","+usedOffsets[j]+")");
+        //}
         return _distance;
     }
 
@@ -199,7 +214,8 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
      */
     private int FindLambdaSkorokhod(int step, EvolutionSequence seq1, EvolutionSequence seq2, int lambdaCount)
     {
-        System.out.println("FindLambdaSkorokhod for " + step);
+        System.out.println("I'm method FindLambdaSkorokhod, called at step " + step + " and lambdaCount " + lambdaCount + " the previous offset is " + previousOffset);
+
         // Do not consider an offset before leftBound
         if (step < this.leftBound) {
             return 0;
@@ -229,8 +245,10 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
             }
 
             // find Max distance over time given this lambda/offset:
-            System.out.println("calling EvaluateLambda for " + step);
+            System.out.println("");
+            System.out.println("FindLambdaSkorokhod is calling EvaluateLambda for " + step + " and " + i);
             double sampledDistance = EvaluateLambda(step, this.scanWidth ,seq1, seq2, i, smallestDistance);
+            System.out.println("EvaluateLambda for " + step + " and " + i + " returned distance " + sampledDistance);
 
             // calculate time offset that was used:
             double timeOffset = rho2.applyAsDouble(i);
@@ -242,6 +260,7 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
             if (mu < smallestmu) {
                 smallestmu = mu;
                 offset = i;
+                System.out.println("EvaluateLambda for " + step + " has set the partial offset to " + i );
             }
 
             // if a shorter distance is found, save it.
@@ -256,7 +275,7 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
         }
 
         previousOffset = offset;
-        System.out.println(step + " mapped to " + offset);
+        System.out.println("EvaluateLambda for " + step + " has set the final offset to " + offset );
         return offset;
     }
 
@@ -276,13 +295,14 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
      */
     private double EvaluateLambda(int step, int range, EvolutionSequence seq1, EvolutionSequence seq2, int offset, double currentMinimum)
     {
+        System.out.println("EvaluateLambda called for" + " step = " + step + ", range = " + range + ", offset = " + offset);
         double maxDistance = 0;
         int i = 0;
 
         while (i < range)
 
         {
-            System.out.println("Evaluate Lambda, step= " + step + ", range= " + range + "offset= " + offset);
+            System.out.println("Evaluate Lambda, step = " + step + ", i = " + i + ", offset = " + offset);
             int currentStep = step + i + offset;
 
             // skip this evaluation if it would sample a negative step
@@ -297,17 +317,19 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
             }
 
             double sampledDistance = sample(step + i, offset, seq1, seq2);
-            System.out.println("sampleDistance =" + sampledDistance);
+            System.out.println("Distance computed by sample for " + step + "+" + i + " and " + offset + " is "+ sampledDistance);
 
             // if found maximum distance is larger than the current maximum distance by a previous lambda, stop iterating
             // since this lambda is not better
             // however, if increasing the offset leads to a smaller ditance, continue with the increased offset
             if(sampledDistance >= currentMinimum) {
+                System.out.println("Sampled distance larger than current minimum");
                 boolean isFirstStep = (i == 0);
                 boolean offsetWithinLimit = offset <= lambdaCount;
 
                 if (!isFirstStep && offsetWithinLimit)
                 {
+                    System.out.println("I try with augmenting the offset");
                     offset++;
                     // reevaluate this step with new offset
                     // do not save sampled distance, we hope to find a smaller one
@@ -324,11 +346,12 @@ public final class SkorokhodDistanceExpression implements DistanceExpression {
             // if this sampled distance is the new maximum, save it.
             if (sampledDistance > maxDistance) {
                 maxDistance = sampledDistance;
+                System.out.println("maxDistance set at " + sampledDistance);
             }
 
             i++;
         }
-
+        System.out.println("EvaluateLambda called for" + " step = " + step + ", range = " + range + ", offset = " + offset + " returns " + maxDistance);
         return maxDistance;
     }
 
