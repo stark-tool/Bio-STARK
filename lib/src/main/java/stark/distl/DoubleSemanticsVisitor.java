@@ -86,11 +86,11 @@ public class DoubleSemanticsVisitor implements DisTLFormulaVisitor<Double> {
             return rho.<DisTLFunction<Double>>map(dataStateExpression -> (sampleSize, step, sequence)
                     -> {
                 //SampleSet<SystemState> muSample = sequence.get(step).replica(sampleSize).applyDistribution(rg, mu, parallel);
-                return sequence.get(step).distanceGeq(dataStateExpression, muSample) -q;
+                return sequence.get(step).distanceLeq(dataStateExpression, muSample) -q;
             }).orElseGet(() -> (sampleSize, step, sequence)
                     -> {
                 //SampleSet<SystemState> muSample = sequence.get(step).replica(sampleSize).applyDistribution(rg, mu, parallel);
-                return sequence.get(step).distanceGeq(P, muSample, step)-q;
+                return sequence.get(step).distanceLeq(P, muSample, step)-q;
             });
         }
     }
