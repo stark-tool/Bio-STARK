@@ -299,6 +299,7 @@ public class Main_Skorokhod {
     "Ulysse Herbach: Harissa: Stochastic Simulation and Inference of Gene Regulatory Networks Based on Transcriptional
     Bursting. Proc. CMSB 2023".
      */
+
     public static final double K01 = 0.0; // minimal burst frequency
     public static double K11 = 2.0; // maximal burst frequency
     public static double BETA1 = 5; // basal activity gene 1
@@ -649,8 +650,8 @@ public class Main_Skorokhod {
 
 
             /*
-            Computing the behavioural distance between a system and its perturbed version is a method allowing
-            for estimating the reliability and that system with respect to a given perturbation.
+            Computing the behavioural distance between a system and its perturbed version is a strategy allowing
+            for estimating the reliability of that system with respect to a given perturbation.
             We know that sequence_p is the perturbed version of sequence, where the perturbation acts in the time
             window [0,500].
             In order to see if the perturbed system is able to re-align to the nominal one after the perturbation
@@ -660,9 +661,9 @@ public class Main_Skorokhod {
             number of steps. Due to the stochastic nature of the simulation, this translation happened to be
             most evidently visible in Z2.
             For i in the interval [500 , 800] we evaluate the distance between the nominal and the perturbed
-            sequence in the interval [i,i+200], by following two strategies: the first consists in comparing the
+            sequence in the interval [i , i+200], by following two strategies: the first consists in comparing the
             two sequences step-by-step, the second introduce some flexibility by adopting the Skorokhod-like
-            approach.
+            approach. In this case, the interval [i,i+200] will be "retimed" to [i,i+600].
              */
 
 
@@ -690,10 +691,10 @@ public class Main_Skorokhod {
              In this case the rank is the normalised value of protein Z2.
              - a binary operator mapping the rank of two data states to their distance. In this case the
              operator simply returns the absolute value of their difference.
-             Distance <code>atomicZ2</code> can be evaluated on two evolution sequences s1 and s2 at a given
+             Distance <code>atomicZ2</code> can be evaluated on two evolution sequences S1 and S2 at a given
              time point t, returning a real value v, obtained as follows:
-             - firstly, for each configuration c1 in the t^{th} sample set of s1 and for each configuration c2
-               in the t^{th} sample set of s2, their distance is computed by first assigning a rank to
+             - firstly, for each configuration c1 in the t^{th} sample set of S1 and for each configuration c2
+               in the t^{th} sample set of S2, their distance is computed by first assigning a rank to
                the data states in c1 and c2 by the data state expression and, then, by applying the binary
                operator to those ranks.
              - the distances between the configurations are lifted to the two sample sets of configurations
@@ -704,7 +705,7 @@ public class Main_Skorokhod {
             /*
             Now we define the distance <code>maxIntAtomicZ2</code>, as an instance of class
              <code>MaxIntervalDistanceExpression</code>.
-            Essentially, when evaluated at a given time point t on two evolution sequences s1 and s2,
+            Essentially, when evaluated at a given time point t on two evolution sequences S1 and S2,
             <code>maxIntAtomicZ2</code> evaluates <code>atomicZ2</code> in all time-points in the interval
             [t + <code>leftBound</code> , t + <code>rightBound</code>] and returns the max value.
              */
@@ -713,29 +714,34 @@ public class Main_Skorokhod {
 
 
             /*
-            Below we define a Skorokhod-like distance as an instance of <code>RevisedSkorokhodDistanceExpression>/code>.
+            Below we define a Skorokhod-like distance as an instance of <code>SkorokhodDistanceExpression>/code>.
             Essentially, such a distance differ from the <code>maxIntAtomicZ2</code> defined above since the sample set
             of configurations obtained in the first sequence at time t1 are compared to the sample set of configurations
             obtained in the second sequence at a time t2, which is obtained from t1 through a Skorokhod-like retiming.
-            Essentially, a <code>RevisedSkorokhodDistanceExpression>/code> consists of:
+            Essentially, a <code>SkorokhodDistanceExpression>/code> consists of:
             - a data state expression, assigning a "rank" to a data state, and, consequently, to a configuration.
              In this case the rank is the normalised value of protein Z2.
              - a binary operator mapping the rank of two data states to their distance. In this case the
              operator simply returns the absolute value of their difference. This gives the "spatial discrepancy"
-             between configurations.
-             - a binary operator mapping the spatial discrepancy and the temporal discrepancy to a distance
+             between two configurations, which can be lifted to sample sets by Wasserstein lifting
+             - a binary operator mapping the spatial discrepancy and the temporal discrepancy to a distance. In this case
+             se simply take their max.
              - an operator assigning a temporal discrepancy between two time instants. In this case this is
              the normalised value of their difference.
-             - the bounds of an interval in which distances are computed adopting the Skorokhod approach.
+             - the left bound of the interval being the domain of the retiming function.
+             - the right bound of the interval being the domain of the retiming function.
              - a boolean allowing for selecting whether the retiming function looks ahead or backward.
-             - a resolution,
-             - a boolean, allowing for selecting ...
+             - a resolution, the idea being that retiming functions will be constructed to compute approximation of the
+              Skorokhod distance with respect to that resolution
+             - a boolean, allowing for selecting whether also a pathfinding technique is used to calculate the distance
+             between the evolution sequences. In this case this is not enabled.
+             - the integer leftRetimingDecrement, which is used to determine the codomain of the retiming function
+             - the integer rightRetimingDecrement, which is used to determine the codomain of the retiming function
 
 
              */
                 SkorokhodDistanceExpression skorAtomicZ2mat = new SkorokhodDistanceExpression(ds -> ds.get(Z2) / normalisationZ2,
                         (v1, v2) -> Math.abs(v2 - v1),
-                        //(a, b) -> b,
                         (a, b) -> Math.max(a, b),
                         offset -> ((double) offset / (double) normalisationTime),
                         leftBound, rightBound, true, 0.001, false, 0, 400);
@@ -765,6 +771,14 @@ public class Main_Skorokhod {
             System.out.println("");
             System.out.println("");
 
+            /*
+            After the computation allowing for estimating the reliability, we perform a computation allowing for
+            estimating robustness. Here, the retiming functions will allow for "retiming" an interval of sample sets
+            of configurations of the perturbed evolution sequence to an interval of sample sets of configurations of
+            the nominal evolution sequence.
+
+             */
+
             for (int i = 0; i < 300; i++) {
 
                 AtomicDistanceExpression atomicZ2 = new AtomicDistanceExpression(ds -> ds.get(Z2) / normalisationZ2, (v1, v2) -> Math.abs(v2 - v1));
@@ -777,7 +791,7 @@ public class Main_Skorokhod {
                         //(a, b) -> b,
                         (a, b) -> Math.max(a, b),
                         offset -> ((double) offset / (double) normalisationTime),
-                        leftBound, rightBound, true, 0.001, true, 0, 400);
+                        leftBound, rightBound, true, 0.001, false, 0, 400);
 
                 int step = i+500;
 
