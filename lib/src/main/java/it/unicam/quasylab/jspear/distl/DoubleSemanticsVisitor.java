@@ -146,17 +146,28 @@ public class DoubleSemanticsVisitor implements DisTLFormulaVisitor<Double> {
         DisTLFunction<Double> rightFunction = untilDisTLFormula.getRightFormula().eval(this);
         int from = untilDisTLFormula.getFrom();
         int to = untilDisTLFormula.getTo();
-        if (parallel) {
-            return (sampleSize, step, sequence) ->
-                    IntStream.range(from+step, to+step).sequential().mapToDouble(
-                    i -> Math.min(rightFunction.eval(sampleSize, i, sequence),
-                            IntStream.range(from+step, i).mapToDouble(j -> leftFunction.eval(sampleSize, j, sequence)).min().orElse(Double.NaN))).max().orElse(Double.NaN);
-        } else {
-            return (sampleSize, step, sequence) ->
-                    IntStream.range(from+step, to+step).sequential().mapToDouble(
-                            i -> Math.min(rightFunction.eval(sampleSize, i, sequence),
-                                    IntStream.range(from+step, i).mapToDouble(j -> leftFunction.eval(sampleSize, j, sequence)).min().orElse(Double.NaN))).max().orElse(Double.NaN);
-        }
+
+        return(sampleSize, step, sequence) ->
+                maybeParallelize(IntStream.range(step+from, step+to+1)).mapToDouble(
+                        tauPrime -> {
+                            if (tauPrime == from + step){
+                                return rightFunction.eval(sampleSize, tauPrime, sequence);
+                            } else {
+                                return Math.min(
+                                        rightFunction.eval(sampleSize, tauPrime, sequence),
+                                        maybeParallelize(IntStream.range(from+step, tauPrime)).mapToDouble(tauPrimePrime -> leftFunction.eval(sampleSize, tauPrimePrime, sequence))
+                                                .min().orElse(Double.NaN));
+                            }
+                        }).max().orElse(Double.NaN);
+
     }
+
+    private IntStream maybeParallelize(IntStream s){
+        if (parallel){
+            return s.parallel();
+        }
+        return s.sequential();
+    }
+
 
 }
