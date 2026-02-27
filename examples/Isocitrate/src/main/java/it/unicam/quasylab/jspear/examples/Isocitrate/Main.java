@@ -26,10 +26,7 @@ import it.unicam.quasylab.jspear.*;
 import it.unicam.quasylab.jspear.controller.Controller;
 import it.unicam.quasylab.jspear.controller.ControllerRegistry;
 import it.unicam.quasylab.jspear.controller.ParallelController;
-import it.unicam.quasylab.jspear.distance.AtomicDistanceExpressionLeq;
-import it.unicam.quasylab.jspear.distance.DistanceExpression;
-import it.unicam.quasylab.jspear.distance.MaxIntervalDistanceExpression;
-import it.unicam.quasylab.jspear.distance.MinIntervalDistanceExpression;
+import it.unicam.quasylab.jspear.distance.*;
 import it.unicam.quasylab.jspear.ds.*;
 import it.unicam.quasylab.jspear.perturbation.*;
 import it.unicam.quasylab.jspear.robtl.*;
@@ -201,38 +198,31 @@ public class Main {
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
 
             DistanceExpression sav_6 = new AtomicDistanceExpressionLeq(Main::rho_sav_6);
-            DistanceExpression sav_6_dist = new MinIntervalDistanceExpression(sav_6, 0, 3);
+            DistanceExpression sav_6_dist = new MinIntervalDistanceExpression(sav_6, 0, 2);
+            DistanceExpression sav_6_penal_no_alarm = new AtomicDistanceExpressionLeq(Main::rho_sav_6_penal_no_alarm);
+            DistanceExpression sav_6_dist_penal_no_alarm =  new MinIntervalDistanceExpression(sav_6_penal_no_alarm, 0, 3);
             DistanceExpression sav_16 = new AtomicDistanceExpressionLeq(Main::rho_sav_16);
             DistanceExpression sav_16_dist = new MinIntervalDistanceExpression(sav_16, 0, 3);
             DistanceExpression basic_test = new AtomicDistanceExpressionLeq(Main::rho_basic_test);
-            DistanceExpression basic_test_dist = new MinIntervalDistanceExpression(basic_test, 0, 5);
             DistanceExpression cont_15 = new AtomicDistanceExpressionLeq(Main::rho_cont_15);
             DistanceExpression cont_15_dist = new MinIntervalDistanceExpression(cont_15, 0, 2   );
 
+            double eta_sav_6 = 0.01;
+
             System.out.println("Starting test on bootstrap");
 
-            RobustnessFormula Phi_sav_6_t1 = new EventuallyRobustnessFormula(
-                    new AtomicRobustnessFormula(get_Sav_6Perturbation(),
-                            sav_6_dist,
-                            RelationOperator.GREATER_OR_EQUAL_THAN,
-                            1),
-                0,
-                    H
-                );
-
-            RobustnessFormula Phi_sav_6_t2 = new EventuallyRobustnessFormula(
-                    new AtomicRobustnessFormula(get_Sav_6Perturbation_t2(),
-                            sav_6_dist,
-                            RelationOperator.GREATER_OR_EQUAL_THAN,
-                            1),
-                    0,
-                    H
+            RobustnessFormula Phi_sav_6_t3_2 = new AtomicRobustnessFormula(get_Sav_6Perturbation_t3_2(),
+                    sav_6_dist_penal_no_alarm,
+                    RelationOperator.GREATER_OR_EQUAL_THAN,
+                    1.0
             );
-            RobustnessFormula Phi_sav_6_t3 = new EventuallyRobustnessFormula(
-                    new AtomicRobustnessFormula(get_Sav_6Perturbation_t3(),
+            RobustnessFormula Phi_sav_6 = new AlwaysRobustnessFormula(
+                    new AtomicRobustnessFormula(
+                            get_Sav_6Perturbation_t3_2(),
                             sav_6_dist,
-                            RelationOperator.GREATER_OR_EQUAL_THAN,
-                            1),
+                            RelationOperator.LESS_OR_EQUAL_THAN,
+                            eta_sav_6
+                    ),
                     0,
                     H
             );
@@ -283,7 +273,10 @@ public class Main {
             L.add("s_PS_exp");
             L.add("p_PS_exp");
             L.add("timer_insp");
+            L.add("timer_pcv_insp");
+            L.add("timer_pcv_exp");
             L.add("timer_exp");
+            L.add("timer_psv_insp");
             L.add("timer_psv_exp");
             L.add("drop_PAW");
             L.add("Timer_trigger_Delay");
@@ -329,7 +322,10 @@ public class Main {
             F.add(ds->ds.get(p_PS_exp_pressure));
             //F.add(ds->ds.get(timer_PCV_exp));
             F.add(ds->ds.get(timer_insp));
+            F.add(ds-> ds.get(timer_PCV_insp));
+            F.add(ds->ds.get(timer_PCV_exp));
             F.add(ds->ds.get(timer_exp));
+            F.add(ds->ds.get(timer_PSV_insp));
             F.add(ds->ds.get(timer_PSV_exp));
             F.add(ds->ds.get(drop_PAW));
             F.add(ds->ds.get(timer_triggerDelay));
@@ -360,12 +356,37 @@ public class Main {
             F.add(ds -> ds.get(gui_req_change_mode_PCV));
 
             printLData(rand,L,F,system,150,1);
+            System.out.println("Here the perturbed system with perturbation get_Sav6_t2");
+            printLDataP(rand, L, F, get_Sav_6Perturbation_t3_2(), system, 150, 1);
 
-            double[][] val_test = new double[10][1];
-            for(int i = 0; i<10; i++) {
-                int step = i*30;
-                TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6_t1).eval(60, step, sequence);
-                System.out.println("Phi_sav_6_t1 evaluation at step "+step+": " + value1);
+            //Trying to simulate a perturbed sequence
+            EvolutionSequence sequence_pert = sequence.apply(get_Sav_6Perturbation_t3_2(),0, 100);
+
+            System.out.println("Starting tests on perturbed behaiour");
+            Util.writeToCSV("./testPerturbed.csv", Util.evalDistanceExpression(sequence, sequence_pert, 0, 100, sav_6_dist_penal_no_alarm));
+
+            double[][] val_test_t3_2 = new double[15][1];
+            for(int i = 0; i<15; i++) {
+                int step = i*10;
+                TruthValues value1_t3_2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6_t3_2).eval(60, step, sequence);
+                System.out.println("Phi_sav_6_t3_2 evaluation at step "+step+": " + value1_t3_2);
+                if (value1_t3_2 == TruthValues.TRUE) {
+                    val_test_t3_2[i][0] = 1;
+                } else {
+                    if (value1_t3_2 == TruthValues.UNKNOWN) {
+                        val_test_t3_2[i][0] = 0;
+                    } else {
+                        val_test_t3_2[i][0] = -1;
+                    }
+                }
+            }
+
+            System.out.println();
+            double[][] val_test = new double[15][1];
+            for(int i = 0; i<15; i++) {
+                int step = i*10;
+                TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6).eval(60, step, sequence);
+                System.out.println("Phi_sav_6 evaluation at step "+step+": " + value1);
                 if (value1 == TruthValues.TRUE) {
                     val_test[i][0] = 1;
                 } else {
@@ -378,38 +399,6 @@ public class Main {
             }
 
             System.out.println();
-
-            double[][] val_test_t2 = new double[10][1];
-            for(int i = 0; i<10; i++) {
-                int step = i*30;
-                TruthValues value1_t2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6_t2).eval(60, step, sequence);
-                System.out.println("Phi_sav_6_t2 evaluation at step "+step+": " + value1_t2);
-                if (value1_t2 == TruthValues.TRUE) {
-                    val_test_t2[i][0] = 1;
-                } else {
-                    if (value1_t2 == TruthValues.UNKNOWN) {
-                        val_test_t2[i][0] = 0;
-                    } else {
-                        val_test_t2[i][0] = -1;
-                    }
-                }
-            }
-
-            double[][] val_test_t3 = new double[10][1];
-            for(int i = 0; i<10; i++) {
-                int step = i*30;
-                TruthValues value1_t3 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6_t3).eval(60, step, sequence);
-                System.out.println("Phi_sav_6_t3 evaluation at step "+step+": " + value1_t3);
-                if (value1_t3 == TruthValues.TRUE) {
-                    val_test_t3[i][0] = 1;
-                } else {
-                    if (value1_t3 == TruthValues.UNKNOWN) {
-                        val_test_t3[i][0] = 0;
-                    } else {
-                        val_test_t3[i][0] = -1;
-                    }
-                }
-            }
 
             double[][] val_sav_16 = new double[10][1];
             for(int i = 0; i<10; i++) {
@@ -427,6 +416,8 @@ public class Main {
                 }
             }
 
+            System.out.println();
+
             double[][] val_cont_15 = new double[10][1];
             for(int i = 0; i<10; i++) {
                 int step = i*30;
@@ -442,6 +433,8 @@ public class Main {
                     }
                 }
             }
+
+            System.out.println();
 
             double[][] val_basic_test = new double[10][1];
             for(int i = 0; i<10; i++) {
@@ -1382,7 +1375,7 @@ public class Main {
         }
     }
 
-    //Used for the simulation
+    //Used for the simulation of a sequence
     private static void printLData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size) {
         System.out.println(label);
         double[][] data = SystemState.sample(rg, F, s, steps, size);
@@ -1394,6 +1387,21 @@ public class Main {
             System.out.printf("%f\n", data[i][data[i].length -1]);
         }
     }
+    //used for simulating perturbed sequences
+    private static void printLDataP(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, Perturbation p, SystemState s, int steps, int size) {
+        System.out.println(label);
+        double[][] datap = SystemState.sample(rg, F, p, s, steps, size);
+        for (int i = 0; i < datap.length; i++) {
+            System.out.printf("%d>  ", i);
+            for (int j = 0; j < datap[i].length-1; j++) {
+                System.out.printf("%f ", datap[i][j]);
+            }
+            System.out.printf("%f\n", datap[i][datap[i].length -1]);
+
+        }
+    }
+
+
 
     //DisTL distributions
     public static List<DataStateUpdate> getDiracCont19(RandomGenerator rg, DataState state){
@@ -1749,7 +1757,14 @@ public class Main {
     // PENALTY FUNCTIONS
     //TODO: later
     public static double rho_sav_6(DataState state) {
-        if (state.get(RR_ms) <= MIN_RR ){//&& state.get(a_LED) == 0){
+        if (state.get(RR_ms) <= MIN_RR  && state.get(a_LED) == 0 && state.get(RR_ms)!= 0 ){
+            return 1.0;
+        } else {
+            return 0.0;
+        }
+    }
+    public static double rho_sav_6_penal_no_alarm(DataState state) {
+        if (state.get(RR_ms) <= MIN_RR && state.get(RR_ms) != 0 ){//&& state.get(a_LED) == 0){
             return 1.0;
         } else {
             return 0.0;
@@ -3209,7 +3224,7 @@ public class Main {
                                                                 (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*ds.get(p_insp_pcv)) ||
                                                                         ds.get(comm_sens_valves_ok) == 0
                                                                         || ds.get(V_E) < MIN_V_E || ds.get(s_PS_exp_pressure) < MIN_PEEP ||
-                                                                        ds.get(RR_ms) > MAX_RR || ds.get(RR_ms) < MIN_RR || ds.get(timer_PSV_exp) < 0
+                                                                        ds.get(RR_ms) > MAX_RR || (ds.get(RR_ms) < MIN_RR && ds.get(RR_ms) != 0) || ds.get(timer_PSV_exp) < 0
                                                                         || ds.get(comm_cont_gui_ok) == 0
                                                                 ,
                                                                 Controller.doAction(
@@ -3221,7 +3236,7 @@ public class Main {
                                                         Controller.ifThenElse(
                                                                 (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*ds.get(P_INSP_PSV)) || ds.get(comm_sens_valves_ok) == 0
                                                                         || ds.get(V_E) < MIN_V_E || ds.get(s_PS_exp_pressure) < MIN_PEEP ||
-                                                                        ds.get(RR_ms) > MAX_RR || ds.get(RR_ms) < MIN_RR || ds.get(timer_PSV_exp) < 0
+                                                                        ds.get(RR_ms) > MAX_RR || (ds.get(RR_ms) < MIN_RR && ds.get(RR_ms) != 0) || ds.get(timer_PSV_exp) < 0
                                                                         || ds.get(comm_cont_gui_ok) == 0
                                                                 ,
                                                                 Controller.doAction(
@@ -3641,51 +3656,13 @@ public class Main {
 
     // PERTURBATIONS
     //TODO: later
-    private static Perturbation get_Sav_6Perturbation() {
-        return new AtomicPerturbation(TIMER_INIT-1, Main::sav_6Perturbation);
+    private static Perturbation get_Sav_6Perturbation_t3_2() {
+        return new AtomicPerturbation(0, Main::sav_6Perturbation_t3_2);
     }
 
-    private static DataState sav_6Perturbation(RandomGenerator rg, DataState state) {
+    private static DataState sav_6Perturbation_t3_2(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(timer_insp, state.get(timer_insp) + 2));
-        updates.add(new DataStateUpdate(timer_exp, state.get(timer_exp) + 2));
-        return state.apply(updates);
-    }
-
-    private static Perturbation get_Sav_6Perturbation_t2() {
-        return new AtomicPerturbation(TIMER_INIT-1, Main::sav_6Perturbation_t2);
-    }
-
-    private static DataState sav_6Perturbation_t2(RandomGenerator rg, DataState state) {
-        List<DataStateUpdate> updates = new LinkedList<>();
-        if (state.get(Status) == 1 && state.get(phase) == 1) {
-            updates.add(new DataStateUpdate(timer_PCV_insp, state.get(timer_PCV_insp) - 2));
-        } else if ( state.get(phase) == 2) {
-            updates.add(new DataStateUpdate(timer_IP, state.get(timer_IP) - 1));
-        } else if (state.get(Status) == 1 & state.get(phase) == 3) {
-            updates.add(new DataStateUpdate(timer_PCV_exp, state.get(timer_PCV_exp) - 2));
-        } else if (state.get(phase) == 4) {
-            updates.add(new DataStateUpdate(timer_EP, state.get(timer_EP) - 2));
-        } else if (state.get(phase) == 5) {
-            updates.add(new DataStateUpdate(timer_RM, state.get(timer_RM) - 2));
-        } else if (state.get(Status) == 2 && state.get(phase) == 1) {
-            updates.add(new DataStateUpdate(timer_PSV_insp, state.get(timer_PSV_insp) - 2));
-        } else if (state.get(Status) == 2 && state.get(phase) == 3) {
-            if (state.get(timer_triggerDelay) > 0) {
-                updates.add(new DataStateUpdate(timer_triggerDelay, state.get(timer_triggerDelay) - 2));
-            }
-            updates.add(new DataStateUpdate(timer_PSV_exp, state.get(timer_PSV_exp) - 2));
-        }
-        return state.apply(updates);
-    }
-
-    private static Perturbation get_Sav_6Perturbation_t3() {
-        return new AtomicPerturbation(TIMER_INIT-1, Main::sav_6Perturbation_t3);
-    }
-
-    private static DataState sav_6Perturbation_t3(RandomGenerator rg, DataState state) {
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(RR_ms, 3));
+        updates.add(new DataStateUpdate(RR_ms, state.get(RR_ms)/4));
         return state.apply(updates);
     }
 
@@ -3792,7 +3769,7 @@ public class Main {
         values.put(gui_req_res_ven, (double) 0);
         values.put(power_switch_ok, (double) 1);
         values.put(no_leaks_breathing_circuit, (double) 1);
-        values.put(out_valve_ok, (double) 0);
+        values.put(out_valve_ok, (double) 1);
         values.put(alarms_ok, (double) 1);
         values.put(nr_of_retries, (double) 0);
         values.put(nr_of_retries_p, (double) 0);
