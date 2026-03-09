@@ -12,6 +12,7 @@ public class Main {
     // Uncomment the case study you would like to run
 
     // AI
+    // This case study requires the AI server from https://github.com/the-stark-tool/highway-env-ai-server
     public static void main(String[] args) {
         double[] sensorPertubationOffsets = new double[]{0.25};
         double[] invisibilityChances = new double[]{0.25};
