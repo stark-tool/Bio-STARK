@@ -615,8 +615,6 @@ public class Main {
             DataStateFunction mu_cont46_pow_Off = (rg, ds) -> ds.apply(getDiracCont46_pow_Off(rg, ds));
             DataStateFunction mu_cont46_pow_On = (rg, ds) -> ds.apply(getDiracCont46_pow_On(rg, ds));
 
-
-
             double eta_cont19 = 0.0;
             double eta_test0 = 0.0;
             double eta_cont36_3 = 0.0;
@@ -662,10 +660,14 @@ public class Main {
                                             eta_cont19
                                     )
                             ),
-                            new BrinkDisTLFormula(
-                                    mu_cont19_t2_p2,
-                                    Main::rho_cont19_t2_p2,
-                                    eta_cont19
+                            new AlwaysDisTLFormula(
+                                    new BrinkDisTLFormula(
+                                            mu_cont19_t2_p2,
+                                            Main::rho_cont19_t2_p2,
+                                            eta_cont19
+                                    ),
+                                    1,
+                                    1
                             )
                     ),
                     0,
@@ -2315,6 +2317,7 @@ public class Main {
     public static List<DataStateUpdate> getDiracSav6_1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(RR_ms, rg.nextDouble()*(MIN_RR-0.1) + 0.01));
+        updates.add(new DataStateUpdate(Status, rg.nextInt(2)+1));
         return updates;
     }
     public static List<DataStateUpdate> getDiracSav6_2(RandomGenerator rg, DataState state){
@@ -2417,7 +2420,6 @@ public class Main {
     }
 
     // PENALTY FUNCTIONS
-    //TODO: later
     public static double rho_sav_6(DataState state) {
         if (state.get(RR_ms) < MIN_RR  && state.get(a_LED) == 0 && state.get(RR_ms)!= 0 ){
             return 1.0;
@@ -2433,7 +2435,8 @@ public class Main {
         }
     }
     public static double rho_sav_6_dis_1(DataState state) {
-        if (state.get(RR_ms) >= MIN_RR || state.get(RR_ms) == 0){
+        if (state.get(RR_ms) >= MIN_RR || state.get(RR_ms) == 0 ||
+                (state.get(Status) != 1 && state.get(Status) != 2)){
             return 1.0;
         } else {
             return 0.0;
@@ -3210,6 +3213,7 @@ public class Main {
                 )
         );
 
+        //Ventilation off mode
         registry.set("P_VentOff", Controller.doAction(
                     (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
                         new DataStateUpdate(a_OUT_valve, 1),
@@ -3250,6 +3254,7 @@ public class Main {
                 )
         );
 
+        //PCV general breathing mode
         registry.set("P_PCV", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
                 Controller.doAction(
@@ -3461,30 +3466,6 @@ public class Main {
                 )
         ));
 
-        registry.set("P_switch", Controller.ifThenElse(
-                DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
-                Controller.ifThenElse(
-                        DataState.equalsTo(fs, 1),
-                        Controller.doAction(
-                                (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
-                                        new DataStateUpdate(a_OUT_valve, 1)),
-                                registry.reference("P_failSafe")
-                        ),
-                        Controller.doAction(
-                                (rg, ds) -> List.of(new DataStateUpdate(gui_req_change_mode_PSV, 0)),
-                                Controller.ifThenElse(
-                                        DataState.equalsTo(gui_param_psv_ok, 1),
-                                        Controller.doTick(registry.reference("P_PSV")),
-                                        Controller.doTick(registry.reference("P_switch"))
-                                )
-                        )
-                )
-        ));
-
         registry.set("P_PCV_exp0", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
                 Controller.doTick(
@@ -3631,6 +3612,7 @@ public class Main {
                 )
         ));
 
+        //PSV general breathing mode
         registry.set("P_PSV", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
                 Controller.doAction(
@@ -3951,6 +3933,7 @@ public class Main {
                 )
         ));
 
+        //Final mode
         registry.set("P_final", Controller.doAction(
                 (rg, ds) -> List.of(new DataStateUpdate(Status, 7),
                         new DataStateUpdate(phase, 0),
@@ -3959,6 +3942,7 @@ public class Main {
                 registry.reference("P")
         ));
 
+        //Fail-safe mode
         registry.set("P_failSafe", Controller.doAction(
                 (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
                         new DataStateUpdate(a_OUT_valve, 1),
@@ -3986,7 +3970,6 @@ public class Main {
 
 
     //  CONTROLLER OF the alarm component
-
     public static Controller getController_alarm() {
 
         ControllerRegistry registry = new ControllerRegistry();
@@ -4166,7 +4149,6 @@ public class Main {
     }
 
     //  CONTROLLER OF the switch component
-
     public static Controller getController_switch() {
 
         ControllerRegistry registry = new ControllerRegistry();
@@ -4268,8 +4250,8 @@ public class Main {
         updates.add(new DataStateUpdate(p_Fl2_flow, new_flow_out));
 
         //store previous_PAW
-        updates.add(new DataStateUpdate(previous_PAW, state.get(s_PS_ins_pressure))); //TODO: double check if this update is already known when I 'get'it later on
-                                        // Note: it is not, why later on I use 'state.get(s_PS_ins_pressure' instead of state.get(previous_PAW)
+        updates.add(new DataStateUpdate(previous_PAW, state.get(s_PS_ins_pressure)));
+        // Note: this update is not yet known, when I 'get' it later, this is why later on I use 'state.get(s_PS_ins_pressure' instead of state.get(previous_PAW)
 
         //UPDATING SENSOR VALUES
         double u = 1;
@@ -4323,8 +4305,7 @@ public class Main {
             updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 1)); //we want to be able to start breathing again
         }
 
-        //TODO: check if this is how we want the power_on button to work
-        if (state.get(p_PS_ins_pressure) == 0 & rg.nextDouble() < 0.3) {
+        if (state.get(p_PS_ins_pressure) == 0 && (state.get(Status) == 0 || state.get(Status) == 7) && rg.nextDouble() < 0.3) {
             updates.add(new DataStateUpdate(b_powerOn, 1));
         }
 
@@ -4478,7 +4459,6 @@ public class Main {
     }
 
     // PERTURBATIONS
-    //TODO: later
     private static Perturbation get_Sav_6Perturbation_t3_2() {
         return new AtomicPerturbation(0, Main::sav_6Perturbation_t3_2);
     }
@@ -4575,7 +4555,7 @@ public class Main {
         values.put(gui_req_res_ven, (double) 0);
         values.put(power_switch_ok, (double) 1);
         values.put(no_leaks_breathing_circuit, (double) 1);
-        values.put(out_valve_ok, (double) 1);
+        values.put(out_valve_ok, (double) 0);
         values.put(alarms_ok, (double) 1);
         values.put(nr_of_retries, (double) 0);
         values.put(nr_of_retries_p, (double) 0);
