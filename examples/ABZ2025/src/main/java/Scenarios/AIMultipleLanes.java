@@ -20,6 +20,10 @@
  * limitations under the License.
  */
 
+/*
+THIS CASE STUDY REQUIRES AN AI SERVER
+Set up and run the following project: https://github.com/the-stark-tool/highway-env-ai-server
+ */
 package Scenarios;
 
 import stark.*;
@@ -48,6 +52,8 @@ import java.io.PrintWriter;
 import java.util.*;
 
 public class AIMultipleLanes {
+
+
 
     private static final double RESPONSE_TIME = 1;
 
@@ -79,7 +85,7 @@ public class AIMultipleLanes {
 
     private static final Connector AI = new Connector("http://127.0.0.1:6000");
     private String experimentName;
-    private String resultsFolder;
+    private static final String RESULTS_FOLDER = "./";;
 
     // DATASTATE INDEXES
     private int[] presence;
@@ -105,7 +111,7 @@ public class AIMultipleLanes {
     private void run() {
         EvolutionSequence sequence = new EvolutionSequence(new SilentMonitor("AIMultipleLanes"), new DefaultRandomGenerator(), rg -> getInitialSystemState(), EVOLUTION_SEQUENCE_SIZE);
         printSummary(sequence, STEPS_TO_SAMPLE, "UNPERTURBED", System.out);
-        resultsFolder = "./ABZ_2025_experiments/AIMultipleLane/";
+
         experimentName = "off" + sensorPerturbationOffset + "_cha" + invisibleCarChance + "es" + EVOLUTION_SEQUENCE_SIZE + "ps" + PERTURBATION_SCALE + "s" + STEPS_TO_SAMPLE;
 
         AtomicDistanceExpressionLeq crashPenalty = new AtomicDistanceExpressionLeq(getCrashPenalty());
@@ -137,7 +143,7 @@ public class AIMultipleLanes {
             distances[i] = new DoubleSemanticsVisitor().eval(phi).eval(EVOLUTION_SEQUENCE_SIZE, i, sequence);
         }
         System.out.println("Robustness oqf the vehicle phi " + Arrays.toString(distances));
-        try (OutputStream fileOutputStream = new FileOutputStream(resultsFolder + "distl_" + experimentName + ".txt", true)) {
+        try (OutputStream fileOutputStream = new FileOutputStream(RESULTS_FOLDER + "distl_" + experimentName + ".txt", true)) {
             printDistanceArray(fileOutputStream, "Robustness of vehicle: ", distances);
         } catch (IOException e) {
             e.printStackTrace();
@@ -162,7 +168,7 @@ public class AIMultipleLanes {
         System.out.println(Arrays.toString(sgDistances));
 
 
-        try (OutputStream fileOutputStream = new FileOutputStream(resultsFolder + "summary_" + experimentName + ".txt", true)) {
+        try (OutputStream fileOutputStream = new FileOutputStream(RESULTS_FOLDER + "summary_" + experimentName + ".txt", true)) {
             printSummary(speedPerturbedSequence, STEPS_TO_SAMPLE, "MOVEMENT PERTURBATION Offset: " + sensorPerturbationOffset, fileOutputStream);
 
             printDistanceArray(fileOutputStream, "Crash distance for speed pert. offset " + sensorPerturbationOffset, crashDistances);
@@ -190,7 +196,7 @@ public class AIMultipleLanes {
         System.out.print("SG Violation distance for invisibility pert. " + invisibleCarChance);
         System.out.println(Arrays.toString(sgDistances));
 
-        try (OutputStream fileOutputStream = new FileOutputStream(resultsFolder + "summary_" + experimentName + ".txt", true)) {
+        try (OutputStream fileOutputStream = new FileOutputStream(RESULTS_FOLDER + "summary_" + experimentName + ".txt", true)) {
             printSummary(invisibilitySequence, STEPS_TO_SAMPLE, "INVISIBLE CAR Chance:"+ invisibleCarChance, fileOutputStream);
 
             printDistanceArray(fileOutputStream, "Crash distance for invisibility pert. offset " + sensorPerturbationOffset, crashDistances);
@@ -218,7 +224,7 @@ public class AIMultipleLanes {
         System.out.print("SG Violation distance for Sensor pert. " + sensorPerturbationOffset + " ");
         System.out.println(Arrays.toString(sgDistances));
 
-        try (OutputStream fileOutputStream = new FileOutputStream(resultsFolder + "summary_" + experimentName + ".txt", true)) {
+        try (OutputStream fileOutputStream = new FileOutputStream(RESULTS_FOLDER + "summary_" + experimentName + ".txt", true)) {
             printSummary(sensorPerturbedSequence, STEPS_TO_SAMPLE, "SENSOR PERTURBATION Offset: " + sensorPerturbationOffset, fileOutputStream);
             printSummary(sequence, STEPS_TO_SAMPLE, "UNPERTURBED", fileOutputStream);
 
