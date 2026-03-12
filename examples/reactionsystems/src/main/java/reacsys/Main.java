@@ -8,12 +8,10 @@ import stark.*;
 import stark.controller.Controller;
 import stark.controller.NilController;
 import stark.ds.DataState;
+import stark.ds.DataStateExpression;
 import stark.ds.DataStateUpdate;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Main {
 
@@ -63,6 +61,25 @@ public class Main {
             RandomGenerator rand = new DefaultRandomGenerator();
 
             SystemState system = new ControlledSystem(controller, (rg, ds) -> ds.apply(applyReactions(rg, ds)),initialState);
+
+            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
+
+            ArrayList<DataStateExpression> F = new ArrayList<>();
+            ArrayList<String> L = new ArrayList<>();
+            L.add("Ca1      ");
+            L.add("Ca2      ");
+            L.add("Ca3      ");
+
+
+
+            F.add(ds->ds.get(Ca1));
+            F.add(ds->ds.get(Ca2));
+            F.add(ds->ds.get(Ca3));
+            printAvgData(rand, L, F, system, 10000, 1, 100, 10100
+            );
+
+
+
 
         }
 
@@ -385,5 +402,42 @@ public class Main {
         return new DataState(NUMBER_OF_VARIABLES,i -> initialValues.getOrDefault(i, Double.NaN));
     }
 
+
+    private static double[] printAvgData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound){
+        System.out.println(label);
+        /*
+        The following instruction creates an evolution sequence consisting in a sequence of <code>steps</code> sample
+        sets of cardinality <size>.
+        The first sample set contains <code>size</code> copies of configuration <code>s</code>.
+        The subsequent sample sets are derived by simulating the dynamics.
+        For each step from 1 to <code>steps</code> and for each variable, the average value taken by the
+        variables in the elements of the sample set at each step are printed out.
+         */
+        double[][] data_avg = SystemState.sample(rg, F, s, steps, size);
+        double[] tot = new double[F.size()];
+        Arrays.fill(tot, 0);
+        for (int i = 0; i < data_avg.length; i++) {
+            System.out.printf("%d>   ", i);
+            for (int j = 0; j < data_avg[i].length -1 ; j++) {
+                System.out.printf("%f   ", data_avg[i][j]);
+                if (leftbound <= i & i <= rightbound) {
+                    tot[j]=tot[j]+data_avg[i][j];
+                }
+            }
+            System.out.printf("%f\n", data_avg[i][data_avg[i].length -1]);
+            if (leftbound <= i & i <= rightbound) {
+                tot[data_avg[i].length -1]=tot[data_avg[i].length -1]+data_avg[i][data_avg[i].length -1];
+            }
+        }
+        System.out.println(" ");
+        System.out.println("Avg over all steps of the average values taken in the single step by the variables:");
+        for(int j=0; j<tot.length-1; j++){
+            System.out.printf("%f   ", tot[j] / (rightbound-leftbound));
+        }
+        System.out.printf("%f\n", tot[tot.length-1]/ (rightbound-leftbound));
+        System.out.println("");
+        System.out.println("");
+        return tot;
+    }
 
 }
