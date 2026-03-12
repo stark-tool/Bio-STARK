@@ -41,19 +41,18 @@ public class Main {
     public static final int Ve3 = 19;
     public static final int VeStar3 = 20;
     public static final int T3 = 21;
-    public static final int c3 = 22;
-    public static final int o3 = 23;
+    public static final int c31 = 22;
+    public static final int o31 = 23;
+    public static final int c32 = 24;
+    public static final int o32 = 25;
 
-    private static final int NUMBER_OF_VARIABLES = 24;
+    private static final int NUMBER_OF_VARIABLES = 26;
 
 
 
 
 
     public static void main(String[] args) {
-
-
-
 
         try {
 
@@ -65,60 +64,100 @@ public class Main {
 
             SystemState system = new ControlledSystem(controller, (rg, ds) -> ds.apply(applyReactions(rg, ds)),initialState);
 
-
-
         }
+
         catch (RuntimeException e) {
+
             e.printStackTrace();
+
         }
-
-
 
     }
 
     private static List<DataStateUpdate> applyReactions(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
 
-        // new values for Ca1,Ca2,Ca3 - reactions r11,r12,r13
-        if(state.get(Ca1)>0 & state.get(Ca1)<10){
-            updates.add(new DataStateUpdate(Ca1,state.get(Ca1)*2));}
+        // new value for calcium in first neuron, Ca1 - reactions r11, r19 can produce it
+        if(state.get(o1)==1){ // neural receptor open - r91
+            updates.add(new DataStateUpdate(Ca1,1.0)); //
+        }
+        else {
+            if (state.get(Ca1) > 0 & state.get(Ca1) < 10) { // presynaptic activity: Ca doubles until it reaches threshold 10 - r11
+                updates.add(new DataStateUpdate(Ca1, state.get(Ca1) * 2));
+            } else {
+                updates.add(new DataStateUpdate(Ca1, 0.0));
+            }
+        }
+
+        // new value for calcium in second neuron, Ca2 - reactions r21, r29 can produce it
+        if(state.get(o2)==1){ // neural receptor open - r29
+            updates.add(new DataStateUpdate(Ca2,1.0));
+        }
+        else {
+            if (state.get(Ca2) > 0 & state.get(Ca2) < 10) { //presynaptic activity: Ca doubles until it reaches threshold 10 - r21
+                updates.add(new DataStateUpdate(Ca2, state.get(Ca2) * 2));
+            } else {
+                updates.add(new DataStateUpdate(Ca2, 0.0));
+            }
+        }
+
+        // new value for calcium in third neuron, Ca3 - reactions r31, r39a, r39b, r39c can produce it
+        if(state.get(o31)==1 & state.get(o32)==1){ // both neural receptors open - r39c
+            updates.add(new DataStateUpdate(Ca3,4.0));
+        }
         else{
-            updates.add(new DataStateUpdate(Ca1,0.0));
+            if(state.get(o31)==1 || state.get(o32)==1){ // one neural receptor open - r39a or r39b
+                updates.add(new DataStateUpdate(Ca3,1.0));
+            }
+            else{
+                if (state.get(Ca3) > 0 & state.get(Ca3) < 10) {
+                    updates.add(new DataStateUpdate(Ca3, state.get(Ca3) * 2));//presynaptic activity: Ca doubles until it reaches threshold 10 - r31
+                } else {
+                    updates.add(new DataStateUpdate(Ca3, 0.0));
+                }
+            }
         }
 
-        if(state.get(Ca2)>0 & state.get(Ca2)<10){
-            updates.add(new DataStateUpdate(Ca2,state.get(Ca2)*2));}
-        else{
-            updates.add(new DataStateUpdate(Ca2,0.0));
-        }
 
-        if(state.get(Ca3)>0 & state.get(Ca3)<10){
-            updates.add(new DataStateUpdate(Ca3,state.get(Ca3)*2));}
+
+
+        // new values for calcium ligand in first neuron, X1 - reactions r12, r15 can produce it
+        if(state.get(XStar1)==10 & state.get(Ve1)>0){ // formation of vesicles - r15
+            updates.add(new DataStateUpdate(X1,10.0));
+        }
         else {
-            updates.add(new DataStateUpdate(Ca3,0.0));
+            if (state.get(X1) > 0 & state.get(XStar1) == 0) { // permanency of calcium ligand - r12
+                updates.add(new DataStateUpdate(X1, state.get(X1)));
+            } else {
+                updates.add(new DataStateUpdate(X1, 0.0));
+            }
         }
 
-        // new values for X1,X2,X3 - reactons r21,r22,r23
-        if(state.get(X1)>0 & state.get(XStar1)==0){
-            updates.add(new DataStateUpdate(X1,state.get(X1)));}
+        // new values for calcium ligand in second neuron, X2 - reactions r22, r25 can produce it
+        if(state.get(XStar2)==10 & state.get(Ve2)>0){ // formation of vesicles - r25
+            updates.add(new DataStateUpdate(X2,10.0));
+        }
         else {
-            updates.add(new DataStateUpdate(X1,0.0));
+            if (state.get(X2) > 0 & state.get(XStar2) == 0) {
+                updates.add(new DataStateUpdate(X2, state.get(X2))); // permanency of calcium ligand - r22
+            } else {
+                updates.add(new DataStateUpdate(X2, 0.0));
+            }
         }
 
-        if(state.get(X2)>0 & state.get(XStar2)==0){
-            updates.add(new DataStateUpdate(X2,state.get(X2)));}
+        // new values for calcium ligand in third neuron, X3 - reactions r32, r35 can produce it
+        if(state.get(XStar3)==10 & state.get(Ve3)>0){ // formation of vesicles - r35
+            updates.add(new DataStateUpdate(X3,10.0));
+        }
         else {
-            updates.add(new DataStateUpdate(X2,0.0));
+            if (state.get(X3) > 0 & state.get(XStar3) == 0) {
+                updates.add(new DataStateUpdate(X3, state.get(X3))); // permanency of calcium ligand - r32
+            } else {
+                updates.add(new DataStateUpdate(X3, 0.0));
+            }
         }
 
-        if(state.get(X3)>0 & state.get(XStar3)==0){
-            updates.add(new DataStateUpdate(X3,state.get(X3)));}
-        else {
-            updates.add(new DataStateUpdate(X3,0.0));
-        }
-
-        // new values for Ve1,Ve2,Ve3 - reactons r31,r32,r33 and r61,r62,r63
-
+        // new values for vesicles in neuron 1, Ve1 - reactons r13 and r16 can produce it
         if(state.get(Ve1)>0 & state.get(VeStar1)==0){
             updates.add(new DataStateUpdate(Ve1,state.get(Ve1)));}
         else {
@@ -130,6 +169,7 @@ public class Main {
             }
         }
 
+        // new values for vesicles in neuron 2, Ve2 - reactons r23 and r26 can produce it
         if(state.get(Ve2)>0 & state.get(VeStar2)==0){
             updates.add(new DataStateUpdate(Ve2,state.get(Ve2)));}
         else {
@@ -141,6 +181,7 @@ public class Main {
             }
         }
 
+        // new values for vesicles in neuron 3, Ve3 - reactons r33 and r36 can produce it
         if(state.get(Ve3)>0 & state.get(VeStar3)==0){
             updates.add(new DataStateUpdate(Ve3,state.get(Ve3)));}
         else {
@@ -154,7 +195,7 @@ public class Main {
 
 
 
-        // new values for XStar1,XStar2,XStar3 - reactons r41,r42,r43
+        // new values for complex calcium-ligand in neuron 1, XStar1 - reaction r14 can produce it
         if(state.get(Ca1)>=10 & state.get(X1)>=10){
             updates.add(new DataStateUpdate(XStar1,state.get(X1)));
         }
@@ -162,6 +203,7 @@ public class Main {
             updates.add(new DataStateUpdate(XStar1,0.0));
         }
 
+        // new values for complex calcium-ligand in neuron 2, XStar2 - reaction r24 can produce it
         if(state.get(Ca2)>=10 & state.get(X2)>=10){
             updates.add(new DataStateUpdate(XStar2,state.get(X2)));
         }
@@ -169,6 +211,7 @@ public class Main {
             updates.add(new DataStateUpdate(XStar2,0.0));
         }
 
+        // new values for complex calcium-ligand in neuron 3, XStar3 - reaction r34 can produce it
         if(state.get(Ca3)>=10 & state.get(X3)>=10){
             updates.add(new DataStateUpdate(XStar3,state.get(X3)));
         }
@@ -176,17 +219,32 @@ public class Main {
             updates.add(new DataStateUpdate(XStar3,0.0));
         }
 
-        // new values for VeStar1,VeStar2,VeStar3 - reactons r51,r52,r53
-        if(state.get(XStar1)>=10 & state.get(Ve1)>0){
+        // new values for vesicles with neurotransmitter in first neuron, VeStar1 - reactons r15 can produce it
+        if(state.get(XStar1)==10 & state.get(Ve1)>0){
             updates.add(new DataStateUpdate(VeStar1,state.get(Ve1)));
-            updates.add(new DataStateUpdate(X1,10.0));
         }
         else{
             updates.add(new DataStateUpdate(VeStar1,0.0));
         }
 
+        // new values for vesicles with neurotransmitter in second neuron, VeStar2 - reactons r25 can produce it
+        if(state.get(XStar2)==10 & state.get(Ve2)>0){
+            updates.add(new DataStateUpdate(VeStar2,state.get(Ve2)));
+        }
+        else{
+            updates.add(new DataStateUpdate(VeStar2,0.0));
+        }
 
-        // new values for T1,T2,T3 - rules r61,r62,r63
+        // new values for vesicles with neurotransmitter in third neuron, VeStar3 - reactions r35 can produce it
+        if(state.get(XStar3)==10 & state.get(Ve3)>0){
+            updates.add(new DataStateUpdate(VeStar3,state.get(Ve3)));
+        }
+        else{
+            updates.add(new DataStateUpdate(VeStar3,0.0));
+        }
+
+
+        // new values for neurotransmitter from first neuron, T1 - reaction r16 can produce it
         if(state.get(VeStar1)>0){
             updates.add(new DataStateUpdate(T1,1.0));
         }
@@ -194,6 +252,7 @@ public class Main {
             updates.add(new DataStateUpdate(T1,0.0));
         }
 
+        // new values for neurotransmitter from second neuron, T2 - reaction r36 can produce it
         if(state.get(VeStar2)>0){
             updates.add(new DataStateUpdate(T2,1.0));
         }
@@ -201,6 +260,7 @@ public class Main {
             updates.add(new DataStateUpdate(T2,0.0));
         }
 
+        // new values for neurotransmitter from third neuron, T3 - reaction r36 can produce it
         if(state.get(VeStar3)>0){
             updates.add(new DataStateUpdate(T3,1.0));
         }
@@ -208,22 +268,23 @@ public class Main {
             updates.add(new DataStateUpdate(T3,0.0));
         }
 
-        // new values for c1,c2 - reactions r17,r27,r19,r29
-        if((state.get(c1)>0 & state.get(T3)==0)||state.get(o1)>0){
+        // new values for closing state of neuroreceptor of neuron 1, c1 - reactions r17 and r19 can modify it
+        if((state.get(c1)>0 & state.get(T3)==0) || state.get(o1)>0){
             updates.add(new DataStateUpdate(c1,1.0));
         }
         else{
             updates.add(new DataStateUpdate(c1,0.0));
         }
 
-        if((state.get(c2)>0 & state.get(T3)==0)||state.get(o2)>0){
+        // new values for closing state of neuroreceptor of neuron 2, c2 - reactions r27 and r29 can modify it
+        if((state.get(c2)>0 & state.get(T3)==0) || state.get(o2)>0){
             updates.add(new DataStateUpdate(c2,1.0));
         }
         else{
             updates.add(new DataStateUpdate(c2,0.0));
         }
 
-        // new values of o1,o2 - reactions r18-r28
+        // new values for opening state of neuroreceptor of neuron 1, o1 -  reactions r18  can modify it
         if(state.get(T3)>0){
             updates.add(new DataStateUpdate(o1,1.0));
         }
@@ -231,6 +292,7 @@ public class Main {
             updates.add(new DataStateUpdate(o1,0.0));
         }
 
+        // new values for opening state of neuroreceptor of neuron 2, o2 -  reactions r18  can modify it
         if(state.get(T3)>0){
             updates.add(new DataStateUpdate(o2,1.0));
         }
@@ -238,6 +300,49 @@ public class Main {
             updates.add(new DataStateUpdate(o2,0.0));
         }
 
+
+
+        // New values for c31,c32,o31,o32 - rules r37a,r38a,r39a,r37b,r38b,r39b,r39c can modify them
+
+        if(state.get(c31)>0 & state.get(T1)==0){
+            updates.add(new DataStateUpdate(c31,state.get(c31)));
+        }
+        else{
+            if(state.get(o31)==1){
+                updates.add(new DataStateUpdate(c31,1.0));
+            }
+            else{
+                updates.add(new DataStateUpdate(c31, 0.0));
+            }
+        }
+
+        if(state.get(c32)>0 & state.get(T2)==0){
+            updates.add(new DataStateUpdate(c32,state.get(c32)));
+        }
+        else{
+            if(state.get(o32)==1){
+                updates.add(new DataStateUpdate(c32,1.0));
+            }
+            else{
+                updates.add(new DataStateUpdate(c32, 0.0));
+            }
+        }
+
+        // new values for opening state of first neuroreceptor of neuron 3, o31 -  reactions r38a  can modify it
+        if(state.get(T1)>0){
+            updates.add(new DataStateUpdate(o31,1.0));
+        }
+        else{
+            updates.add(new DataStateUpdate(o31,0.0));
+        }
+
+        // new values for opening state of second neuroreceptor of neuron 3, o32 -  reactions r38b  can modify it
+        if(state.get(T2)>0){
+            updates.add(new DataStateUpdate(o32,1.0));
+        }
+        else{
+            updates.add(new DataStateUpdate(o32,0.0));
+        }
 
         return(updates);
 
@@ -272,8 +377,10 @@ public class Main {
         initialValues.put(Ve3,5.0);
         initialValues.put(VeStar3,0.0);
         initialValues.put(T3,0.0);
-        initialValues.put(c3,1.0);
-        initialValues.put(o3,0.0);
+        initialValues.put(c31,1.0);
+        initialValues.put(o31,0.0);
+        initialValues.put(c32,1.0);
+        initialValues.put(o32,0.0);
 
         return new DataState(NUMBER_OF_VARIABLES,i -> initialValues.getOrDefault(i, Double.NaN));
     }
