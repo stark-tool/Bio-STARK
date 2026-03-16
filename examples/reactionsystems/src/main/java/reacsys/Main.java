@@ -10,7 +10,9 @@ import stark.controller.NilController;
 import stark.ds.DataState;
 import stark.ds.DataStateExpression;
 import stark.ds.DataStateUpdate;
+import stark.Util;
 
+import java.io.IOException;
 import java.util.*;
 
 public class Main {
@@ -57,15 +59,52 @@ public class Main {
 
         try {
 
+            /*
+            INITIAL CONFIGURATION
+            In order to perform simulations/analysis/model checking for a particular system, we need to create its
+            initial configuration, which is an instance of <code>ControlledSystem>/code>
+            */
+
+
+            /*
+            One of the elements of a system configuration is the "controller", i.e. an instance of <code>Controller</code>.
+            In this example we do not need controllers, therefore we use a controller that does nothing, i.e. an instance
+            of <code>NilController</code>.
+            In other case studies, controllers may be used to control the activity of a system or to implement contexts.
+            */
+
             Controller controller = new NilController();
 
+            /*
+            Another element of a system configuration is the "data state", i.e. an instance of <code>DataState</code>,
+            which models the state of the data. Instances of <code>DataState</code> contains values for variables
+            representing the quantities of the system.
+            The initial state <code>initialState</code> is constructed by exploiting the static method
+            <code>getInitialState</code>, which will be defined later and assigns the initial value to all 26
+            variables defined above.
+             */
             DataState initialState = getInitialState( );
 
             RandomGenerator rand = new DefaultRandomGenerator();
 
+            /*
+            We define the <code>ControlledSystem</code> <code>system</code>, which will be the starting configuration from
+            which the evolution sequence will be constructed.
+            This configuration consists of 4 elements:
+            - the controller <code>controller</code> defined above,
+            - a random function over data states, which implements interface <code>DataStateFunction</code> and maps a
+            random generator <code>rg</code> and a data state <code>ds</code> to the data state obtained by updating
+            <code>ds</code> with the list of changes given by method <code>applyReactions</code>. Essentially,
+            this static method, defined later, applies the reactions that are promoted/inhibited by the entities in
+            <code>ds</code> and produces new entities, which will be available at next instant.
+            - the data state <code>initialState</state> defined above,
+             */
             SystemState system = new ControlledSystem(controller, (rg, ds) -> ds.apply(applyReactions(rg, ds)),initialState);
 
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
+
+            int N = 1000;
+            int size = 1;
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
             ArrayList<String> L = new ArrayList<>();
@@ -73,23 +112,82 @@ public class Main {
             L.add("Ca2      ");
             L.add("Ca3      ");
 
-
-
             F.add(ds->ds.get(Ca1));
             F.add(ds->ds.get(Ca2));
             F.add(ds->ds.get(Ca3));
-            printAvgData(rand, L, F, system, 10000, 1, 100, 10100
+            F.add(ds->ds.get(T1));
+            F.add(ds->ds.get(T2));
+            F.add(ds->ds.get(T3));
+            F.add(ds->ds.get(c1));
+            F.add(ds->ds.get(c2));
+            F.add(ds->ds.get(c31));
+            F.add(ds->ds.get(c32));
+            F.add(ds->ds.get(o1));
+            F.add(ds->ds.get(o2));
+            F.add(ds->ds.get(o31));
+            F.add(ds->ds.get(o32));
+
+            printAvgData(rand, L, F, system, N, 1, 100, 10100
             );
 
+            double[][] plot_Ca1 = new double[N][1];
+            double[][] plot_Ca2 = new double[N][1];
+            double[][] plot_Ca3 = new double[N][1];
 
+            double[][] plot_T1 = new double[N][1];
+            double[][] plot_T2 = new double[N][1];
+            double[][] plot_T3 = new double[N][1];
 
+            double[][] plot_c1 = new double[N][1];
+            double[][] plot_c2 = new double[N][1];
+            double[][] plot_c31 = new double[N][1];
+            double[][] plot_c32 = new double[N][1];
 
+            double[][] plot_o1 = new double[N][1];
+            double[][] plot_o2 = new double[N][1];
+            double[][] plot_o31 = new double[N][1];
+            double[][] plot_o32 = new double[N][1];
+
+            double[][] data = SystemState.sample(rand, F, system, N, size);
+            for (int i = 0; i<N; i++){
+                plot_Ca1[i][0] = data[i][0];
+                plot_Ca2[i][0] = data[i][1];
+                plot_Ca3[i][0] = data[i][2];
+
+                plot_T1[i][0] = data[i][3];
+                plot_T2[i][0] = data[i][4];
+                plot_T3[i][0] = data[i][5];
+
+                plot_c1[i][0] = data[i][6];
+                plot_c2[i][0] = data[i][7];
+                plot_c31[i][0] = data[i][8];
+                plot_c32[i][0] = data[i][9];
+
+                plot_o1[i][0] = data[i][10];
+                plot_o2[i][0] = data[i][11];
+                plot_o31[i][0] = data[i][12];
+                plot_o32[i][0] = data[i][13];
+            }
+            Util.writeToCSV("./plotRSCa1.csv",plot_Ca1);
+            Util.writeToCSV("./plotRSCa2.csv",plot_Ca2);
+            Util.writeToCSV("./plotRSCa3.csv",plot_Ca3);
+            Util.writeToCSV("./plotRST1.csv",plot_T1);
+            Util.writeToCSV("./plotRST2.csv",plot_T2);
+            Util.writeToCSV("./plotRST3.csv",plot_T3);
+            Util.writeToCSV("./plotRSc1.csv",plot_c1);
+            Util.writeToCSV("./plotRSc2.csv",plot_c2);
+            Util.writeToCSV("./plotRSc31.csv",plot_c31);
+            Util.writeToCSV("./plotRSc32.csv",plot_c32);
+            Util.writeToCSV("./plotRSo1.csv",plot_o1);
+            Util.writeToCSV("./plotRSo2.csv",plot_o2);
+            Util.writeToCSV("./plotRSo31.csv",plot_o31);
+            Util.writeToCSV("./plotRSo32.csv",plot_o32);
         }
 
         catch (RuntimeException e) {
-
             e.printStackTrace();
-
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
     }
@@ -105,6 +203,7 @@ public class Main {
     private static List<DataStateUpdate> applyReactions(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
 
+        // Updates on calcium - variables Ca1, Ca2, Ca3
 
         // new value for calcium in first neuron, Ca1 - reactions r11, r19 can produce it
         if(state.get(o1)==1){ // postsynaptic activity, neural receptor open - reaction r91
@@ -123,7 +222,7 @@ public class Main {
             updates.add(new DataStateUpdate(Ca2,1.0));
         }
         else {
-            if (state.get(Ca2) > 0 & state.get(Ca2) < 10) { //presynaptic activity: Ca doubles until it reaches threshold 10 - r21
+            if (state.get(Ca2) > 0 & state.get(Ca2) < 10) { //presynaptic activity: Ca doubles until it reaches threshold 10 - reaction r21
                 updates.add(new DataStateUpdate(Ca2, state.get(Ca2) * 2));
             } else {
                 updates.add(new DataStateUpdate(Ca2, 0.0));
@@ -147,6 +246,8 @@ public class Main {
             }
         }
 
+
+        // Updates on calcium ligand - variables X1, X2, X3
 
         // new value for calcium ligand in first neuron, X1 - reactions r12, r15 can produce it
         if(state.get(XStar1)==10 & state.get(Ve1)>0){ // formation of vesicles - reaction r15
@@ -185,11 +286,13 @@ public class Main {
         }
 
 
+        // Updates on vesicles before exocytosis - variables Ve1, Ve2, Ve3
+
         // new values for vesicles in neuron 1, Ve1 - reactions r13 and r16 can produce it
-        if(state.get(Ve1)>0 & state.get(VeStar1)==0){ // permanency of vesicles
+        if(state.get(Ve1)>0 & state.get(VeStar1)==0){ // permanency of vesicles - reaction r13
             updates.add(new DataStateUpdate(Ve1,state.get(Ve1)));}
         else {
-            if(state.get(VeStar1)>0){ // neurotransmitter released
+            if(state.get(VeStar1)>0){ // neurotransmitter released - reaction r16
                 updates.add(new DataStateUpdate(Ve1,state.get(VeStar1)));
             }
             else {
@@ -198,10 +301,10 @@ public class Main {
         }
 
         // new values for vesicles in neuron 2, Ve2 - reactions r23 and r26 can produce it
-        if(state.get(Ve2)>0 & state.get(VeStar2)==0){ // permanency of vesicles
+        if(state.get(Ve2)>0 & state.get(VeStar2)==0){ // permanency of vesicles - reaction r23
             updates.add(new DataStateUpdate(Ve2,state.get(Ve2)));}
         else {
-            if(state.get(VeStar2)>0){ // neurotransmitter released
+            if(state.get(VeStar2)>0){ // neurotransmitter released - reaction r26
                 updates.add(new DataStateUpdate(Ve2,state.get(VeStar2)));
             }
             else {
@@ -210,10 +313,10 @@ public class Main {
         }
 
         // new values for vesicles in neuron 3, Ve3 - reactions r33 and r36 can produce it
-        if(state.get(Ve3)>0 & state.get(VeStar3)==0){ // permanency of vesicles
+        if(state.get(Ve3)>0 & state.get(VeStar3)==0){ // permanency of vesicles - reaction r33
             updates.add(new DataStateUpdate(Ve3,state.get(Ve3)));}
         else {
-            if(state.get(VeStar3)>0){ // neurotransmitter released
+            if(state.get(VeStar3)>0){ // neurotransmitter released - reaction r36
                 updates.add(new DataStateUpdate(Ve3,state.get(VeStar3)));
             }
             else {
@@ -222,8 +325,10 @@ public class Main {
         }
 
 
+        // Updates on complex calcium-ligand - variables XStar1, XStar2, XStar3
+
         // new values for complex calcium-ligand in neuron 1, XStar1 - reaction r14 can produce it
-        if(state.get(Ca1)>=10 & state.get(X1)>=10){ // enough calcium to form the complex
+        if(state.get(Ca1)>=10 & state.get(X1)>=10){ // enough calcium to form the complex - reaction r14
             updates.add(new DataStateUpdate(XStar1,state.get(X1)));
         }
         else{
@@ -231,7 +336,7 @@ public class Main {
         }
 
         // new values for complex calcium-ligand in neuron 2, XStar2 - reaction r24 can produce it
-        if(state.get(Ca2)>=10 & state.get(X2)>=10){ // enough calcium to form the complex
+        if(state.get(Ca2)>=10 & state.get(X2)>=10){ // enough calcium to form the complex - reaction r24
             updates.add(new DataStateUpdate(XStar2,state.get(X2)));
         }
         else{
@@ -239,7 +344,7 @@ public class Main {
         }
 
         // new values for complex calcium-ligand in neuron 3, XStar3 - reaction r34 can produce it
-        if(state.get(Ca3)>=10 & state.get(X3)>=10){ // enough calcium to form the complex
+        if(state.get(Ca3)>=10 & state.get(X3)>=10){ // enough calcium to form the complex - reaction r34
             updates.add(new DataStateUpdate(XStar3,state.get(X3)));
         }
         else{
@@ -247,8 +352,10 @@ public class Main {
         }
 
 
+        // Updates on vesicles with neurotransmitter - variables VeStar1, VeStar2, VeStar3
+
         // new values for vesicles with neurotransmitter in first neuron, VeStar1 - reactons r15 can produce it
-        if(state.get(XStar1)==10 & state.get(Ve1)>0){ // enough calcium ligand to release the neurotransmitter
+        if(state.get(XStar1)==10 & state.get(Ve1)>0){ // enough calcium ligand to release the neurotransmitter - reaction r15
             updates.add(new DataStateUpdate(VeStar1,state.get(Ve1)));
         }
         else{
@@ -256,7 +363,7 @@ public class Main {
         }
 
         // new values for vesicles with neurotransmitter in second neuron, VeStar2 - reactons r25 can produce it
-        if(state.get(XStar2)==10 & state.get(Ve2)>0){// enough calcium ligand to release the neurotransmitter
+        if(state.get(XStar2)==10 & state.get(Ve2)>0){// enough calcium ligand to release the neurotransmitter - reaction r25
             updates.add(new DataStateUpdate(VeStar2,state.get(Ve2)));
         }
         else{
@@ -264,7 +371,7 @@ public class Main {
         }
 
         // new values for vesicles with neurotransmitter in third neuron, VeStar3 - reactions r35 can produce it
-        if(state.get(XStar3)==10 & state.get(Ve3)>0){// enough calcium ligand to release the neurotransmitter
+        if(state.get(XStar3)==10 & state.get(Ve3)>0){// enough calcium ligand to release the neurotransmitter - reaction r35
             updates.add(new DataStateUpdate(VeStar3,state.get(Ve3)));
         }
         else{
@@ -272,8 +379,10 @@ public class Main {
         }
 
 
+        // Updates on neurotransmitter - variables T1, T2, T3
+
         // new values for neurotransmitter from first neuron, T1 - reaction r16 can produce it
-        if(state.get(VeStar1)>0){ // neurotransmitter released
+        if(state.get(VeStar1)>0){ // neurotransmitter released - reaction r16
             updates.add(new DataStateUpdate(T1,1.0));
         }
         else{
@@ -281,7 +390,7 @@ public class Main {
         }
 
         // new values for neurotransmitter from second neuron, T2 - reaction r36 can produce it
-        if(state.get(VeStar2)>0){ // neurotransmitter released
+        if(state.get(VeStar2)>0){ // neurotransmitter released - reaction r26
             updates.add(new DataStateUpdate(T2,1.0));
         }
         else{
@@ -289,7 +398,7 @@ public class Main {
         }
 
         // new values for neurotransmitter from third neuron, T3 - reaction r36 can produce it
-        if(state.get(VeStar3)>0){ // neurotransmitter released
+        if(state.get(VeStar3)>0){ // neurotransmitter released - reaction r36
             updates.add(new DataStateUpdate(T3,1.0));
         }
         else{
@@ -297,9 +406,12 @@ public class Main {
         }
 
 
+        // New values for closure/opening states of neuroreceptors - variables c1, o1, c2, o2, c31, o31, c32, o32
+
         // new values for closing state of neuroreceptor of neuron 1, c1 - reactions r17 and r19 can modify it
         if((state.get(c1)>0 & state.get(T3)==0) || state.get(o1)>0){
             // neuroreceptor remains closed if there is no neurotransmitter or becomes closed if it is open
+            // - reaction r17 or r19
             updates.add(new DataStateUpdate(c1,1.0));
         }
         else{
@@ -309,6 +421,7 @@ public class Main {
         // new values for closing state of neuroreceptor of neuron 2, c2 - reactions r27 and r29 can modify it
         if((state.get(c2)>0 & state.get(T3)==0) || state.get(o2)>0){
             // neuroreceptor remains closed if there is no neurotransmitter or becomes closed if it is open
+            // - reaction r27 or r29
             updates.add(new DataStateUpdate(c2,1.0));
         }
         else{
@@ -317,7 +430,7 @@ public class Main {
 
         // new values for opening state of neuroreceptor of neuron 1, o1 -  reactions r18  can modify it
         if(state.get(T3)>0){
-            // neuroreceptor becomes open if there is the neurotransmitter
+            // neuroreceptor becomes open if there is the neurotransmitter - reaction r18
             updates.add(new DataStateUpdate(o1,1.0));
         }
         else{
@@ -388,9 +501,12 @@ public class Main {
 
 
 
+    //Method <code>getInitialState</code> assigns the initial value to all variables
+
     private static DataState getInitialState( ){
         Map<Integer, Double> initialValues = new HashMap<>();
 
+        // first neuron
         initialValues.put(Ca1,1.0);
         initialValues.put(X1,10.0);
         initialValues.put(XStar1,0.0);
@@ -400,6 +516,7 @@ public class Main {
         initialValues.put(c1,1.0);
         initialValues.put(o1,0.0);
 
+        // second neuron
         initialValues.put(Ca2,1.0);
         initialValues.put(X2,10.0);
         initialValues.put(XStar2,0.0);
@@ -409,6 +526,7 @@ public class Main {
         initialValues.put(c2,1.0);
         initialValues.put(o2,0.0);
 
+        // third neuron
         initialValues.put(Ca3,0.0);
         initialValues.put(X3,10.0);
         initialValues.put(XStar3,0.0);
