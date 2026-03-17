@@ -55,7 +55,7 @@ public class Main {
                     "gui_param_psv_ok", "phase", "phase_changed", "IE_toolow_counter", "timer_insp",
                     "timer_exp", "cycle_done", "fs", "previous_PAW", "peak_flow", "nr_of_retries_p", "timer_PSV_exp",
                     "V_tidal_prev", "rr_pcv", "p_insp_pcv", "ie_pcv", "alarm_counter", "counter_cycles", "switch_ready",
-                    "req_counter", "on_counter", "test_counter", "test_per", "p_drop_PAW", "p_peak_flow"
+                    "req_counter", "on_counter", "test_counter", "test_per", "p_drop_PAW", "p_peak_flow", "psv_param_counter"
             };
     //The order above does not matter for the order below. So it's okay that it's not the same anymore
     public final static int PRM = 20;
@@ -183,8 +183,9 @@ public class Main {
     private static final int test_per = 86;
     private static final int p_drop_PAW = 87;
     private static final int p_peak_flow = 88;
+    private static final int psv_param_counter = 89;
 
-    private static final int NUMBER_OF_VARIABLES = 89;
+    private static final int NUMBER_OF_VARIABLES = 90;
 
 
 
@@ -632,7 +633,7 @@ public class Main {
             DataStateFunction mu_cont44_2 = (rg, ds) -> ds.apply(getDiracCont44_2(rg, ds));
 
             double eta_cont19 = 0.0;
-            double eta_test0 = 0.0;
+            double eta_test0 = 1.0;
             double eta_cont36_3 = 0.0;
             double eta_cont36_3_part1 = 0.0;
             double eta_cont1_3 = 0.0;
@@ -4738,36 +4739,21 @@ public class Main {
         updates.add(new DataStateUpdate(s_power_source, state.get(p_power_source)));
         updates.add(new DataStateUpdate(s_fan, state.get(p_fan)));
 
-        //ENVIRONMENT ENVIRONMENT VARIABLES
+        //ENVIRONMENT ENVIRONMENT VARIABLES FORCED
         if (state.get(init_succ) == 1) {
             updates.add(new DataStateUpdate(conn_patient, 1));
         }
         if (state.get(Status) == 7) {//in the final state, the patient should be disconnected again
             updates.add(new DataStateUpdate(conn_patient, 0));
-            updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 1)); //we want to be able to start breathing again
+            //updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 1)); //we want to be able to start breathing again
+            updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 0));
         }
 
-        if (state.get(p_PS_ins_pressure) == 0 && (state.get(Status) == 0 || state.get(Status) == 7) && rg.nextDouble() < 0.3) {
-            updates.add(new DataStateUpdate(b_powerOn, 1));
-        }
-
-        //ensure that the led-light turns of after a random amount of time
-        if (state.get(a_LED) == 1 && state.get(alarm_counter) == -1) { //we've not initialized the counter yet
-            updates.add(new DataStateUpdate(alarm_counter, Math.ceil(rg.nextDouble()*10)));
-        } else if (state.get(a_LED) == 1 && state.get(alarm_counter) > 0) {
-            updates.add(new DataStateUpdate(alarm_counter, state.get(alarm_counter) - 1));
-        } else if (state.get(a_LED) == 1) {
-            //so the counter has run out
-            updates.add(new DataStateUpdate(a_LED, 0));
-            updates.add(new DataStateUpdate(alarm_counter, -1));
-        }
-
+        //COMMUNICATING VALUES / COMPUTING VARIABLES
         if (state.get(cycle_done) == 1){
             updates.add(new DataStateUpdate(counter_cycles, state.get(counter_cycles)+1));
             //updates.add(new DataStateUpdate(cycle_done, 0));
         }
-
-        //COMMUNICATING VALUES / COMPUTING VARIABLES
         double new_RR = 0.0;
         double new_IE = 0.0;
         if (state.get(cycle_done) == 1) {
@@ -4866,7 +4852,9 @@ public class Main {
 
         updates.add(new DataStateUpdate(p_drop_PAW, (state.get(p_PS_ins_pressure) - new_pressure_in)/(1)));
 
-        //TODO: think about how to update the 'environment' options, where the GUI/environment just randomly clicks buttons
+        //Non-deterministic environment updates
+        //TODO: think about when to reset the gui_req values
+        /*
         if (state.get(counter_cycles) == 2 && state.get(p_insp_pcv) != P_INSP_AP) {
             updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 1));
             updates.add(new DataStateUpdate(gui_param_psv_ok, 1));
@@ -4876,6 +4864,72 @@ public class Main {
             updates.add(new DataStateUpdate(b_powerOff, 1));
             updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 0));
             updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 0));
+        }*/
+
+        if (state.get(p_PS_ins_pressure) == 0 && (state.get(Status) == 0 || state.get(Status) == 7) && rg.nextDouble() < 0.3) {
+            updates.add(new DataStateUpdate(b_powerOn, 1));
+        }
+
+        //ensure that the led-light turns of after a random amount of time
+        if (state.get(a_LED) == 1 && state.get(alarm_counter) == -1) { //we've not initialized the counter yet
+            updates.add(new DataStateUpdate(alarm_counter, Math.ceil(rg.nextDouble()*10)));
+        } else if (state.get(a_LED) == 1 && state.get(alarm_counter) > 0) {
+            updates.add(new DataStateUpdate(alarm_counter, state.get(alarm_counter) - 1));
+        } else if (state.get(a_LED) == 1) {
+            //so the counter has run out
+            updates.add(new DataStateUpdate(a_LED, 0));
+            updates.add(new DataStateUpdate(alarm_counter, -1));
+        }
+
+        //ensure that there is some chance to press the power off butten when we're in fail-safe mode
+        if (state.get(Status) == 6 && rg.nextDouble() < 0.1) {
+            updates.add(new DataStateUpdate(b_powerOff, 1));
+        }
+        //ensure that there is a slight chance that we request to stop ventilation when in PCV or PSV mode
+        if ((state.get(Status) == 1 || state.get(Status) == 2) && rg.nextDouble() < 0.01){
+            updates.add(new DataStateUpdate(gui_req_stop_vent, 1));
+        }
+        //ensure that at some point the doctor requests to change to PSV mode (while in PCV)
+        if (state.get(Status) == 1 && rg.nextDouble() < 0.04){
+            updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 1));
+            updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 0));
+        }
+        if (state.get(Status) == 5) {
+            double choose_mode = rg.nextDouble();
+            if (choose_mode < 0.5){
+                updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 1));
+                updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 0));
+            } else if (choose_mode < 0.83){
+                updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 0));
+                updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 1));
+            } else {
+                updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 0));
+                updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 0));
+            }
+        }
+        //ensure that, if there is a request to switch to PSV, the PSV parameters are confirmed after a random
+        //                      CLOCK amount of time (where CLOCK should be smaller than for resetting the request)
+        if (state.get(gui_req_change_mode_PSV) == 1 && state.get(psv_param_counter) == -1) { //we've not initialized the counter yet
+            updates.add(new DataStateUpdate(psv_param_counter, Math.ceil(rg.nextDouble()*5) + 1));
+        } else if (state.get(gui_req_change_mode_PSV) == 1 && state.get(psv_param_counter) > 0) {
+            updates.add(new DataStateUpdate(psv_param_counter, state.get(psv_param_counter) - 1));
+        } else if (state.get(gui_req_change_mode_PSV) == 1) {
+            //so the counter has run out
+            updates.add(new DataStateUpdate(gui_param_psv_ok, 1));
+            updates.add(new DataStateUpdate(psv_param_counter, -1));
+        } else {// the case that gui_req_change_mode_psv is 0
+            updates.add(new DataStateUpdate(gui_param_psv_ok, 0));
+        }
+
+        //ensure that the request to switch to PSV turns off after a random CLOCK amount of time
+        if (state.get(gui_req_change_mode_PSV) == 1 && state.get(req_counter) == -1) { //we've not initialized the counter yet
+            updates.add(new DataStateUpdate(req_counter, Math.ceil(rg.nextDouble()*10) + 5));
+        } else if (state.get(gui_req_change_mode_PSV) == 1 && state.get(req_counter) > 0) {
+            updates.add(new DataStateUpdate(req_counter, state.get(req_counter) - 1));
+        } else if (state.get(gui_req_change_mode_PSV) == 1) {
+            //so the counter has run out
+            updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 0));
+            updates.add(new DataStateUpdate(req_counter, -1));
         }
 
         //ensure that the power-on request can not happen in the first 7 iterations after the system has been powered off
@@ -4895,17 +4949,6 @@ public class Main {
         }
         if (state.get(b_powerOn) == 1) {
             updates.add(new DataStateUpdate(b_powerOn, 0));
-        }
-
-        //ensure that the request to switch to PSV turns off after a random CLOCK amount of time
-        if (state.get(gui_req_change_mode_PSV) == 1 && state.get(req_counter) == -1) { //we've not initialized the counter yet
-            updates.add(new DataStateUpdate(req_counter, Math.ceil(rg.nextDouble()*10) + 5));
-        } else if (state.get(gui_req_change_mode_PSV) == 1 && state.get(req_counter) > 0) {
-            updates.add(new DataStateUpdate(req_counter, state.get(req_counter) - 1));
-        } else if (state.get(gui_req_change_mode_PSV) == 1) {
-            //so the counter has run out
-            updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 0));
-            updates.add(new DataStateUpdate(req_counter, -1));
         }
 
         return updates;
@@ -5008,7 +5051,7 @@ public class Main {
         values.put(gui_req_res_ven, (double) 0);
         values.put(power_switch_ok, (double) 1);
         values.put(no_leaks_breathing_circuit, (double) 1);
-        values.put(out_valve_ok, (double) 0);
+        values.put(out_valve_ok, (double) 1);
         values.put(alarms_ok, (double) 1);
         values.put(nr_of_retries, (double) 0);
         values.put(nr_of_retries_p, (double) 0);
@@ -5053,6 +5096,7 @@ public class Main {
         values.put(test_per, (double) 0);
         values.put(p_drop_PAW, (double) 0);
         values.put(p_peak_flow, (double) 0);
+        values.put(psv_param_counter, (double) -1);
 
         return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN));
         // if a variable is not initialized then it's automatically set to 0 (in the above line)
