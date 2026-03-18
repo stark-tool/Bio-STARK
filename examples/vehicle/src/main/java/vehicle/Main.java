@@ -20,15 +20,24 @@
  * limitations under the License.
  */
 
-package stark.examples.vehicle;
+package vehicle;
 
-import stark.controller.Controller;
-import stark.controller.ControllerRegistry;
-import stark.controller.ParallelController;
-import stark.distance.AtomicDistanceExpressionLeq;
-import stark.distance.DistanceExpression;
-import stark.distance.MaxIntervalDistanceExpression;
+import stark.ds.*;
+import stark.controller.*;
+//import stark.controller.Controller;
+//import stark.controller.ControllerRegistry;
+//import stark.controller.ParallelController;
+import stark.distance.*;
+//import stark.distance.AtomicDistanceExpressionLeq;
+//import stark.distance.DistanceExpression;
+//import stark.distance.MaxIntervalDistanceExpression;
+import stark.perturbation.*;
+import stark.robtl.*;
+import stark.ControlledSystem;
+import stark.EvolutionSequence;
+import stark.DefaultRandomGenerator;
 import org.apache.commons.math3.random.RandomGenerator;
+import stark.Util;
 
 import java.io.IOException;
 import java.util.*;
@@ -150,9 +159,9 @@ public class Main {
 
             RobustnessFormula Phi_comb = new AlwaysRobustnessFormula(
                     new AtomicRobustnessFormula(getIteratedCombinedPerturbation(),
-                        crash_dist,
-                        RelationOperator.LESS_OR_EQUAL_THAN,
-                        ETA_comb),
+                            crash_dist,
+                            RelationOperator.LESS_OR_EQUAL_THAN,
+                            ETA_comb),
                     0,
                     H);
 
@@ -263,16 +272,16 @@ public class Main {
                 Controller.ifThenElse(
                         DataState.greaterThan(s_speed_V1, 0),
                         Controller.ifThenElse(
-                                   DataState.greaterThan(safety_gap_V1, 0 ),
-                                   Controller.doAction(
-                                           (rg, ds) -> List.of(new DataStateUpdate(accel_V1, ACCELERATION), new DataStateUpdate(timer_V1, TIMER_INIT),
-                                                   new DataStateUpdate(brake_light_V1, 0)),
-                                           registry.reference("Accelerate_V1")
-                                   ),
-                                   Controller.doAction(
-                                           (rg, ds) -> List.of( new DataStateUpdate(accel_V1, - BRAKE), new DataStateUpdate(timer_V1, TIMER_INIT),
-                                                         new DataStateUpdate(brake_light_V1, 1)),
-                                           registry.reference("Decelerate_V1"))
+                                DataState.greaterThan(safety_gap_V1, 0 ),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of(new DataStateUpdate(accel_V1, ACCELERATION), new DataStateUpdate(timer_V1, TIMER_INIT),
+                                                new DataStateUpdate(brake_light_V1, 0)),
+                                        registry.reference("Accelerate_V1")
+                                ),
+                                Controller.doAction(
+                                        (rg, ds) -> List.of( new DataStateUpdate(accel_V1, - BRAKE), new DataStateUpdate(timer_V1, TIMER_INIT),
+                                                new DataStateUpdate(brake_light_V1, 1)),
+                                        registry.reference("Decelerate_V1"))
                         ),
                         Controller.doAction(
                                 (rg,ds)-> List.of(new DataStateUpdate(accel_V1,NEUTRAL), new DataStateUpdate(timer_V1,TIMER_INIT)),
@@ -534,7 +543,7 @@ public class Main {
         return state.apply(updates);
     }
 
-   // INITIALISATION OF DATA STATE
+    // INITIALISATION OF DATA STATE
 
     public static DataState getInitialState( ) {
         Map<Integer, Double> values = new HashMap<>();
