@@ -7,6 +7,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import stark.*;
 import stark.controller.Controller;
 import stark.controller.NilController;
+import stark.distance.*;
 import stark.ds.DataState;
 import stark.ds.DataStateExpression;
 import stark.ds.DataStateUpdate;
@@ -14,6 +15,8 @@ import stark.perturbation.*;
 import stark.perturbation.AtomicPerturbation;
 import stark.perturbation.IterativePerturbation;
 import stark.perturbation.Perturbation;
+import stark.distance.DistanceExpression;
+
 import stark.Util;
 
 import java.io.IOException;
@@ -161,6 +164,8 @@ public class Main {
             L.add("o2       ");
             L.add("o31      ");
             L.add("o32       ");
+            //L.add("e31       ");
+            //L.add("e32       ");
             F.add(ds -> ds.get(Ca1));
             F.add(ds -> ds.get(Ca2));
             F.add(ds -> ds.get(Ca3));
@@ -175,6 +180,8 @@ public class Main {
             F.add(ds -> ds.get(o2));
             F.add(ds -> ds.get(o31));
             F.add(ds -> ds.get(o32));
+            //F.add(ds -> ds.get(e31));
+            //F.add(ds -> ds.get(e32));
 
 
             /*
@@ -290,9 +297,74 @@ public class Main {
             Util.writeToCSV("./plotRSperto32.csv", plot_perto32);
 
 
-
-
             EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
+
+             /*
+            The following instruction allows us to create the evolution sequence <code>sequence_pert</code>, which is
+            obtained from the evolution sequence <code>sequence</code> by applying a perturbation, where:
+            - as above, the perturbation is returned by the static method <code>itNeureceptorComp()</code> defined later
+            - the perturbation is applied at step 0
+            - the sample sets of configurations in <code>sequence_pert</code> have a cardinality which corresponds to that
+            of <code>sequence</code> multiplied by <code>scale>/code>
+            */
+
+
+            int scale=5;
+            EvolutionSequence sequence_pert = sequence.apply(itNeureceptorComp(ed, w1, w2, replica),0,scale);
+
+            /*
+            The following lines of code first defines three atomic distances between evolution sequences, named
+            <code>atomicCai</code> for i=1,2,3. Then, these distances are evaluated, time-point by time-point, over
+            evolution sequence <code>sequence</code> and its perturbed version <code>sequence_pert</code> defined above.
+            Finally, the time-point to time-point values of the distances are stored in .csv files.
+            Technically, <code>distanceCai</code> is an atomic distance in the sense that it is an instance of
+            class <code>AtomicDistanceExpression</code>, which consists in a data state expression,
+            which maps a data state to a number, or rank, and a binary operator. Given two configurations, the data
+            state expression allow us to get the normalised value of <code>Cai</code>, which is a value in [0,1], from
+            both configurations, and the binary operator gives us their difference, which, intuitively, is the difference
+            with respect to the level of Cai between the two configurations.
+            This distance will be lifted to two sample sets of configurations, those obtained from <code>sequence</code> and
+            <code>sequence_p</code> at the same step.
+            Then, we define a <code>MaxDistanceExpression</code> that realizes the max between two argument distance
+            expressions.
+            */
+
+            DistanceExpression atomicCa1 = new AtomicDistanceExpression(ds->ds.get(Ca1), (a,b)->Math.abs(a-b)/20);
+            DistanceExpression atomicCa2 = new AtomicDistanceExpression(ds->ds.get(Ca2), (a,b)->Math.abs(a-b)/20);
+            DistanceExpression atomicCa3 = new AtomicDistanceExpression(ds->ds.get(Ca3), (a,b)->Math.abs(a-b)/20);
+
+            DistanceExpression maxAtomicCa123 = new MaxDistanceExpression(
+                    atomicCa1,
+                    new MaxDistanceExpression(atomicCa2,atomicCa3)
+            );
+
+            /*
+            Now we compute the step-by-step distances between <code>sequence</code> and <code>sequence_pert</code>
+             */
+            double[][] direct_evaluation_atomic_Ca1 = new double[rb-lb][1];
+            double[][] direct_evaluation_atomic_Ca2 = new double[rb-lb][1];
+            double[][] direct_evaluation_atomic_Ca3 = new double[rb-lb][1];
+            double[][] direct_evaluation_max_atomic_Ca123 = new double[rb-lb][1];
+
+            for (int i = 0; i<(rb-lb); i++){
+                direct_evaluation_atomic_Ca1[i][0] = atomicCa1.compute(i+lb, sequence, sequence_pert);
+                direct_evaluation_atomic_Ca2[i][0] = atomicCa2.compute(i+lb, sequence, sequence_pert);
+                direct_evaluation_atomic_Ca3[i][0] = atomicCa3.compute(i+lb, sequence, sequence_pert);
+                direct_evaluation_max_atomic_Ca123[i][0] = maxAtomicCa123.compute(i+lb,sequence,sequence_pert);
+            }
+            for (int i = 0; i<(rb-lb); i++){
+                System.out.println(direct_evaluation_max_atomic_Ca123[i][0]);
+            }
+            Util.writeToCSV("./plotRSatomic_Ca1.csv",direct_evaluation_atomic_Ca1);
+            Util.writeToCSV("./plotRSatomic_Ca2.csv",direct_evaluation_atomic_Ca2);
+            Util.writeToCSV("./plotRSatomic_Ca3.csv",direct_evaluation_atomic_Ca3);
+            Util.writeToCSV("./plotRSmax_atomic_Ca123.csv",direct_evaluation_max_atomic_Ca123);
+
+
+            DistanceExpression maxIntCa123 = new MaxIntervalDistanceExpression(maxAtomicCa123,lb,rb);
+            double maxD = maxIntCa123.compute(0,sequence,sequence_pert);
+            System.out.println("The max atomic distance is: "+ maxD);
+
 
 
         }
