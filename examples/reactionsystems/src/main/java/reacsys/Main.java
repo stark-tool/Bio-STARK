@@ -11,6 +11,7 @@ import stark.distance.*;
 import stark.ds.DataState;
 import stark.ds.DataStateExpression;
 import stark.ds.DataStateUpdate;
+import stark.ds.RelationOperator;
 import stark.perturbation.*;
 import stark.perturbation.AtomicPerturbation;
 import stark.perturbation.IterativePerturbation;
@@ -18,6 +19,10 @@ import stark.perturbation.Perturbation;
 import stark.distance.DistanceExpression;
 
 import stark.Util;
+import stark.robtl.AtomicRobustnessFormula;
+import stark.robtl.RobustnessFormula;
+import stark.robtl.ThreeValuedSemanticsVisitor;
+import stark.robtl.TruthValues;
 
 import java.io.IOException;
 import java.util.*;
@@ -364,6 +369,54 @@ public class Main {
             DistanceExpression maxIntCa123 = new MaxIntervalDistanceExpression(maxAtomicCa123,lb,rb);
             double maxD = maxIntCa123.compute(0,sequence,sequence_pert);
             System.out.println("The max atomic distance is: "+ maxD);
+
+
+            /*
+            Then, we define a robustness formula, in particular an atomic formula, namely an instance of
+            <code>AtomicRobustnessFormula</code>.
+            This formula will be evaluated on the evolution sequence <code>sequence</code> and expresses that the
+            distance, expressed by expression distance <code>maxIntCa123</code> between that evolution
+            sequence and the evolution sequence obtained from it by applying the perturbation returned by method
+            <code>itNeureceptorComp</code>, is below a given threshold.
+             */
+
+            double[][] robEvaluationsVaryingThreshold = new double[20][2];
+            RobustnessFormula robustF;
+            int index=0;
+            double thresholdB = 1;
+            for(int i = 10; i < 30 ; i=i+1){
+                double threshold = thresholdB + i;
+                threshold = threshold / 100;
+                robustF = new AtomicRobustnessFormula(itNeureceptorComp(ed,w1,w2,replica),
+                        maxIntCa123,
+                        RelationOperator.LESS_OR_EQUAL_THAN,
+                        threshold);
+                TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(1000, 0, sequence);
+                System.out.println(" ");
+                System.out.println("\n robustF evaluation at " + threshold + ": " + value);
+                robEvaluationsVaryingThreshold[index][1]=value.valueOf();
+                robEvaluationsVaryingThreshold[index][0]=threshold;
+                index++;
+            }
+            Util.writeToCSV("./plotRSevalRVaryingThreshold.csv",robEvaluationsVaryingThreshold);
+
+            double[][] robEvaluationsVaryingEd = new double[20][2];
+            double threshold = 0.3;
+            for(int i = 10; i < 30 ; i=i+1){
+                ed = ed + i/100.0;
+                robustF = new AtomicRobustnessFormula(itNeureceptorComp(ed,w1,w2,replica),
+                        maxIntCa123,
+                        RelationOperator.LESS_OR_EQUAL_THAN,
+                        threshold);
+                TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(1000, 0, sequence);
+                System.out.println(" ");
+                System.out.println("\n robustF evaluation at " + ed + ": " + value);
+                robEvaluationsVaryingEd[index][1]=value.valueOf();
+                robEvaluationsVaryingEd[index][0]=ed;
+                index++;
+            }
+            Util.writeToCSV("./plotRSevalRVaryingEd.csv",robEvaluationsVaryingEd);
+
 
 
 
