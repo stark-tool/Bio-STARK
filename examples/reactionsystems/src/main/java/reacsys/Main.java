@@ -401,16 +401,17 @@ public class Main {
             Util.writeToCSV("./plotRSevalRVaryingThreshold.csv",robEvaluationsVaryingThreshold);
 
             double[][] robEvaluationsVaryingEd = new double[20][2];
-            double threshold = 0.3;
-            for(int i = 10; i < 30 ; i=i+1){
-                ed = ed + i/100.0;
+            double threshold = 0.15;
+            index=0;
+            for(int i = 0; i < 20 ; i=i+1){
+                ed = ed - 0.0001;
                 robustF = new AtomicRobustnessFormula(itNeureceptorComp(ed,w1,w2,replica),
                         maxIntCa123,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         threshold);
                 TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(1000, 0, sequence);
                 System.out.println(" ");
-                System.out.println("\n robustF evaluation at " + ed + ": " + value);
+                System.out.println("\n robustF evaluation with ed=" + ed + ": " + value);
                 robEvaluationsVaryingEd[index][1]=value.valueOf();
                 robEvaluationsVaryingEd[index][0]=ed;
                 index++;
