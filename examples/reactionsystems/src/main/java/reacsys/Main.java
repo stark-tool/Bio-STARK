@@ -404,7 +404,7 @@ public class Main {
             double threshold = 0.15;
             index=0;
             for(int i = 0; i < 20 ; i=i+1){
-                ed = ed - 0.0001;
+                ed = ed - 0.0003;
                 robustF = new AtomicRobustnessFormula(itNeureceptorComp(ed,w1,w2,replica),
                         maxIntCa123,
                         RelationOperator.LESS_OR_EQUAL_THAN,
