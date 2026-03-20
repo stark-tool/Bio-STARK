@@ -262,13 +262,13 @@ public class Main {
             Util.writeToCSV("./plotRST2.csv", plot_T2);
             Util.writeToCSV("./plotRST3.csv", plot_T3);
             Util.writeToCSV("./plotRSc1.csv", plot_c1);
-            Util.writeToCSV("./plotRSc3.csv", plot_c2);
+            Util.writeToCSV("./plotRSc2.csv", plot_c2);
             Util.writeToCSV("./plotRSc31.csv", plot_c31);
-            Util.writeToCSV("./plotRSc33.csv", plot_c32);
+            Util.writeToCSV("./plotRSc32.csv", plot_c32);
             Util.writeToCSV("./plotRSo1.csv", plot_o1);
-            Util.writeToCSV("./plotRSo3.csv", plot_o2);
+            Util.writeToCSV("./plotRSo2.csv", plot_o2);
             Util.writeToCSV("./plotRSo31.csv", plot_o31);
-            Util.writeToCSV("./plotRSo33.csv", plot_o32);
+            Util.writeToCSV("./plotRSo32.csv", plot_o32);
 
             for (int i = 0; i < N; i++) {
                 plot_pertCa1[i][0] = pertData[i][0];
