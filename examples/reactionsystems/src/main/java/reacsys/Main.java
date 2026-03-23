@@ -30,8 +30,25 @@ import java.util.*;
 public class Main {
 
     /*
-    Description of the synapsis case study: TODO
+    SYNAPTIC TRANSMISSION was modeled using REACTION SYSTEMS WITH CONCENTRATION LEVELS in:
+    L. Brodo, R. Bruni, M. Falaschi, R. Gori, F. Levi, P. Milazzo:
+    "Quantitative extensions of reaction systems based on SOS semantics"
+    Neural Computing and Applications 35(9) - 2023.
+    Here, we show how in STARK we can model the reaction system in that paper and how STARK can
+    be employed to analyze robustness property.
+    In particular, we consider the "three neuron model" with the "Y-shape communication" studied by
+    Brodo et al. and we analyze robustness with respect to uneffectiveness of neureceptor of neuron #3.
      */
+
+    /*
+    The STATE MODEL of the THREE NEURON SYSTEM.
+    The three neuron system with Y-shape communication studied in Brodo et al. is a network of 3 neurons,
+    where:
+    - the neurotransmitters of neuron #1 and neuron #2 interact with the neuroreceptor of neuron #3;
+    - the neurotransmitter of neuron #3 interact with the neuroreceptors of both neuron #1 and neuron #2.
+    We start with the list of variables that are used to track the status of the system.
+     */
+
 
     // quantities in neuron #1
     public static final int Ca1 = 0; // amount of calcium
@@ -65,8 +82,8 @@ public class Main {
     public static final int c32 = 24; // closure status of receptor from neuron #2 (1 = closed, 0 = not closed)
     public static final int o32 = 25; // opening status of receptor from neuron #2 (1 = open, 0 = not open)
 
-    public static final int e31 = 26; // effectiveness of neuroreceptor of neuron #3 from neuron #1
-    public static final int e32 = 27; // effectiveness of neuroreceptor of neuron #3 from neuron #2
+    public static final int e31 = 26; // effectiveness of neuroreceptor of neuron #3 from neuron #1 (value in [0,1])
+    public static final int e32 = 27; // effectiveness of neuroreceptor of neuron #3 from neuron #2 (value in [0,1])
 
     private static final int NUMBER_OF_VARIABLES = 28;
 
@@ -101,12 +118,16 @@ public class Main {
              */
             DataState initialState = getInitialState();
 
+
+            /*
+            In order to model probabilistic evolution, a system configuration needs a random generator.
+             */
             RandomGenerator rand = new DefaultRandomGenerator();
 
             /*
             We define the <code>ControlledSystem</code> <code>system</code>, which will be the starting configuration from
             which the evolution sequence will be constructed.
-            This configuration consists of 4 elements:
+            This configuration consists of 3 elements:
             - the controller <code>controller</code> defined above,
             - a random function over data states, which implements interface <code>DataStateFunction</code> and maps a
             random generator <code>rg</code> and a data state <code>ds</code> to the data state obtained by updating
@@ -127,7 +148,7 @@ public class Main {
             <code>size</code> of configurations, with the first sample set consisting in <code>size</code> copies of
             <code>system</code>.
             The second evolution sequence is perturbed by applying the perturbation returned by the static method
-            <code>itNeureceptorComp</code> defined later. Essentially, the method returns a cyclic perturbation that
+            <code>itNeuroreceptorComp</code> defined later. Essentially, the method returns a cyclic perturbation that
             affects the effectiveness of neuroreceptor in neuron #3: for <code>replica</code> times, the perturbation
             has no effect for the first <code>w1</code> time points, i.e., the system behaves regularly, then in the
             subsequent <code>w2</code> time points, the effectiveness of neuroreceptor is decremented, meaning that,
@@ -151,7 +172,6 @@ public class Main {
             int w2=50; // size of time window in which the perturbed neurotransmitter works regurarly
             int replica=5; // iterations of cyclic perturbation
             double ed=0.01; // probability that the neurtransmitter does not work in perturbed system
-
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
             ArrayList<String> L = new ArrayList<>();
@@ -185,14 +205,11 @@ public class Main {
             F.add(ds -> ds.get(o2));
             F.add(ds -> ds.get(o31));
             F.add(ds -> ds.get(o32));
-            //F.add(ds -> ds.get(e31));
-            //F.add(ds -> ds.get(e32));
-
 
             /*
-            Methods <code>printAvgData</code> and <code>printAvgDataPerturbed</code> defined later generate an evolution
+            Static methods <code>printAvgData</code> and <code>printAvgDataPerturbed</code> defined later generate an evolution
             sequence of length <code>N</code> and size <code>size<code> and, at each step in interval
-            [<code>lb</code>,<code>lb</code>] print out the average values assumed by variables in list <code>F</code>.
+            [<code>lb</code>,<code>ub</code>] print out the average values assumed by variables in list <code>F</code>.
             The sequence generated by <code>printAvgDataPerturbed</code> is affected by a perturbation.
              */
             int lb=0;
@@ -318,20 +335,21 @@ public class Main {
             EvolutionSequence sequence_pert = sequence.apply(itNeureceptorComp(ed, w1, w2, replica),0,scale);
 
             /*
-            The following lines of code first defines three atomic distances between evolution sequences, named
+            The following lines of code define three atomic distances between evolution sequences, named
             <code>atomicCai</code> for i=1,2,3. Then, these distances are evaluated, time-point by time-point, over
             evolution sequence <code>sequence</code> and its perturbed version <code>sequence_pert</code> defined above.
             Finally, the time-point to time-point values of the distances are stored in .csv files.
             Technically, <code>distanceCai</code> is an atomic distance in the sense that it is an instance of
             class <code>AtomicDistanceExpression</code>, which consists in a data state expression,
             which maps a data state to a number, or rank, and a binary operator. Given two configurations, the data
-            state expression allow us to get the normalised value of <code>Cai</code>, which is a value in [0,1], from
+            state expression allows us to get the normalised value of <code>Cai</code>, which is a value in [0,1], from
             both configurations, and the binary operator gives us their difference, which, intuitively, is the difference
             with respect to the level of Cai between the two configurations.
             This distance will be lifted to two sample sets of configurations, those obtained from <code>sequence</code> and
             <code>sequence_p</code> at the same step.
-            Then, we define a <code>MaxDistanceExpression</code> that realizes the max between two argument distance
-            expressions.
+            Then, we define an instance of <code>MaxDistanceExpression</code>, which is a class realizes the max between
+            two argument distance expressions. Intuitively, <code>maxAtomicCa123</code> is the max distance among
+            <code>atomicCa1</code>, <code>atomicCa2</code> and <code>atomicCa3</code>.
             */
 
             DistanceExpression atomicCa1 = new AtomicDistanceExpression(ds->ds.get(Ca1), (a,b)->Math.abs(a-b)/20);
@@ -366,6 +384,12 @@ public class Main {
             Util.writeToCSV("./plotRSmax_atomic_Ca123.csv",direct_evaluation_max_atomic_Ca123);
 
 
+
+            /*
+            Now we define an instance of <code>MaxIntervalDistanceExpression</code>, which is a class that implements a
+            distance that is the max of the argument distance in the argument interval.
+             */
+
             DistanceExpression maxIntCa123 = new MaxIntervalDistanceExpression(maxAtomicCa123,lb,rb);
             double maxD = maxIntCa123.compute(0,sequence,sequence_pert);
             System.out.println("The max atomic distance is: "+ maxD);
@@ -378,6 +402,9 @@ public class Main {
             distance, expressed by expression distance <code>maxIntCa123</code> between that evolution
             sequence and the evolution sequence obtained from it by applying the perturbation returned by method
             <code>itNeureceptorComp</code>, is below a given threshold.
+            We evaluate the formula for several thresholds and for several values for uneffectiveness of neuroreceptor
+            of neuron #3.
+
              */
 
             double[][] robEvaluationsVaryingThreshold = new double[20][2];
@@ -400,11 +427,10 @@ public class Main {
             }
             Util.writeToCSV("./plotRSevalRVaryingThreshold.csv",robEvaluationsVaryingThreshold);
 
-            double[][] robEvaluationsVaryingEd = new double[20][2];
+            double[][] robEvaluationsVaryingEd = new double[9][2];
             double threshold = 0.15;
             index=0;
-            for(int i = 0; i < 20 ; i=i+1){
-                ed = ed - 0.0003;
+            for(int i = 0; i < 9 ; i=i+1){
                 robustF = new AtomicRobustnessFormula(itNeureceptorComp(ed,w1,w2,replica),
                         maxIntCa123,
                         RelationOperator.LESS_OR_EQUAL_THAN,
@@ -415,6 +441,7 @@ public class Main {
                 robEvaluationsVaryingEd[index][1]=value.valueOf();
                 robEvaluationsVaryingEd[index][0]=ed;
                 index++;
+                ed = ed - 0.001;
             }
             Util.writeToCSV("./plotRSevalRVaryingEd.csv",robEvaluationsVaryingEd);
 
@@ -720,7 +747,12 @@ public class Main {
     }
 
 
-    //Method <code>getInitialState</code> assigns the initial value to all variables
+    // Method <code>getInitialState</code> assigns the initial value to all 28 variables.
+    // To reproduce the same results as in Brodo et al. we start with the following levels for calcium:
+    // Ca1=1; Ca2=0; Ca3=0.
+    // Moreover, there are no neurotransmitters (T1=T2=T3=0), and all neuroreceptors are closed
+    // (c1,c2,c31,c32=1 and o1=o2=o31=o32=0).
+    // Technically, the metrod returns an instance of <code>DataState</code>
 
     private static DataState getInitialState() {
         Map<Integer, Double> initialValues = new HashMap<>();
@@ -757,6 +789,7 @@ public class Main {
         initialValues.put(c32, 1.0);
         initialValues.put(o32, 0.0);
 
+        // neuroreceptor effectiveness
         initialValues.put(e31, 1.0);
         initialValues.put(e32, 1.0);
 
