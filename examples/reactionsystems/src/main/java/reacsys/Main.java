@@ -319,7 +319,7 @@ public class Main {
             Util.writeToCSV("./plotRSperto32.csv", plot_perto32);
 
 
-            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
+            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 10);
 
              /*
             The following instruction allows us to create the evolution sequence <code>sequence_pert</code>, which is
@@ -407,18 +407,18 @@ public class Main {
 
              */
 
-            double[][] robEvaluationsVaryingThreshold = new double[20][2];
+            double[][] robEvaluationsVaryingThreshold = new double[12][2];
             RobustnessFormula robustF;
             int index=0;
             double thresholdB = 1;
-            for(int i = 10; i < 30 ; i=i+1){
+            for(int i = 14; i < 26 ; i=i+1){
                 double threshold = thresholdB + i;
                 threshold = threshold / 100;
                 robustF = new AtomicRobustnessFormula(itNeureceptorComp(ed,w1,w2,replica),
                         maxIntCa123,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         threshold);
-                TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(1000, 0, sequence);
+                TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(300, 0, sequence);
                 System.out.println(" ");
                 System.out.println("\n robustF evaluation at " + threshold + ": " + value);
                 robEvaluationsVaryingThreshold[index][1]=value.valueOf();
@@ -429,19 +429,20 @@ public class Main {
 
             double[][] robEvaluationsVaryingEd = new double[9][2];
             double threshold = 0.15;
+            double[] eda = new double[ ] {0.010,0.009,0.008,0.007,0.006,0.005,0.004,0.003,0.002};
             index=0;
             for(int i = 0; i < 9 ; i=i+1){
+                ed=eda[i];
                 robustF = new AtomicRobustnessFormula(itNeureceptorComp(ed,w1,w2,replica),
                         maxIntCa123,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         threshold);
-                TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(1000, 0, sequence);
+                TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(300, 0, sequence);
                 System.out.println(" ");
                 System.out.println("\n robustF evaluation with ed=" + ed + ": " + value);
                 robEvaluationsVaryingEd[index][1]=value.valueOf();
                 robEvaluationsVaryingEd[index][0]=ed;
                 index++;
-                ed = ed - 0.001;
             }
             Util.writeToCSV("./plotRSevalRVaryingEd.csv",robEvaluationsVaryingEd);
 
