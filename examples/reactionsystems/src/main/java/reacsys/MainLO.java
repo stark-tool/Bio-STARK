@@ -1,6 +1,13 @@
 package reacsys;
 
 import org.apache.commons.math3.random.RandomGenerator;
+import stark.ControlledSystem;
+import stark.DefaultRandomGenerator;
+import stark.SystemState;
+import stark.controller.Controller;
+import stark.controller.ControllerRegistry;
+import stark.controller.NilController;
+import stark.controller.ParallelController;
 import stark.ds.DataState;
 import stark.ds.DataStateUpdate;
 
@@ -37,8 +44,57 @@ public class MainLO {
 
     private static final int NUMBER_OF_VARIABLES = 14;
 
+    public static void main(String[] args){
+
+        /*
+            INITIAL CONFIGURATION
+            In order to perform simulations/analysis/model checking for a particular system, we need to create its
+            initial configuration, which is an instance of <code>ControlledSystem>/code>
+            */
 
 
+            /*
+            One of the elements of a system configuration is the "controller", i.e. an instance of <code>Controller</code>.
+            In this example we use the controller named <code>context</code> that is returned by static method
+            <code>getController</code>. Essentially, the controller implements contexts of the Reaction System
+            */
+
+        Controller context = getController();
+
+
+        /*
+            Another element of a system configuration is the "data state", i.e. an instance of <code>DataState</code>,
+            which models the state of the data. Instances of <code>DataState</code> contains values for variables
+            representing the quantities of the system.
+            The initial state <code>initialState</code> is constructed by exploiting the static method
+            <code>getInitialState</code>, which will be defined later and assigns the initial value to all 28
+            variables defined above.
+             */
+        DataState initialState = getInitialState();
+
+
+
+        /*
+            In order to model probabilistic evolution, a system configuration needs a random generator.
+             */
+        RandomGenerator rand = new DefaultRandomGenerator();
+
+            /*
+            We define the <code>ControlledSystem</code> <code>system</code>, which will be the starting configuration from
+            which the evolution sequence will be constructed.
+            This configuration consists of 3 elements:
+            - the controller <code>controller</code> defined above,
+            - a random function over data states, which implements interface <code>DataStateFunction</code> and maps a
+            random generator <code>rg</code> and a data state <code>ds</code> to the data state obtained by updating
+            <code>ds</code> with the list of changes given by method <code>applyReactions</code>. Essentially,
+            this static method, defined later, applies the reactions that are promoted/inhibited by the entities in
+            <code>ds</code> and produces new entities, which will be available at next instant.
+            - the data state <code>initialState</state> defined above,
+             */
+        SystemState system = new ControlledSystem(context, (rg, ds) -> ds.apply(applyReactions(rg, ds)), initialState);
+
+
+    }
 
 
 
@@ -158,6 +214,64 @@ public class MainLO {
         initialValues.put(lactose, 0.0);
         initialValues.put(glucose, 0.0);
         return new DataState(NUMBER_OF_VARIABLES, i -> initialValues.getOrDefault(i, Double.NaN));
+    }
+
+    public static Controller getController() {
+        ControllerRegistry registry = getControllerRegistry();
+        return new ParallelController(registry.reference("Ctrl"), registry.reference("IDS"));
+    }
+
+    public static ControllerRegistry getControllerRegistry() {
+        ControllerRegistry registry = new ControllerRegistry();
+        registry.set("DefaultCondition",
+                Controller.doAction(
+                        (rg,ds)->List.of(
+                                new DataStateUpdate(lac,1.0),
+                                new DataStateUpdate(lacI,1.0),
+                                new DataStateUpdate(I,1.0),
+                                new DataStateUpdate(cya,1.0),
+                                new DataStateUpdate(cAMP,1.0),
+                                new DataStateUpdate(crp,1.0),
+                                new DataStateUpdate(CAP,1.0)),
+                        registry.reference("DefaultCondition")
+                )
+        );
+        registry.set("Glucose5",
+                Controller.doAction((rg,ds)->List.of(
+                        new DataStateUpdate(glucose,1.0)),
+                        registry.reference("Glucose4")
+                )
+        );
+        registry.set("Glucose4",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0)),
+                        registry.reference("Glucose3")
+                )
+        );
+        registry.set("Glucose3",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0)),
+                        registry.reference("Glucose2")
+                )
+        );
+        registry.set("Glucose2",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0)),
+                        registry.reference("Glucose1")
+                )
+        );
+        registry.set("Glucose1",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0)),
+                        registry.reference("Glucose0")
+                )
+        );
+
+
+
+        )
+
+        return registry;
     }
 
 
