@@ -9,12 +9,10 @@ import stark.controller.ControllerRegistry;
 import stark.controller.NilController;
 import stark.controller.ParallelController;
 import stark.ds.DataState;
+import stark.ds.DataStateExpression;
 import stark.ds.DataStateUpdate;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MainLO {
 
@@ -93,6 +91,62 @@ public class MainLO {
              */
         SystemState system = new ControlledSystem(context, (rg, ds) -> ds.apply(applyReactions(rg, ds)), initialState);
 
+        int N = 41;
+
+        ArrayList<DataStateExpression> F = new ArrayList<>();
+        ArrayList<String> L = new ArrayList<>();
+        L.add("       lac ");
+        L.add("      Z ");
+        L.add("      Y ");
+        L.add("      A ");
+        L.add("      lacI ");
+        L.add("      I ");
+        L.add("       IOP ");
+        L.add("     cya ");
+        L.add("    cAMP ");
+        L.add("    crp ");
+        L.add("     CAP ");
+        L.add("   cAMPCAP ");
+        L.add("  lac ");
+        L.add("     glu    ");
+        F.add(ds -> ds.get(lac));
+        F.add(ds -> ds.get(Z));
+        F.add(ds -> ds.get(Y));
+        F.add(ds -> ds.get(A));
+        F.add(ds -> ds.get(lacI));
+        F.add(ds -> ds.get(I));
+        F.add(ds -> ds.get(IOP));
+        F.add(ds -> ds.get(cya));
+        F.add(ds -> ds.get(cAMP));
+        F.add(ds -> ds.get(crp));
+        F.add(ds -> ds.get(CAP));
+        F.add(ds -> ds.get(cAMPCAP));
+        F.add(ds -> ds.get(lactose));
+        F.add(ds -> ds.get(glucose));
+
+        double[][] plot_lac = new double[N][1];
+        double[][] plot_Z = new double[N][1];
+        double[][] plot_Y = new double[N][1];
+        double[][] plot_A = new double[N][1];
+        double[][] plot_lacI = new double[N][1];
+        double[][] plot_I = new double[N][1];
+        double[][] plot_IOP = new double[N][1];
+        double[][] plot_cya = new double[N][1];
+        double[][] plot_cAMP = new double[N][1];
+        double[][] plot_crp = new double[N][1];
+        double[][] plot_CAP = new double[N][1];
+        double[][] plot_cAMPCAP = new double[N][1];
+        double[][] plot_lactose = new double[N][1];
+        double[][] plot_glutose = new double[N][1];
+
+        printAvgData(rand, L, F, system, N, 1, 0, 41);
+        double[][] data = SystemState.sample(rand, F, system, N, 1);
+
+
+
+
+
+
 
     }
 
@@ -170,9 +224,11 @@ public class MainLO {
 
         // reaction r9 - regulation mediated by lactose
         if(state.get(cAMP)==1 & state.get(CAP)==1 & state.get(glucose)==0){
+            //System.out.println("yes");
             updates.add(new DataStateUpdate(cAMPCAP,1));
         }
         else{
+            //System.out.println("no + cAMP= "+ state.get(cAMP)+ " CAP = " + state.get(CAP)+ " glu = " + state.get(glucose));
             updates.add(new DataStateUpdate(cAMPCAP,0));
         }
 
@@ -203,7 +259,7 @@ public class MainLO {
         initialValues.put(Z, 0.0);
         initialValues.put(Y, 0.0);
         initialValues.put(A, 0.0);
-        initialValues.put(lac, 0.0);
+        initialValues.put(lacI, 0.0);
         initialValues.put(I, 0.0);
         initialValues.put(IOP, 0.0);
         initialValues.put(cya, 0.0);
@@ -216,9 +272,29 @@ public class MainLO {
         return new DataState(NUMBER_OF_VARIABLES, i -> initialValues.getOrDefault(i, Double.NaN));
     }
 
+
+    /*
+    Method <code>getController()</code> returns an instance of <code>ParallelController()</code>,
+    which implements two <code>Controller()</code> running in parallel.
+    The two <code>Controller()</code> running in parallel are defined in method <code>getControllerRegistry()</code>, and
+    are:
+    - the <code>Controller()</code> named "DefaultCondition", which implements the "default context"
+    used in [Corolli et al.], which mimics the real biological system in which the genomic elements plus their encoded
+    proteins are normally present
+    - the <code>Controller()</code> named <Glucose5>, which is a <code>Controller()</code> that
+    produces the following sequence of 40 contexts:
+    {glucose}; {glucose}; {glucose}; {glucose}; {glucose};
+    {lactose, glucose}; {lactose, glucose}; {lactose, glucose}; {lactose, glucose}; {lactose,,glucose};
+    {lactose}; {lactose}; {lactose}; {lactose}; {lactose};
+    { } ; { } ; { } ; { } ; { } ;
+    {lactose}; {lactose}; {lactose}; {lactose}; {lactose};
+    {lactose, glucose}; {lactose, glucose}; {lactose, glucose}; {lactose, glucose}; {lactose,,glucose};
+    {lactose}; {lactose}; {lactose}; {lactose}; {lactose};
+    {glucose}; {glucose}; {glucose}; {glucose}; {glucose};
+     */
     public static Controller getController() {
         ControllerRegistry registry = getControllerRegistry();
-        return new ParallelController(registry.reference("Ctrl"), registry.reference("IDS"));
+        return new ParallelController(registry.reference("DefaultCondition"), registry.reference("Start"));
     }
 
     public static ControllerRegistry getControllerRegistry() {
@@ -236,43 +312,348 @@ public class MainLO {
                         registry.reference("DefaultCondition")
                 )
         );
+        registry.set("Start",
+                Controller.doAction((rg,ds)->List.of(
+                                ),
+                        registry.reference("Glucose5")
+                )
+        );
         registry.set("Glucose5",
                 Controller.doAction((rg,ds)->List.of(
-                        new DataStateUpdate(glucose,1.0)),
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,0.0)),
                         registry.reference("Glucose4")
                 )
         );
         registry.set("Glucose4",
                 Controller.doAction((rg,ds)->List.of(
-                                new DataStateUpdate(glucose,1.0)),
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,0.0)),
                         registry.reference("Glucose3")
                 )
         );
         registry.set("Glucose3",
                 Controller.doAction((rg,ds)->List.of(
-                                new DataStateUpdate(glucose,1.0)),
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,0.0)),
                         registry.reference("Glucose2")
                 )
         );
         registry.set("Glucose2",
                 Controller.doAction((rg,ds)->List.of(
-                                new DataStateUpdate(glucose,1.0)),
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,0.0)),
                         registry.reference("Glucose1")
                 )
         );
         registry.set("Glucose1",
                 Controller.doAction((rg,ds)->List.of(
-                                new DataStateUpdate(glucose,1.0)),
-                        registry.reference("Glucose0")
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,0.0)),
+                        registry.reference("GlucoseLactose5")
+                )
+        );
+        registry.set("GlucoseLactose5",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("GlucoseLactose4")
+                )
+        );
+        registry.set("GlucoseLactose4",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("GlucoseLactose3")
+                )
+        );
+        registry.set("GlucoseLactose3",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("GlucoseLactose2")
+                )
+        );
+        registry.set("GlucoseLactose2",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("GlucoseLactose1")
+                )
+        );
+        registry.set("GlucoseLactose1",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lactose5")
+                )
+        );
+        registry.set("Lactose5",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lactose4")
+                )
+        );
+        registry.set("Lactose4",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lactose3")
+                )
+        );
+        registry.set("Lactose3",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lactose2")
+                )
+        );
+        registry.set("Lactose2",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lactose1")
+                )
+        );
+        registry.set("Lactose1",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Tick5")
+                )
+        );
+        registry.set("Tick5",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,0.0)),
+                        registry.reference("Tick4")
+                )
+        );
+        registry.set("Tick4",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,0.0)),
+                        registry.reference("Tick3")
+                )
+        );
+        registry.set("Tick3",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,0.0)),
+                        registry.reference("Tick2")
+                )
+        );
+        registry.set("Tick2",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,0.0)),
+                        registry.reference("Tick1")
+                )
+        );
+        registry.set("Tick1",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,0.0)),
+                        registry.reference("Lact5")
                 )
         );
 
 
-
-        )
+        registry.set("Lact5",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lact4")
+                )
+        );
+        registry.set("Lact4",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lact3")
+                )
+        );
+        registry.set("Lact3",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lact2")
+                )
+        );
+        registry.set("Lact2",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lact1")
+                )
+        );
+        registry.set("Lact1",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("GlucLact5")
+                )
+        );
+        registry.set("GlucLact5",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("GlucLact4")
+                )
+        );
+        registry.set("GlucLact4",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("GlucLact3")
+                )
+        );
+        registry.set("GlucLact3",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("GlucLact2")
+                )
+        );
+        registry.set("GlucLact2",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("GlucLact1")
+                )
+        );
+        registry.set("GlucLact1",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lac5")
+                )
+        );
+        registry.set("Lac5",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lac4")
+                )
+        );
+        registry.set("Lac4",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lac3")
+                )
+        );
+        registry.set("Lac3",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lac2")
+                )
+        );
+        registry.set("Lac2",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Lac1")
+                )
+        );
+        registry.set("Lac1",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,1.0)),
+                        registry.reference("Glu5")
+                )
+        );
+        registry.set("Glu5",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,0.0)),
+                        registry.reference("Glu4")
+                )
+        );
+        registry.set("Glu4",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,0.0)
+                        ),
+                        registry.reference("Glu3")
+                )
+        );
+        registry.set("Glu3",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,0.0)),
+                        registry.reference("Glu2")
+                )
+        );
+        registry.set("Glu2",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,0.0)),
+                        registry.reference("Glu1")
+                )
+        );
+        registry.set("Glu1",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,1.0),
+                                new DataStateUpdate(lactose,0.0)),
+                        registry.reference("Tick")
+                )
+        );
+        registry.set("Tick",
+                Controller.doAction((rg,ds)->List.of(
+                                new DataStateUpdate(glucose,0.0),
+                                new DataStateUpdate(lactose,0.0)),
+                        registry.reference("Tick")
+                )
+        );
 
         return registry;
     }
+
+
+
+
+
+    private static double[] printAvgData(RandomGenerator rg, ArrayList<String> label, ArrayList<DataStateExpression> F, SystemState s, int steps, int size, int leftbound, int rightbound) {
+        System.out.println(label);
+        /*
+        The following instruction creates an evolution sequence consisting in a sequence of <code>steps</code> sample
+        sets of cardinality <size>.
+        The first sample set contains <code>size</code> copies of configuration <code>s</code>.
+        The subsequent sample sets are derived by simulating the dynamics.
+        For each step from 1 to <code>steps</code> and for each variable, the average value taken by the
+        variables in the elements of the sample set at each step are printed out.
+         */
+        double[][] data_avg = SystemState.sample(rg, F, s, steps, size);
+        double[] tot = new double[F.size()];
+        Arrays.fill(tot, 0);
+        for (int i = 0; i < data_avg.length; i++) {
+            System.out.printf("%d>   ", i);
+            for (int j = 0; j < data_avg[i].length - 1; j++) {
+                System.out.printf("%f   ", data_avg[i][j]);
+                if (leftbound <= i & i <= rightbound) {
+                    tot[j] = tot[j] + data_avg[i][j];
+                }
+            }
+            System.out.printf("%f\n", data_avg[i][data_avg[i].length - 1]);
+            if (leftbound <= i & i <= rightbound) {
+                tot[data_avg[i].length - 1] = tot[data_avg[i].length - 1] + data_avg[i][data_avg[i].length - 1];
+            }
+        }
+        System.out.println(" ");
+        System.out.println("Avg over all steps of the average values taken in the single step by the variables:");
+        for (int j = 0; j < tot.length - 1; j++) {
+            System.out.printf("%f   ", tot[j] / (rightbound - leftbound));
+        }
+        System.out.printf("%f\n", tot[tot.length - 1] / (rightbound - leftbound));
+        System.out.println("");
+        System.out.println("");
+        return tot;
+    }
+
+
 
 
 
