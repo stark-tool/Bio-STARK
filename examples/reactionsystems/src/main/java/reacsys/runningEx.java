@@ -2,21 +2,11 @@ package reacsys;
 
 import stark.*;
 import stark.controller.*;
-import stark.distance.*;
 import stark.ds.*;
 import org.apache.commons.math3.random.RandomGenerator;
-import stark.perturbation.AtomicPerturbation;
-import stark.perturbation.IterativePerturbation;
-import stark.perturbation.Perturbation;
-import stark.perturbation.SequentialPerturbation;
-import stark.robtl.AtomicRobustnessFormula;
-import stark.robtl.RobustnessFormula;
-import stark.robtl.ThreeValuedSemanticsVisitor;
-import stark.robtl.TruthValues;
 
-import javax.xml.crypto.Data;
-import java.io.IOException;
 import java.util.*;
+import java.io.IOException;
 
 public class runningEx {
 
@@ -55,10 +45,30 @@ public class runningEx {
 
             printData(rand, L, F, system, N, size);
 
+            double[][] sample_a = new double[N][1];
+            double[][] sample_b = new double[N][1];
+            double[][] sample_c = new double[N][1];
+            double[][] sample_d = new double[N][1];
+
+            double[][] sample_run = SystemState.sample(rand, F, system, N, size);
+            for (int i = 0; i<N; i++){
+                sample_a[i][0] = sample_run[i][0];
+                sample_b[i][0] = sample_run[i][1];
+                sample_c[i][0] = sample_run[i][2];
+                sample_d[i][0] = sample_run[i][3];
+            }
+
+            Util.writeToCSV("./rs_running_sample_a.csv",sample_a);
+            Util.writeToCSV("./rs_running_sample_b.csv",sample_b);
+            Util.writeToCSV("./rs_running_sample_c.csv",sample_c);
+            Util.writeToCSV("./rs_running_sample_d.csv",sample_d);
+
         }
 
         catch (RuntimeException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
     }
