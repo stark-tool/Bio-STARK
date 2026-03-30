@@ -278,7 +278,7 @@ public class Main2N {
             Util.writeToCSV("./TwoNplotRSperto2.csv", plot_perto2);
 
 
-            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
+            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 10);
 
              /*
             The following instruction allows us to create the evolution sequence <code>sequence_pert</code>, which is
@@ -311,7 +311,7 @@ public class Main2N {
             <code>atomicCa1</code>, <code>atomicCa2</code> and <code>atomicCa3</code>.
             */
 
-            DistanceExpression atomicCa1 = new AtomicDistanceExpression(ds->ds.get(Ca1), (a, b)->Math.abs(a-b)/20);
+            DistanceExpression atomicCa1 = new AtomicDistanceExpression(ds->ds.get(Ca1), (a,b)->Math.abs(a-b)/20);
             DistanceExpression atomicCa2 = new AtomicDistanceExpression(ds->ds.get(Ca2), (a,b)->Math.abs(a-b)/20);
 
             DistanceExpression maxAtomicCa12 = new MaxDistanceExpression(
@@ -326,12 +326,16 @@ public class Main2N {
             double[][] direct_evaluation_atomic_Ca2 = new double[rb-lb][1];
             double[][] direct_evaluation_max_atomic_Ca12 = new double[rb-lb][1];
 
-            for (int i = 0; i<(rb-lb); i++){
+
+            for (int i = 0; i<(rb-lb); i++) {
                 direct_evaluation_atomic_Ca1[i][0] = atomicCa1.compute(i+lb, sequence, sequence_pert);
                 direct_evaluation_atomic_Ca2[i][0] = atomicCa2.compute(i+lb, sequence, sequence_pert);
                 direct_evaluation_max_atomic_Ca12[i][0] = maxAtomicCa12.compute(i+lb,sequence,sequence_pert);
+
             }
             for (int i = 0; i<(rb-lb); i++){
+                System.out.println(direct_evaluation_atomic_Ca1[i][0]);
+                System.out.println(direct_evaluation_atomic_Ca2[i][0]);
                 System.out.println(direct_evaluation_max_atomic_Ca12[i][0]);
             }
             Util.writeToCSV("./TwoNplotRSatomic_Ca1.csv",direct_evaluation_atomic_Ca1);
@@ -362,18 +366,18 @@ public class Main2N {
 
              */
 
-            double[][] robEvaluationsVaryingThreshold = new double[20][2];
+            double[][] robEvaluationsVaryingThreshold = new double[10][2];
             RobustnessFormula robustF;
             int index=0;
-            double thresholdB = 1;
-            for(int i = 10; i < 30 ; i=i+1){
+            double thresholdB = 0.0;
+            for(int i = 5; i < 15 ; i=i+1){
                 double threshold = thresholdB + i;
                 threshold = threshold / 100;
                 robustF = new AtomicRobustnessFormula(itNeureceptorComp(ed,w1,w2,replica),
                         maxIntCa12,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         threshold);
-                TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(1000, 0, sequence);
+                TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(200, 0, sequence);
                 System.out.println(" ");
                 System.out.println("\n robustF evaluation at " + threshold + ": " + value);
                 robEvaluationsVaryingThreshold[index][1]=value.valueOf();
@@ -384,19 +388,21 @@ public class Main2N {
 
             double[][] robEvaluationsVaryingEd = new double[9][2];
             double threshold = 0.15;
+            double[] eda = new double[ ] {0.026,0.023,0.020,0.017,0.014,0.011,0.008,0.005,0.002};
             index=0;
             for(int i = 0; i < 9 ; i=i+1){
+                ed=eda[i];
                 robustF = new AtomicRobustnessFormula(itNeureceptorComp(ed,w1,w2,replica),
                         maxIntCa12,
                         RelationOperator.LESS_OR_EQUAL_THAN,
                         threshold);
-                TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(1000, 0, sequence);
+                TruthValues value = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(robustF).eval(200, 0, sequence);
                 System.out.println(" ");
                 System.out.println("\n robustF evaluation with ed=" + ed + ": " + value);
                 robEvaluationsVaryingEd[index][1]=value.valueOf();
                 robEvaluationsVaryingEd[index][0]=ed;
                 index++;
-                ed = ed - 0.001;
+                //ed = ed - 0.001;
             }
             Util.writeToCSV("./TwoNplotRSevalRVaryingEd.csv",robEvaluationsVaryingEd);
 
