@@ -58,11 +58,11 @@ public class MainLO {
 
             /*
             One of the elements of a system configuration is the "controller", i.e. an instance of <code>Controller</code>.
-            In this example we use the controller named <code>context</code> that is returned by static method
-            <code>getController</code>. Essentially, the controller implements contexts of the Reaction System.
+            In this example we use the controller named <code>context</code>, which is returned by static method
+            <code>getController</code>. Essentially, this controller implements contexts of the Reaction System.
             Controller <code>context</code> supplies what is called the "default context" in [Corolli et al.], which
             mimics the real biological system in which the genomic elements plus their encoded proteins are normally
-            present, and decides whether to supply lactose and/or glucose at each step.
+            present, and decides, step-by-step, when to supply lactose and glucose.
 
             */
         Controller context = getController();
@@ -73,7 +73,7 @@ public class MainLO {
             which models the state of the data. Instances of <code>DataState</code> contains values for variables
             representing the quantities of the system.
             The initial state <code>initialState</code> is constructed by exploiting the static method
-            <code>getInitialState</code>, which will be defined later and assigns the initial value to all 28
+            <code>getInitialState</code>, which will be defined later and assigns the initial value to all
             variables defined above.
              */
         DataState initialState = getInitialState();
@@ -87,21 +87,29 @@ public class MainLO {
 
             /*
             We define the <code>ControlledSystem</code> <code>system</code>, which will be the starting configuration from
-            which the evolution sequence will be constructed.
+            which the evolution sequences will be constructed.
             This configuration consists of 3 elements:
-            - the controller <code>controller</code> defined above,
+            - the controller <code>context</code> defined above,
             - a random function over data states, which implements interface <code>DataStateFunction</code> and maps a
             random generator <code>rg</code> and a data state <code>ds</code> to the data state obtained by updating
             <code>ds</code> with the list of changes given by method <code>applyReactions</code>. Essentially,
             this static method, defined later, applies the reactions that are promoted/inhibited by the entities in
-            <code>ds</code> and produces new entities, which will be available at next instant.
+            <code>ds</code> and produces new entities, which will be available at next instant. In this example we don't
+            use randomness.
             - the data state <code>initialState</state> defined above,
              */
 
         SystemState system = new ControlledSystem(context, (rg, ds) -> ds.apply(applyReactions(rg, ds)), initialState);
 
-        int N = 41;
 
+        // N is the length of the evolution sequence (i.e. the number of steps) we want to analyse.
+
+        int N = 10000;
+
+        /*
+        Below the code needed to simulate N steps of the system.
+        The value of variables is printed out on the screen and saved in .csv files for plotting.
+         */
         ArrayList<DataStateExpression> F = new ArrayList<>();
         ArrayList<String> L = new ArrayList<>();
         L.add("       lac ");
@@ -147,11 +155,22 @@ public class MainLO {
         double[][] plot_cAMPCAP = new double[N][1];
         double[][] plot_lactose = new double[N][1];
         double[][] plot_glutose = new double[N][1];
+        double[][] plot_lactose_N = new double[N][1];
+        double[][] plot_glutose_N = new double[N][1];
 
         printAvgData(rand, L, F, system, N, 1, 0, 41);
         double[][] data = SystemState.sample(rand, F, system, N, 1);
 
+
+
+
         EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
+
+        /*
+        The DisTLformula <code>lacExpressionAfterOnlyLactose</code> defined below expresses that it is always true
+        that lac operon is expressed at step n+2 (proteins <code>Z</code>, <code>Y</code>, <code>A</code> are present)
+        if and only if at step n lactose is present and glucose is absent.
+         */
 
         DataStateFunction mu_lacExpressed = (rg,ds)->ds.apply(getDiracLacExpressed(rg,ds));
 
@@ -172,7 +191,6 @@ public class MainLO {
                 new EventuallyDisTLFormula(target_lacExpressed,2,2)
         );
 
-
         DisTLFormula lacExpression = new AlwaysDisTLFormula(
                 lacExpressionAfterOnlyLactose,
                 0,
@@ -181,9 +199,14 @@ public class MainLO {
 
         double value = new DoubleSemanticsVisitor().eval(lacExpression).eval(1, 0, sequence);
 
-        System.out.println("Robustness of "+value);
+        boolean bValue= (value >=0);
+        System.out.println("Evaluation of DisTL formula stating that lac operon is expressed at step n+2 " +
+                        "if and only if at step n there is lactose and not glucose: " + bValue);
 
-        for(int i = 0; i < 40 ; i=i+1){
+        //System.out.println("''Always'' lactose = 1 and glucose = 0 implies Z=Y=A=1 after 2 steps: " + bValue);
+
+
+        /*for(int i = 0; i < 40 ; i=i+1){
             double value1 = new DoubleSemanticsVisitor().eval(target_onlyLactose).eval(1, i, sequence);
             System.out.println(i+":"+ " " + value1);
         }
@@ -192,6 +215,8 @@ public class MainLO {
             double value1 = new DoubleSemanticsVisitor().eval(target_lacExpressed).eval(1, i, sequence);
             System.out.println(i+":"+ " " + value1);
         }
+
+         */
 
     }
 
@@ -302,8 +327,6 @@ public class MainLO {
 
         updates.add(new DataStateUpdate(lactose,state.get(lactose_N)));
         updates.add(new DataStateUpdate(glucose,state.get(glucose_N)));
-
-
 
         return updates;
     }
@@ -701,7 +724,7 @@ public class MainLO {
                 Controller.doAction((rg,ds)->List.of(
                                 new DataStateUpdate(glucose_N,1.0),
                                 new DataStateUpdate(lactose_N,0.0)),
-                        registry.reference("Tick")
+                        registry.reference("Glucose5")
                 )
         );
         registry.set("Tick",
@@ -746,14 +769,17 @@ public class MainLO {
             }
         }
         System.out.println(" ");
-        System.out.println("Avg over all steps of the average values taken in the single step by the variables:");
+        /*System.out.println("Avg over all steps of the average values taken in the single step by the variables:");
         for (int j = 0; j < tot.length - 1; j++) {
             System.out.printf("%f   ", tot[j] / (rightbound - leftbound));
         }
         System.out.printf("%f\n", tot[tot.length - 1] / (rightbound - leftbound));
         System.out.println("");
         System.out.println("");
+        */
         return tot;
+
+
     }
 
 
