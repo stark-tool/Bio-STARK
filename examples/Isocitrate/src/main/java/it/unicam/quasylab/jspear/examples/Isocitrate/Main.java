@@ -42,20 +42,20 @@ public class Main {
     public final static String[] VARIABLES =
             new String[]{"p_GB_pressure", "s_GB_pressure", "p_PS_ins_pressure", "s_PS_ins_pressure",
                     "p_PS_exp_pressure", "s_PS_exp_pressure","p_OS", "s_OS", "p_Fl1_flow", "s_Fl1_flow",
-                    "p_Fl2_flow", "s_Fl2_flow",  "p_temp", "s_temp","p_power_source", "s_power_source",
-                    "p_fan", "s_fan", "s_battery_level", "a_IN_valve", "a_OUT_valve", "a_LED",
-                    "RR_ms", "peak_P_insp", "V_tidal", "V_E", "t_RM_remaining", "Status", "IE_ms",
+                    "p_Fl2_flow", "s_Fl2_flow",  "p_temp", "s_temp", "s_battery_level", "a_IN_valve", "a_OUT_valve", "a_LED",
+                    "RR_ms", "peak_P_insp_p", "V_tidal", "V_E", "Status", "IE_ms",
                     "b_powerOn", "conn_power_source", "conn_air_supply", "conn_patient", "conn_breathing",
                     "comm_sens_valves_ok", "comm_memory", "comm_cont_gui_ok", "init_succ", "conn_failToPowerOn",
                     "sys_out_of_service", "selfTest_fail", "gui_req_res_ven", "power_switch_ok",
                     "no_leaks_breathing_circuit", "out_valve_ok", "alarms_ok", "nr_of_retries",
                     "gui_req_change_mode_PCV", "gui_req_change_mode_PSV", "gui_req_stop_vent", "timer_PCV_insp",
                     "timer_PSV_insp", "timer_PCV_exp", "drop_PAW", "gui_req_IP", "gui_req_RM", "gui_req_EP",
-                    "timer_IP", "timer_EP", "timer_RM", "timer_triggerDelay", "min_exp_time_psv", "b_powerOff",
+                    "timer_IP", "timer_EP", "timer_RM", "timer_triggerDelay", "b_powerOff",
                     "gui_param_psv_ok", "phase", "phase_changed", "IE_toolow_counter", "timer_insp",
                     "timer_exp", "cycle_done", "fs", "previous_PAW", "peak_flow", "nr_of_retries_p", "timer_PSV_exp",
                     "V_tidal_prev", "rr_pcv", "p_insp_pcv", "ie_pcv", "alarm_counter", "counter_cycles", "switch_ready",
-                    "req_counter", "on_counter", "test_counter", "test_per", "p_drop_PAW", "p_peak_flow", "psv_param_counter"
+                    "req_counter", "on_counter", "drop_PAW_p", "peak_flow_p", "psv_param_counter",
+                    "V_tidal_p", "V_tidal_prev_p", "V_E_p"
             };
     //The order above does not matter for the order below. So it's okay that it's not the same anymore
     public final static int PRM = 20;
@@ -73,8 +73,6 @@ public class Main {
     public final static double IE_AP = 0.5;
     public final static double MAX_P_INSP = 40.0;
     public final static int MIN_P_INSP = 50; //note this means 50% of P_insp
-    public final static int MAX_V_TIDAL_EXP = 990;
-    public final static int MIN_V_TIDAL_EXP = 10;
     public final static int MAX_V_E = 80;
     public final static int MIN_V_E = 2;
     public final static int MIN_RR = 4;
@@ -104,23 +102,17 @@ public class Main {
     private static final int p_Fl1_flow = 8; //variableRegistry.getVariable("required_distance");
     private static final int s_Fl1_flow = 9;//variableRegistry.getVariable("safety_gap");
     private static final int p_Fl2_flow = 10;
-
     private static final int s_Fl2_flow = 11;//variableRegistry.getVariable("p_speed");
     private static final int p_temp = 12;//variableRegistry.getVariable("s_speed");
     private static final int s_temp = 13;// variableRegistry.getVariable("p_distance");
-    private static final int p_power_source = 14;// variableRegistry.getVariable("s_distance");
-    private static final int s_power_source = 15;// variableRegistry.getVariable("p_distance");
-    private static final int p_fan = 16;
-    private static final int s_fan = 17;//variableRegistry.getVariable("accel");
     private static final int s_battery_level = 18;//variableRegistry.getVariable("timer");
     private static final int a_IN_valve = 19;//variableRegistry.getVariable("warning");
     private static final int a_OUT_valve = 20;//variableRegistry.getVariable("braking_distance");
     private static final int a_LED = 21; //variableRegistry.getVariable("required_distance");
     private static final int RR_ms = 22;
-    private static final int peak_P_insp = 23;//variableRegistry.getVariable("safety_gap");
+    private static final int peak_P_insp_p = 23;//variableRegistry.getVariable("safety_gap");
     private static final int V_tidal = 24;
     private static final int V_E = 25;
-    private static final int t_RM_remaining = 26;
     private static final int Status = 27;
     private static final int IE_ms = 28;
     private static final int b_powerOn = 29;
@@ -155,7 +147,6 @@ public class Main {
     private static final int timer_EP = 58;
     private static final int timer_RM = 59;
     private static final int timer_triggerDelay = 60;
-    private static final int min_exp_time_psv = 61;
     private static final int b_powerOff = 62;
     private static final int gui_param_psv_ok = 63;
     private static final int phase = 64;
@@ -173,19 +164,19 @@ public class Main {
     private static final int rr_pcv = 76;
     private static final int p_insp_pcv = 77;
     private static final int ie_pcv = 78;
-    private static final int ind_var = 79;
     private static final int alarm_counter = 80;
     private static final int counter_cycles = 81;
     private static final int switch_ready = 82;
     private static final int req_counter = 83;
-    private static final int on_counter = 84;
-    private static final int test_counter = 85;
-    private static final int test_per = 86;
-    private static final int p_drop_PAW = 87;
-    private static final int p_peak_flow = 88;
-    private static final int psv_param_counter = 89;
+    private static final int on_counter = 79;
+    private static final int drop_PAW_p = 61;
+    private static final int peak_flow_p = 14;
+    private static final int psv_param_counter = 15;
+    private static final int V_tidal_p = 16;
+    private static final int V_tidal_prev_p = 17;
+    private static final int V_E_p = 26;
 
-    private static final int NUMBER_OF_VARIABLES = 90;
+    private static final int NUMBER_OF_VARIABLES = 84;
 
 
 
@@ -198,7 +189,7 @@ public class Main {
             DataState state = getInitialState();
             ControlledSystem system = new ControlledSystem(new ParallelController(new ParallelController(controller_MLV, controller_alarm), controller_switch),
                     (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
+            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 250);
 
             DistanceExpression sav_6 = new AtomicDistanceExpressionLeq(Main::rho_sav_6);
             DistanceExpression sav_6_dist = new MinIntervalDistanceExpression(sav_6, 0, 2);
@@ -321,6 +312,7 @@ public class Main {
             L.add("V_tidal");
             L.add("V_tidal_prev");
             L.add("V_E");
+            L.add("V_E_p");
             L.add("RR_ms");
             //L.add("timer_insp");
             L.add("s_Fl1_flow");
@@ -372,6 +364,7 @@ public class Main {
             F.add(ds->ds.get(V_tidal));
             F.add(ds->ds.get(V_tidal_prev));
             F.add(ds->ds.get(V_E));
+            F.add(ds-> ds.get(V_E_p));
             F.add(ds->ds.get(RR_ms));
             //F.add(ds->ds.get(timer_insp));
             F.add(ds -> ds.get(s_Fl1_flow));
@@ -633,7 +626,7 @@ public class Main {
             DataStateFunction mu_cont44_2 = (rg, ds) -> ds.apply(getDiracCont44_2(rg, ds));
 
             double eta_cont19 = 0.0;
-            double eta_test0 = 1.0;
+            double eta_test0 = 0.6;
             double eta_cont36_3 = 0.0;
             double eta_cont36_3_part1 = 0.0;
             double eta_cont1_3 = 0.0;
@@ -1209,13 +1202,9 @@ public class Main {
                     H
             );
 
-            DisTLFormula phi_cont21 = new AlwaysDisTLFormula(
-                    new ConjunctionDisTLFormula(
+            DisTLFormula phi_cont21 = new ConjunctionDisTLFormula(
                             phi_cont21_part1,
                             phi_cont21_part2
-                    ),
-                    0,
-                    H
             );
 
             DisTLFormula phi_cont7_p1 = new AlwaysDisTLFormula(
@@ -2334,7 +2323,7 @@ public class Main {
     }
     public static List<DataStateUpdate> getDiracSav17_1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(V_E, rg.nextInt(10) + MAX_V_E + 1));
+        updates.add(new DataStateUpdate(V_E_p, rg.nextInt(10) + MAX_V_E + 1));
         updates.add(new DataStateUpdate(Status, rg.nextInt(2)+1));
         updates.add(new DataStateUpdate(counter_cycles, rg.nextInt(3)+2));
         return updates;
@@ -2538,7 +2527,7 @@ public class Main {
         updates.add(new DataStateUpdate(phase, 3));
         updates.add(new DataStateUpdate(Status, 1));
         updates.add(new DataStateUpdate(timer_triggerDelay, rg.nextInt(3)*-1));
-        updates.add(new DataStateUpdate(p_drop_PAW, rg.nextDouble()*3 + ITS_PCV));
+        updates.add(new DataStateUpdate(drop_PAW_p, rg.nextDouble()*3 + ITS_PCV));
         return updates;
     }
     public static List<DataStateUpdate> getDiracCont25_part2_1(RandomGenerator rg, DataState state){
@@ -2582,7 +2571,7 @@ public class Main {
     }
     public static List<DataStateUpdate> getDiracSav16_1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(V_E, rg.nextDouble()*(MIN_V_E-0.1)+0.01));
+        updates.add(new DataStateUpdate(V_E_p, rg.nextDouble()*(MIN_V_E-0.1)+0.01));
         updates.add(new DataStateUpdate(Status, rg.nextInt(2)+1));
         updates.add(new DataStateUpdate(counter_cycles, rg.nextInt(3)+2));
         return updates;
@@ -2637,7 +2626,7 @@ public class Main {
         updates.add(new DataStateUpdate(Status, 1));
         updates.add(new DataStateUpdate(phase, 3));
         updates.add(new DataStateUpdate(timer_triggerDelay, rg.nextInt(3)*-1));
-        updates.add(new DataStateUpdate(p_drop_PAW, rg.nextDouble()*5 + ITS_PCV + 1));
+        updates.add(new DataStateUpdate(drop_PAW_p, rg.nextDouble()*5 + ITS_PCV + 1));
         return updates;
     }
     public static List<DataStateUpdate> getDiracCont26_2(RandomGenerator rg, DataState state){
@@ -2650,20 +2639,20 @@ public class Main {
         updates.add(new DataStateUpdate(Status, 2));
         updates.add(new DataStateUpdate(phase, 3));
         updates.add(new DataStateUpdate(timer_triggerDelay, rg.nextInt(3)*-1));
-        updates.add(new DataStateUpdate(p_drop_PAW, rg.nextDouble()*5 + ITS_PSV + 1));
+        updates.add(new DataStateUpdate(drop_PAW_p, rg.nextDouble()*5 + ITS_PSV + 1));
         return updates;
     }
     public static List<DataStateUpdate> getDiracCont33_1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(Status, 2));
         updates.add(new DataStateUpdate(phase, 1));
-        updates.add(new DataStateUpdate(p_Fl1_flow, rg.nextDouble()*((double) ETS/100*state.get(p_peak_flow) - 0.5)));
+        updates.add(new DataStateUpdate(p_Fl1_flow, rg.nextDouble()*((double) ETS/100*state.get(peak_flow_p) - 0.5)));
         return updates;
     }
     public static List<DataStateUpdate> getDiracCont33_2(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(a_IN_valve, 0));
-        updates.add(new DataStateUpdate(p_drop_PAW, rg.nextDouble()*(4)+1));
+        updates.add(new DataStateUpdate(drop_PAW_p, rg.nextDouble()*(4)+1));
         return updates;
     }
     public static List<DataStateUpdate> getDiracCont39_1_1(RandomGenerator rg, DataState state){
@@ -2780,21 +2769,21 @@ public class Main {
         }
     }
     public static double rho_sav_16(DataState state) {
-        if (state.get(V_E) < MIN_V_E && state.get(V_E) != 0 && state.get(a_LED) == 0){
+        if (state.get(V_E_p) < MIN_V_E && state.get(V_E_p) != 0 && state.get(a_LED) == 0){
             return 1.0;
         } else {
             return 0.0;
         }
     }
     public static double rho_sav_16_penal_no_alarm(DataState state) {
-        if (state.get(V_E) < MIN_V_E && state.get(V_E) != 0 && state.get(test_per) == 1){
+        if (state.get(V_E_p) < MIN_V_E && state.get(V_E_p) != 0){
             return 1.0;
         } else {
             return 0.0;
         }
     }
     public static double rho_sav_16_dis_1(DataState state) {
-        if (state.get(V_E) >= MIN_V_E || state.get(V_E) == 0 ||
+        if (state.get(V_E_p) >= MIN_V_E || state.get(V_E) == 0 ||
                 (state.get(Status) != 1 && state.get(Status) != 2) || state.get(counter_cycles) == 0){
             return 1.0;
         } else {
@@ -2975,7 +2964,7 @@ public class Main {
         }
     }
     public static double rho_sav17(DataState state) {
-        if (state.get(V_E) <= MAX_V_E ||
+        if (state.get(V_E_p) <= MAX_V_E ||
                 (state.get(Status) != 1 && state.get(Status) != 2) || state.get(counter_cycles) == 0){
             return 1.0;
         } else {
@@ -3198,7 +3187,7 @@ public class Main {
         }
     }
     public static double rho_cont25_part1_p3_1(DataState state) {
-        if (state.get(phase) != 3 || state.get(Status) != 1 || state.get(timer_triggerDelay) > 0 || state.get(p_drop_PAW) <= ITS_PCV){
+        if (state.get(phase) != 3 || state.get(Status) != 1 || state.get(timer_triggerDelay) > 0 || state.get(drop_PAW_p) <= ITS_PCV){
             return 1.0;
         } else {
             return 0.0;
@@ -3305,7 +3294,7 @@ public class Main {
     }
     public static double rho_cont26_1(DataState state) {
         if (state.get(Status) != 1 || state.get(phase) != 3 || state.get(timer_triggerDelay) > 0
-                || state.get(p_drop_PAW) <= ITS_PCV){
+                || state.get(drop_PAW_p) <= ITS_PCV){
             return 1.0;
         } else {
             return 0.0;
@@ -3320,21 +3309,21 @@ public class Main {
     }
     public static double rho_cont36_1_1(DataState state) {
         if (state.get(Status) != 2 || state.get(phase) != 3 || state.get(timer_triggerDelay) > 0
-                || state.get(p_drop_PAW) <= ITS_PSV){
+                || state.get(drop_PAW_p) <= ITS_PSV){
             return 1.0;
         } else {
             return 0.0;
         }
     }
     public static double rho_cont33_1(DataState state) {
-        if (state.get(Status) != 2 || state.get(phase) != 1 || state.get(p_Fl1_flow) >= (ETS/100*p_peak_flow)){
+        if (state.get(Status) != 2 || state.get(phase) != 1 || state.get(p_Fl1_flow) >= (ETS/100*peak_flow_p)){
             return 1.0;
         } else {
             return 0.0;
         }
     }
     public static double rho_cont33_2(DataState state) {
-        if (state.get(a_IN_valve) != 1 || state.get(p_drop_PAW) <= 0){
+        if (state.get(a_IN_valve) != 1 || state.get(drop_PAW_p) <= 0){
             return 1.0;
         } else {
             return 0.0;
@@ -3678,9 +3667,7 @@ public class Main {
                                     ),
                                     Controller.ifThenElse(
                                             DataState.equalsTo(conn_patient, 0),
-                                            Controller.doAction(
-                                                    (rg, ds) -> List.of(new DataStateUpdate(ind_var, 1)),
-                                                    registry.reference("P_VentOff")),
+                                            Controller.doTick(registry.reference("P_VentOff")),
                                             Controller.ifThenElse(
                                                     DataState.equalsTo(gui_req_change_mode_PCV, 1),
                                                     Controller.doTick(registry.reference("P_PCV")),
@@ -4633,7 +4620,7 @@ public class Main {
             if (state.get(a_IN_valve) != 0) {
                 new_pressure_in = state.get(a_IN_valve) + PM_A_PEEP_VALVE;
             } else if (state.get(phase) !=2 && state.get(phase) != 4) {
-                new_pressure_in = Math.max(PM_A_PEEP_VALVE, state.get(p_PS_ins_pressure)-0.25*state.get(peak_P_insp));
+                new_pressure_in = Math.max(PM_A_PEEP_VALVE, state.get(p_PS_ins_pressure)-0.25*state.get(peak_P_insp_p));
             } else {
                 new_pressure_in = state.get(p_PS_ins_pressure);
             }
@@ -4648,9 +4635,9 @@ public class Main {
             if (state.get(a_OUT_valve) == 0) {
                 new_pressure_out = PM_A_PEEP_VALVE;
             } else if (state.get(timer_exp) == 0) {
-                new_pressure_out = Math.max(PM_A_PEEP_VALVE, PM_A_PEEP_VALVE + 0.2*state.get(peak_P_insp));
+                new_pressure_out = Math.max(PM_A_PEEP_VALVE, PM_A_PEEP_VALVE + 0.2*state.get(peak_P_insp_p));
             } else {
-                new_pressure_out = Math.max(PM_A_PEEP_VALVE, state.get(p_PS_exp_pressure) - 0.15*state.get(peak_P_insp));
+                new_pressure_out = Math.max(PM_A_PEEP_VALVE, state.get(p_PS_exp_pressure) - 0.15*state.get(peak_P_insp_p));
             }
         } else {
             new_pressure_out = Math.max(0.0, state.get(p_PS_exp_pressure)*0.7 - 0.5);
@@ -4699,7 +4686,7 @@ public class Main {
         double u = 1;
         double t = Math.random()*2*u - u;
 
-        double uu = 0.3;
+        double uu = 3;
         double tt = Math.random()*2*uu - uu;
 
         updates.add(new DataStateUpdate(s_GB_pressure, state.get(p_GB_pressure)+t));
@@ -4735,12 +4722,11 @@ public class Main {
         double uuu = 0.1;
         double ttt = Math.random()*2*uuu - uuu;
         updates.add(new DataStateUpdate(s_temp, state.get(p_temp)+ttt));
-        //no inaccuracies in power source, fan, battery level
-        updates.add(new DataStateUpdate(s_power_source, state.get(p_power_source)));
-        updates.add(new DataStateUpdate(s_fan, state.get(p_fan)));
+        //no inaccuracies in s_battery level (there is no p_battery level)
+
 
         //ENVIRONMENT ENVIRONMENT VARIABLES FORCED
-        if (state.get(init_succ) == 1) {
+        if (state.get(Status) == 5) {
             updates.add(new DataStateUpdate(conn_patient, 1));
         }
         if (state.get(Status) == 7) {//in the final state, the patient should be disconnected again
@@ -4781,16 +4767,24 @@ public class Main {
 
         double new_V_tidal = 0.0;
         double new_V_tidal_prev = 0.0;
+        double new_V_tidal_p = 0.0;
+        double new_V_tidal_prev_p = 0.0;
         if (state.get(Status) == 1 || state.get(Status) == 2) {
             if (state.get(phase) == 1 || state.get(phase) == 2) {
                 new_V_tidal = state.get(V_tidal) + (new_flow_in+tt)*1; //TODO: update later 1 to be the time step of 1 iteration
                 new_V_tidal_prev = state.get(V_tidal_prev);
+                new_V_tidal_p = state.get(V_tidal_p) + (new_flow_in)*1; //TODO: update later 1 to be the time step of 1 iteration
+                new_V_tidal_prev_p = state.get(V_tidal_prev_p);
             } else if (state.get(phase_changed) == 1 && state.get(phase) == 3) {
                 new_V_tidal = 0;
                 new_V_tidal_prev = state.get(V_tidal);
+                new_V_tidal_p = 0;
+                new_V_tidal_prev_p = state.get(V_tidal_p);
             } else {
                 new_V_tidal = state.get(V_tidal);
                 new_V_tidal_prev = state.get(V_tidal_prev);
+                new_V_tidal_p = state.get(V_tidal_p);
+                new_V_tidal_prev_p = state.get(V_tidal_prev_p);
             }
         } else {
             new_V_tidal = 0.0;
@@ -4798,17 +4792,24 @@ public class Main {
         }
 
         updates.add(new DataStateUpdate(V_tidal, new_V_tidal));
+        updates.add(new DataStateUpdate(V_tidal_p, new_V_tidal_p));
         updates.add(new DataStateUpdate(V_tidal_prev, new_V_tidal_prev));
+        updates.add(new DataStateUpdate(V_tidal_prev_p, new_V_tidal_prev_p));
 
 
         double new_V_E = 0.0;
+        double new_V_E_p = 0.0;
         if (state.get(cycle_done) == 1) {
             new_V_E = (state.get(V_tidal_prev) * 60/(state.get(timer_insp) + state.get(timer_exp)))/1000;
+            new_V_E_p = (state.get(V_tidal_prev_p) * 60/(state.get(timer_insp) + state.get(timer_exp)))/1000;
         } else if (state.get(Status) != 1 && state.get(Status) != 2) {
             new_V_E = 0.0;
+            new_V_E_p = 0.0;
         } else {
             new_V_E = state.get(V_E);
+            new_V_E_p = state.get(V_E_p);
         }
+        updates.add(new DataStateUpdate(V_E_p, new_V_E_p));
         updates.add(new DataStateUpdate(V_E, new_V_E));
 
         double new_peak_flow = 0.0;
@@ -4822,25 +4823,25 @@ public class Main {
         updates.add(new DataStateUpdate(peak_flow, new_peak_flow));
 
         double new_peak_flow_p = 0.0;
-        if (state.get(p_peak_flow) < state.get(p_Fl1_flow)) {
+        if (state.get(peak_flow_p) < state.get(p_Fl1_flow)) {
             new_peak_flow_p = state.get(p_Fl1_flow);
         } else if (state.get(phase_changed) == 1 && state.get(phase) == 1 || (state.get(Status) != 1 & state.get(Status) != 2)) {
             new_peak_flow_p = 0;
         } else {
-            new_peak_flow_p = state.get(p_peak_flow);
+            new_peak_flow_p = state.get(peak_flow_p);
         }
-        updates.add(new DataStateUpdate(p_peak_flow, new_peak_flow_p));
+        updates.add(new DataStateUpdate(peak_flow_p, new_peak_flow_p));
 
 
-        double new_peak_P_insp = 0.0;
-        if (state.get(peak_P_insp) < state.get(s_PS_ins_pressure)) {
-            new_peak_P_insp = state.get(s_PS_ins_pressure);
+        double new_peak_P_insp_p = 0.0;
+        if (state.get(peak_P_insp_p) < state.get(p_PS_ins_pressure)) {
+            new_peak_P_insp_p = state.get(p_PS_ins_pressure);
         } else if (state.get(phase_changed) == 1 && state.get(phase) == 1 || (state.get(Status) != 1 & state.get(Status) != 2)) {
-            new_peak_P_insp = 0;
+            new_peak_P_insp_p = 0;
         } else {
-            new_peak_P_insp = state.get(peak_P_insp);
+            new_peak_P_insp_p = state.get(peak_P_insp_p);
         }
-        updates.add(new DataStateUpdate(peak_P_insp, new_peak_P_insp));
+        updates.add(new DataStateUpdate(peak_P_insp_p, new_peak_P_insp_p));
 
         double new_phase_change = 0.0;
         if (state.get(phase_changed) == 1) {
@@ -4850,7 +4851,7 @@ public class Main {
         }
         updates.add(new DataStateUpdate(phase_changed, new_phase_change));
 
-        updates.add(new DataStateUpdate(p_drop_PAW, (state.get(p_PS_ins_pressure) - new_pressure_in)/(1)));
+        updates.add(new DataStateUpdate(drop_PAW_p, (state.get(p_PS_ins_pressure) - new_pressure_in)/(1)));
 
         //Non-deterministic environment updates
         //TODO: think about when to reset the gui_req values
@@ -4881,7 +4882,7 @@ public class Main {
             updates.add(new DataStateUpdate(alarm_counter, -1));
         }
 
-        //ensure that there is some chance to press the power off butten when we're in fail-safe mode
+        //ensure that there is some chance to press the power off button when we're in fail-safe mode
         if (state.get(Status) == 6 && rg.nextDouble() < 0.1) {
             updates.add(new DataStateUpdate(b_powerOff, 1));
         }
@@ -4889,7 +4890,7 @@ public class Main {
         if ((state.get(Status) == 1 || state.get(Status) == 2) && rg.nextDouble() < 0.01){
             updates.add(new DataStateUpdate(gui_req_stop_vent, 1));
         }
-        //ensure that at some point the doctor requests to change to PSV mode (while in PCV)
+        //ensure that it is possible that the doctor requests to change to PSV mode (while in PCV)
         if (state.get(Status) == 1 && rg.nextDouble() < 0.04){
             updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 1));
             updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 0));
@@ -4923,7 +4924,7 @@ public class Main {
 
         //ensure that the request to switch to PSV turns off after a random CLOCK amount of time
         if (state.get(gui_req_change_mode_PSV) == 1 && state.get(req_counter) == -1) { //we've not initialized the counter yet
-            updates.add(new DataStateUpdate(req_counter, Math.ceil(rg.nextDouble()*10) + 5));
+            updates.add(new DataStateUpdate(req_counter, Math.ceil(rg.nextDouble()*10) + 6));
         } else if (state.get(gui_req_change_mode_PSV) == 1 && state.get(req_counter) > 0) {
             updates.add(new DataStateUpdate(req_counter, state.get(req_counter) - 1));
         } else if (state.get(gui_req_change_mode_PSV) == 1) {
@@ -4977,7 +4978,7 @@ public class Main {
     private static DataState sav_16Perturbation(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(V_E, 1.5));
-        updates.add(new DataStateUpdate(test_per, 1));
+        updates.add(new DataStateUpdate(V_E_p, 1.5));
         return state.apply(updates);
     }
 
@@ -5021,19 +5022,14 @@ public class Main {
         values.put(s_Fl2_flow, (double) 0);
         values.put(p_temp, (double) 37);
         values.put(s_temp, (double) 37);
-        values.put(p_power_source, (double) 0);
-        values.put(s_power_source, (double) 0);
         values.put(s_battery_level, (double) 100);
-        values.put(p_fan, (double) 0);
-        values.put(s_fan, (double) 0);
         values.put(a_IN_valve, (double) 0);
         values.put(a_OUT_valve, (double) 0);
         values.put(a_LED, (double) 0);
         values.put(RR_ms, (double) 0);
-        values.put(peak_P_insp, (double) 0);
+        values.put(peak_P_insp_p, (double) 0);
         values.put(V_tidal, (double) 0);
         values.put(V_E, (double) 0);
-        values.put(t_RM_remaining, (double) 0);
         values.put(Status, (double) 0);
         values.put(IE_ms, (double) 0);
         values.put(b_powerOn, (double) 1);
@@ -5070,7 +5066,6 @@ public class Main {
         values.put(timer_EP, (double) 0);
         values.put(timer_RM, (double) 0);
         values.put(timer_triggerDelay, (double) 0);
-        values.put(min_exp_time_psv, 0.4);
         values.put(b_powerOff, (double) 0);
         values.put(gui_param_psv_ok, (double) 0);
         values.put(phase, (double) 0);
@@ -5086,17 +5081,17 @@ public class Main {
         values.put(rr_pcv, (double) 12);
         values.put(ie_pcv, 0.5);
         values.put(p_insp_pcv, (double) 15);
-        values.put(ind_var, (double) 0); //TODO: remove this after my test
         values.put(alarm_counter, (double) -1);
         values.put(counter_cycles, (double) 0);
         values.put(switch_ready, (double) 0);
         values.put(req_counter, (double) -1);
         values.put(on_counter, (double) -1);
-        values.put(test_counter, (double)-1);
-        values.put(test_per, (double) 0);
-        values.put(p_drop_PAW, (double) 0);
-        values.put(p_peak_flow, (double) 0);
+        values.put(drop_PAW_p, (double) 0);
+        values.put(peak_flow_p, (double) 0);
         values.put(psv_param_counter, (double) -1);
+        values.put(V_tidal_p, (double) 0);
+        values.put(V_tidal_prev_p, (double) 0);
+        values.put(V_E_p, (double) 0);
 
         return new DataState(NUMBER_OF_VARIABLES, i -> values.getOrDefault(i, Double.NaN));
         // if a variable is not initialized then it's automatically set to 0 (in the above line)
