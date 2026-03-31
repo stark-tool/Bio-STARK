@@ -40,27 +40,13 @@ public class MainLO {
     public static final int crp = 9; // gene encoding signal molecule cAMP
     public static final int CAP = 10; // protein
     public static final int cAMPCAP= 11; // complex CAP - cAMP
-    public static final int lactose = 12;
-    public static final int glucose = 13;
+    public static final int lactose = 12; // lactose at past step
+    public static final int glucose = 13; // glucose at past step
 
-    /*public static final int lac_N = 14;
-    public static final int Z_N = 15; // enzyme
-    public static final int Y_N = 16; // transporter
-    public static final int A_N = 17; // enzyme
-    public static final int lacI_N = 18; // gene encoding repressor protein
-    public static final int I_N = 19; // represson protein
-    public static final int IOP_N = 20; // repressor bounded to operator
-    public static final int cya_N = 21; // gene encoding protein CAP
-    public static final int cAMP_N = 22; // signal molecule
-    public static final int crp_N = 23; // gene encoding signal molecule cAMP
-    public static final int CAP_N = 24; // protein
-    public static final int cAMPCAP_N= 25; // complex CAP - cAMP
+    public static final int lactose_N = 14; // lactose at present step
+    public static final int glucose_N = 15; // glucose at present step
 
-     */
-    public static final int lactose_N = 26;
-    public static final int glucose_N = 27;
-
-    private static final int NUMBER_OF_VARIABLES = 28;
+    private static final int NUMBER_OF_VARIABLES = 16;
 
     public static void main(String[] args){
 
@@ -70,13 +56,15 @@ public class MainLO {
             initial configuration, which is an instance of <code>ControlledSystem>/code>
             */
 
-
             /*
             One of the elements of a system configuration is the "controller", i.e. an instance of <code>Controller</code>.
             In this example we use the controller named <code>context</code> that is returned by static method
-            <code>getController</code>. Essentially, the controller implements contexts of the Reaction System
-            */
+            <code>getController</code>. Essentially, the controller implements contexts of the Reaction System.
+            Controller <code>context</code> supplies what is called the "default context" in [Corolli et al.], which
+            mimics the real biological system in which the genomic elements plus their encoded proteins are normally
+            present, and decides whether to supply lactose and/or glucose at each step.
 
+            */
         Controller context = getController();
 
 
