@@ -1,10 +1,7 @@
 package reacsys;
 
 import org.apache.commons.math3.random.RandomGenerator;
-import stark.ControlledSystem;
-import stark.DefaultRandomGenerator;
-import stark.EvolutionSequence;
-import stark.SystemState;
+import stark.*;
 import stark.controller.Controller;
 import stark.controller.ControllerRegistry;
 import stark.controller.NilController;
@@ -15,6 +12,7 @@ import stark.ds.DataStateExpression;
 import stark.ds.DataStateFunction;
 import stark.ds.DataStateUpdate;
 
+import java.io.IOException;
 import java.util.*;
 
 public class MainLO {
@@ -50,6 +48,8 @@ public class MainLO {
 
     public static void main(String[] args){
 
+        try {
+
         /*
             INITIAL CONFIGURATION
             In order to perform simulations/analysis/model checking for a particular system, we need to create its
@@ -65,7 +65,7 @@ public class MainLO {
             present, and decides, step-by-step, when to supply lactose and glucose.
 
             */
-        Controller context = getController();
+            Controller context = getController();
 
 
         /*
@@ -76,14 +76,14 @@ public class MainLO {
             <code>getInitialState</code>, which will be defined later and assigns the initial value to all
             variables defined above.
              */
-        DataState initialState = getInitialState();
+            DataState initialState = getInitialState();
 
 
 
         /*
             In order to model probabilistic evolution, a system configuration needs a random generator.
              */
-        RandomGenerator rand = new DefaultRandomGenerator();
+            RandomGenerator rand = new DefaultRandomGenerator();
 
             /*
             We define the <code>ControlledSystem</code> <code>system</code>, which will be the starting configuration from
@@ -99,72 +99,78 @@ public class MainLO {
             - the data state <code>initialState</state> defined above,
              */
 
-        SystemState system = new ControlledSystem(context, (rg, ds) -> ds.apply(applyReactions(rg, ds)), initialState);
+            SystemState system = new ControlledSystem(context, (rg, ds) -> ds.apply(applyReactions(rg, ds)), initialState);
 
 
-        // N is the length of the evolution sequence (i.e. the number of steps) we want to analyse.
+            // N is the length of the evolution sequence (i.e. the number of steps) we want to analyse.
 
-        int N = 10000;
+            int N = 100;
 
         /*
         Below the code needed to simulate N steps of the system.
         The value of variables is printed out on the screen and saved in .csv files for plotting.
          */
-        ArrayList<DataStateExpression> F = new ArrayList<>();
-        ArrayList<String> L = new ArrayList<>();
-        L.add("       lac ");
-        L.add("      Z ");
-        L.add("      Y ");
-        L.add("      A ");
-        L.add("      lacI ");
-        L.add("      I ");
-        L.add("       IOP ");
-        L.add("     cya ");
-        L.add("    cAMP ");
-        L.add("    crp ");
-        L.add("     CAP ");
-        L.add("   cAMPCAP ");
-        L.add("  lac ");
-        L.add("     glu    ");
-        F.add(ds -> ds.get(lac));
-        F.add(ds -> ds.get(Z));
-        F.add(ds -> ds.get(Y));
-        F.add(ds -> ds.get(A));
-        F.add(ds -> ds.get(lacI));
-        F.add(ds -> ds.get(I));
-        F.add(ds -> ds.get(IOP));
-        F.add(ds -> ds.get(cya));
-        F.add(ds -> ds.get(cAMP));
-        F.add(ds -> ds.get(crp));
-        F.add(ds -> ds.get(CAP));
-        F.add(ds -> ds.get(cAMPCAP));
-        F.add(ds -> ds.get(lactose_N));
-        F.add(ds -> ds.get(glucose_N));
+            ArrayList<DataStateExpression> F = new ArrayList<>();
+            ArrayList<String> L = new ArrayList<>();
+            L.add("       lac ");
+            L.add("      Z ");
+            L.add("      Y ");
+            L.add("      A ");
+            L.add("      lacI ");
+            L.add("      I ");
+            L.add("       IOP ");
+            L.add("     cya ");
+            L.add("    cAMP ");
+            L.add("    crp ");
+            L.add("     CAP ");
+            L.add("   cAMPCAP ");
+            L.add("  lac ");
+            L.add("     glu    ");
+            F.add(ds -> ds.get(lac));
+            F.add(ds -> ds.get(Z));
+            F.add(ds -> ds.get(Y));
+            F.add(ds -> ds.get(A));
+            F.add(ds -> ds.get(lacI));
+            F.add(ds -> ds.get(I));
+            F.add(ds -> ds.get(IOP));
+            F.add(ds -> ds.get(cya));
+            F.add(ds -> ds.get(cAMP));
+            F.add(ds -> ds.get(crp));
+            F.add(ds -> ds.get(CAP));
+            F.add(ds -> ds.get(cAMPCAP));
+            F.add(ds -> ds.get(lactose_N));
+            F.add(ds -> ds.get(glucose_N));
 
-        double[][] plot_lac = new double[N][1];
-        double[][] plot_Z = new double[N][1];
-        double[][] plot_Y = new double[N][1];
-        double[][] plot_A = new double[N][1];
-        double[][] plot_lacI = new double[N][1];
-        double[][] plot_I = new double[N][1];
-        double[][] plot_IOP = new double[N][1];
-        double[][] plot_cya = new double[N][1];
-        double[][] plot_cAMP = new double[N][1];
-        double[][] plot_crp = new double[N][1];
-        double[][] plot_CAP = new double[N][1];
-        double[][] plot_cAMPCAP = new double[N][1];
-        double[][] plot_lactose = new double[N][1];
-        double[][] plot_glutose = new double[N][1];
-        double[][] plot_lactose_N = new double[N][1];
-        double[][] plot_glutose_N = new double[N][1];
+            printAvgData(rand, L, F, system, N, 1, 0, 41);
 
-        printAvgData(rand, L, F, system, N, 1, 0, 41);
-        double[][] data = SystemState.sample(rand, F, system, N, 1);
+            int obs_steps=40;
+
+            double[][] plot_Z = new double[obs_steps][1];
+            double[][] plot_Y = new double[obs_steps][1];
+            double[][] plot_A = new double[obs_steps][1];
+            double[][] plot_lactose_N = new double[obs_steps][1];
+            double[][] plot_glucose_N = new double[obs_steps][1];
 
 
 
+            double[][] data = SystemState.sample(rand, F, system, obs_steps, 1);
 
-        EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
+            for (int i = 0; i < obs_steps; i++) {
+                plot_glucose_N[i][0] = data[i][13];
+                plot_lactose_N[i][0] = data[i][12];
+                plot_Z[i][0] = data[i][1];
+                plot_Y[i][0] = data[i][2];
+                plot_A[i][0] = data[i][3];
+
+            }
+            Util.writeToCSV("./LOGlucoseN.csv", plot_glucose_N);
+            Util.writeToCSV("./LOLactoseN.csv", plot_lactose_N);
+            Util.writeToCSV("./LOZ.csv", plot_Z);
+            Util.writeToCSV("./LOY.csv", plot_Y);
+            Util.writeToCSV("./LOA.csv", plot_A);
+
+
+            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 1);
 
         /*
         The DisTLformula <code>lacExpressionAfterOnlyLactose</code> defined below expresses that it is always true
@@ -172,38 +178,38 @@ public class MainLO {
         if and only if at step n lactose is present and glucose is absent.
          */
 
-        DataStateFunction mu_lacExpressed = (rg,ds)->ds.apply(getDiracLacExpressed(rg,ds));
+            DataStateFunction mu_lacExpressed = (rg, ds) -> ds.apply(getDiracLacExpressed(rg, ds));
 
-        DataStateFunction mu_onlyLactose = (rg,ds)->ds.apply(getDiracOnlyLactose(rg,ds));
+            DataStateFunction mu_onlyLactose = (rg, ds) -> ds.apply(getDiracOnlyLactose(rg, ds));
 
-        DisTLFormula target_lacExpressed = new TargetDisTLFormula(
-                mu_lacExpressed,
-                ds->1-Math.min(Math.min(ds.get(Z),ds.get(Y)),ds.get(A)),
-                0.0
-        );
-        DisTLFormula target_onlyLactose = new TargetDisTLFormula(
-                mu_onlyLactose,
-                ds->1-Math.min(ds.get(lactose),1-ds.get(glucose)),
-                0.0
-        );
-        DisTLFormula lacExpressionAfterOnlyLactose = new ImplicationDisTLFormula(
-                target_onlyLactose,
-                new EventuallyDisTLFormula(target_lacExpressed,2,2)
-        );
+            DisTLFormula target_lacExpressed = new TargetDisTLFormula(
+                    mu_lacExpressed,
+                    ds -> 1 - Math.min(Math.min(ds.get(Z), ds.get(Y)), ds.get(A)),
+                    0.0
+            );
+            DisTLFormula target_onlyLactose = new TargetDisTLFormula(
+                    mu_onlyLactose,
+                    ds -> 1 - Math.min(ds.get(lactose), 1 - ds.get(glucose)),
+                    0.0
+            );
+            DisTLFormula lacExpressionAfterOnlyLactose = new ImplicationDisTLFormula(
+                    target_onlyLactose,
+                    new EventuallyDisTLFormula(target_lacExpressed, 2, 2)
+            );
 
-        DisTLFormula lacExpression = new AlwaysDisTLFormula(
-                lacExpressionAfterOnlyLactose,
-                0,
-                39
-        );
+            DisTLFormula lacExpression = new AlwaysDisTLFormula(
+                    lacExpressionAfterOnlyLactose,
+                    0,
+                    39
+            );
 
-        double value = new DoubleSemanticsVisitor().eval(lacExpression).eval(1, 0, sequence);
+            double value = new DoubleSemanticsVisitor().eval(lacExpression).eval(1, 0, sequence);
 
-        boolean bValue= (value >=0);
-        System.out.println("Evaluation of DisTL formula stating that lac operon is expressed at step n+2 " +
-                        "if and only if at step n there is lactose and not glucose: " + bValue);
+            boolean bValue = (value >= 0);
+            System.out.println("Evaluation of DisTL formula stating that lac operon is expressed at step n+2 " +
+                    "if and only if at step n there is lactose and not glucose: " + bValue);
 
-        //System.out.println("''Always'' lactose = 1 and glucose = 0 implies Z=Y=A=1 after 2 steps: " + bValue);
+            //System.out.println("''Always'' lactose = 1 and glucose = 0 implies Z=Y=A=1 after 2 steps: " + bValue);
 
 
         /*for(int i = 0; i < 40 ; i=i+1){
@@ -217,8 +223,15 @@ public class MainLO {
         }
 
          */
+        }
+        catch (RuntimeException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
     }
+
 
 
 
