@@ -88,29 +88,28 @@ public class Main {
     public final static int PM_A_PEEP_VALVE = 8;
     public final static int HIGH_FLOW = 60;
     public final static int H= 450;
-    public final static int TIMER_INIT = 5;
-    public final static int SIZE_DISTL = 50;
+    public final static int SIZE_DISTL = 10;
 
-    private static final int p_GB_pressure = 0;//variableRegistry.getVariable("p_speed");
-    private static final int s_GB_pressure = 1;//variableRegistry.getVariable("s_speed");
-    private static final int p_PS_ins_pressure = 2;// variableRegistry.getVariable("p_distance");
-    private static final int s_PS_ins_pressure = 3;// variableRegistry.getVariable("s_distance");
-    private static final int p_PS_exp_pressure = 4;//variableRegistry.getVariable("accel");
-    private static final int s_PS_exp_pressure = 5;//variableRegistry.getVariable("timer");
-    private static final int p_OS = 6;//variableRegistry.getVariable("warning");
-    private static final int s_OS = 7;//variableRegistry.getVariable("braking_distance");
-    private static final int p_Fl1_flow = 8; //variableRegistry.getVariable("required_distance");
-    private static final int s_Fl1_flow = 9;//variableRegistry.getVariable("safety_gap");
+    private static final int p_GB_pressure = 0;
+    private static final int s_GB_pressure = 1;
+    private static final int p_PS_ins_pressure = 2;
+    private static final int s_PS_ins_pressure = 3;
+    private static final int p_PS_exp_pressure = 4;
+    private static final int s_PS_exp_pressure = 5;
+    private static final int p_OS = 6;
+    private static final int s_OS = 7;
+    private static final int p_Fl1_flow = 8;
+    private static final int s_Fl1_flow = 9;
     private static final int p_Fl2_flow = 10;
-    private static final int s_Fl2_flow = 11;//variableRegistry.getVariable("p_speed");
-    private static final int p_temp = 12;//variableRegistry.getVariable("s_speed");
-    private static final int s_temp = 13;// variableRegistry.getVariable("p_distance");
-    private static final int s_battery_level = 18;//variableRegistry.getVariable("timer");
-    private static final int a_IN_valve = 19;//variableRegistry.getVariable("warning");
-    private static final int a_OUT_valve = 20;//variableRegistry.getVariable("braking_distance");
-    private static final int a_LED = 21; //variableRegistry.getVariable("required_distance");
+    private static final int s_Fl2_flow = 11;
+    private static final int p_temp = 12;
+    private static final int s_temp = 13;
+    private static final int s_battery_level = 18;
+    private static final int a_IN_valve = 19;
+    private static final int a_OUT_valve = 20;
+    private static final int a_LED = 21;
     private static final int RR_ms = 22;
-    private static final int peak_P_insp_p = 23;//variableRegistry.getVariable("safety_gap");
+    private static final int peak_P_insp_p = 23;
     private static final int V_tidal = 24;
     private static final int V_E = 25;
     private static final int Status = 27;
@@ -189,7 +188,7 @@ public class Main {
             DataState state = getInitialState();
             ControlledSystem system = new ControlledSystem(new ParallelController(new ParallelController(controller_MLV, controller_alarm), controller_switch),
                     (rg, ds) -> ds.apply(getEnvironmentUpdates(rg, ds)), state);
-            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 250);
+            EvolutionSequence sequence = new EvolutionSequence(rand, rg -> system, 500);
 
             DistanceExpression sav_6 = new AtomicDistanceExpressionLeq(Main::rho_sav_6);
             DistanceExpression sav_6_dist = new MinIntervalDistanceExpression(sav_6, 0, 2);
@@ -284,12 +283,8 @@ public class Main {
              */
 
             ArrayList<String> L = new ArrayList<>();
-            //L.add("init_succ");
-            //L.add("conn_patient");
             L.add("fs");
             L.add("a_LED");
-            //L.add("timer_PCV_insp");
-            //L.add("timer_insp");
             L.add("a_in");
             L.add("a_out");
             L.add("Status");
@@ -314,7 +309,6 @@ public class Main {
             L.add("V_E");
             L.add("V_E_p");
             L.add("RR_ms");
-            //L.add("timer_insp");
             L.add("s_Fl1_flow");
             L.add("p_Fl1_flow");
             L.add("peak_flow");
@@ -333,12 +327,8 @@ public class Main {
             L.add("gui_req_change_mode_PCV");
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
-            //F.add(ds->ds.get(init_succ));
-            //F.add(ds->ds.get(conn_patient));
             F.add(ds->ds.get(fs));
             F.add(ds->ds.get(a_LED));
-            //F.add(ds->ds.get(timer_PCV_insp));
-            //F.add(ds->ds.get(timer_insp));
             F.add(ds->ds.get(a_IN_valve));
             F.add(ds->ds.get(a_OUT_valve));
             F.add(ds->ds.get(Status));
@@ -348,7 +338,6 @@ public class Main {
             F.add(ds->ds.get(p_PS_ins_pressure));
             F.add(ds->ds.get(s_PS_exp_pressure));
             F.add(ds->ds.get(p_PS_exp_pressure));
-            //F.add(ds->ds.get(timer_PCV_exp));
             F.add(ds->ds.get(timer_insp));
             F.add(ds-> ds.get(timer_PCV_insp));
             F.add(ds->ds.get(timer_PCV_exp));
@@ -359,14 +348,11 @@ public class Main {
             F.add(ds->ds.get(timer_triggerDelay));
             F.add(ds->ds.get(cycle_done));
             F.add(ds->ds.get(counter_cycles));
-            //F.add(ds->ds.get(comm_sens_valves_ok));
-            //F.add(ds->ds.get(comm_cont_gui_ok));
             F.add(ds->ds.get(V_tidal));
             F.add(ds->ds.get(V_tidal_prev));
             F.add(ds->ds.get(V_E));
             F.add(ds-> ds.get(V_E_p));
             F.add(ds->ds.get(RR_ms));
-            //F.add(ds->ds.get(timer_insp));
             F.add(ds -> ds.get(s_Fl1_flow));
             F.add(ds -> ds.get(p_Fl1_flow));
             F.add(ds -> ds.get(peak_flow));
@@ -390,7 +376,7 @@ public class Main {
 
             //Trying to simulate a perturbed sequence
             EvolutionSequence sequence_pert = sequence.apply(get_Sav_16Perturbation_sim(),0, 100);
-
+            /*
             System.out.println("Starting tests on perturbed behaiour");
             Util.writeToCSV("./testPerturbed.csv", Util.evalDistanceExpression(sequence, sequence_pert, 0, 100, sav_6_dist_penal_no_alarm));
 
@@ -532,7 +518,7 @@ public class Main {
                     }
                 }
             }
-
+            */
 
             //ANALYSIS WITH DisTL
             DataStateFunction mu_cont19 = (rg, ds) -> ds.apply(getDiracCont19(rg, ds));
@@ -2061,6 +2047,7 @@ public class Main {
             double value_sav1_al23_p = new DoubleSemanticsVisitor().eval(phi_sav1_al23_p).eval(SIZE_DISTL, 0, sequence);
             double value_sav1_al24_p = new DoubleSemanticsVisitor().eval(phi_sav1_al24_p).eval(SIZE_DISTL, 0, sequence);
             double value_sav1_p = new DoubleSemanticsVisitor().eval(phi_sav1_p).eval(SIZE_DISTL, 0, sequence);
+
             double value_sav17 = new DoubleSemanticsVisitor().eval(phi_sav17).eval(SIZE_DISTL, 0, sequence);
             double value_cont5 = new DoubleSemanticsVisitor().eval(phi_cont5).eval(SIZE_DISTL, 0, sequence);
             double value_cont6_t3 = new DoubleSemanticsVisitor().eval(phi_cont6_t3).eval(SIZE_DISTL, 0, sequence);
@@ -2105,7 +2092,6 @@ public class Main {
             double value_cont39_2 = new DoubleSemanticsVisitor().eval(phi_cont39_2).eval(SIZE_DISTL, 0, sequence);
             double value_cont44 = new DoubleSemanticsVisitor().eval(phi_cont44).eval(SIZE_DISTL, 0, sequence);
 
-
             System.out.println("Robustness of testing CONT_19_1, in 0, wrt phi_cont19_1: "+value_cont19_1);
             System.out.println("Robustness of testing CONT_19_t2, in 0, wrt phi_cont19_2: "+value_cont19_2);
             System.out.println("Robustness of testing CONT_1, in 0, wrt phi_cont1: "+value_cont1);
@@ -2123,6 +2109,7 @@ public class Main {
             System.out.println("Robustness of testing SAV_1_al23_p, in 0, wrt phi_sav1_al23_p: "+value_sav1_al23_p);
             System.out.println("Robustness of testing SAV_1_al24_p, in 0, wrt phi_sav1_al24_p: "+value_sav1_al24_p);
             System.out.println("Robustness of testing SAV_1_p, in 0, wrt phi_sav1_p: "+value_sav1_p);
+
             System.out.println("Robustness of testing SAV_17, in 0, wrt phi_sav17: "+value_sav17);
             System.out.println("Robustness of testing CONT_5, in 0, wrt phi_cont5: "+value_cont5);
             System.out.println("Robustness of testing CONT_6_t3, in 0, wrt phi_cont6_t3: "+value_cont6_t3);
@@ -2166,9 +2153,8 @@ public class Main {
             System.out.println("Robustness of testing CONT_39_1_t2, in 0, wrt phi_cont39_1_t2: "+value_cont39_1_t2);
             System.out.println("Robustness of testing CONT_39_2, in 0, wrt phi_cont39_2: "+value_cont39_2);
             System.out.println("Robustness of testing CONT_44, in 0, wrt phi_cont44: "+value_cont44);
+            //Util.writeToCSV("./slow_novel_03.csv",val_test);
 
-
-            Util.writeToCSV("./slow_novel_03.csv",val_test);
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
@@ -2747,7 +2733,7 @@ public class Main {
         }
     }
     public static double rho_sav_6_penal_no_alarm(DataState state) {
-        if (state.get(RR_ms) < MIN_RR && state.get(RR_ms) != 0 ){//&& state.get(a_LED) == 0){
+        if (state.get(RR_ms) < MIN_RR && state.get(RR_ms) != 0 ){
             return 1.0;
         } else {
             return 0.0;
@@ -3524,10 +3510,7 @@ public class Main {
 
         registry.set("P_start-up", Controller.ifThenElse(
                     DataState.equalsTo(b_powerOff, 1),
-                    Controller.doTick(
-                            //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                            registry.reference("P_final")
-                    ),
+                    Controller.doTick(registry.reference("P_final")),
                     Controller.doAction(
                             (rg, ds) -> List.of(new DataStateUpdate(rr_pcv, RR_PCV),
                                     new DataStateUpdate(ie_pcv, IE_PCV),
@@ -3560,10 +3543,7 @@ public class Main {
 
         registry.set("P_start-up1", Controller.ifThenElse(
                         DataState.equalsTo(b_powerOff, 1),
-                        Controller.doTick(
-                                //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                                registry.reference("P_final")
-                        ),
+                        Controller.doTick(registry.reference("P_final")),
                         Controller.ifThenElse(
                                 DataState.equalsTo(conn_power_source, 1),
                                 Controller.doAction(
@@ -3590,10 +3570,7 @@ public class Main {
 
         registry.set("P_start-up2", Controller.ifThenElse(
                     DataState.equalsTo(b_powerOff, 1),
-                    Controller.doTick(
-                            //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                            registry.reference("P_final")
-                    ),
+                    Controller.doTick(registry.reference("P_final")),
                     Controller.ifThenElse(
                             DataState.equalsTo(comm_memory, 1).and(DataState.equalsTo(comm_cont_gui_ok, 1)),
                             Controller.doAction(
@@ -3620,10 +3597,7 @@ public class Main {
                             new DataStateUpdate(Status, 4)),
                     Controller.ifThenElse(
                             DataState.equalsTo(b_powerOff, 1),
-                            Controller.doTick(
-                                    //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                                    registry.reference("P_final")
-                            ),
+                            Controller.doTick(registry.reference("P_final")),
                             Controller.ifThenElse(
                                     (DataState.equalsTo(gui_req_res_ven, 1).or(
                                             DataState.equalsTo(power_switch_ok, 1).and(
@@ -3654,10 +3628,7 @@ public class Main {
                         new DataStateUpdate(timer_exp, 0)),
                     Controller.ifThenElse(
                             DataState.equalsTo(b_powerOff, 1),
-                            Controller.doTick(
-                                    //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                                    registry.reference("P_final")
-                            ),
+                            Controller.doTick(registry.reference("P_final")),
                             Controller.ifThenElse(
                                     DataState.equalsTo(fs, 1),
                                     Controller.doAction(
@@ -3687,7 +3658,7 @@ public class Main {
         registry.set("P_PCV", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
                 Controller.doAction(
-                        (rg, ds) -> List.of(//new DataStateUpdate(b_powerOff, 0),
+                        (rg, ds) -> List.of(
                                 new DataStateUpdate(cycle_done, 0)),
                         registry.reference("P_final")
                 ),
@@ -3695,7 +3666,8 @@ public class Main {
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
                                 (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
-                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                        new DataStateUpdate(a_OUT_valve, 1),
+                                        new DataStateUpdate(cycle_done, 0)),
                                 registry.reference("P_failSafe")
                         ),
                         Controller.doAction(
@@ -3715,11 +3687,7 @@ public class Main {
 
         registry.set("P_PCV_insp", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doAction(
-                        (rg, ds) -> List.of(//new DataStateUpdate(b_powerOff, 0),
-                                new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
@@ -3790,10 +3758,7 @@ public class Main {
 
         registry.set("P_IP_PCV", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
@@ -3843,10 +3808,7 @@ public class Main {
 
         registry.set("P_RM", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
@@ -3873,7 +3835,7 @@ public class Main {
                                         DataState.greaterThan(timer_RM, 0),
                                         Controller.doAction(
                                                 (rg, ds) -> List.of(new DataStateUpdate(timer_RM, ds.get(timer_RM) - 1),
-                                                        new DataStateUpdate(timer_insp, ds.get(timer_insp)-1)),
+                                                        new DataStateUpdate(timer_insp, ds.get(timer_insp)+1)),
                                                 registry.reference("P_RM")
                                         ),
                                         Controller.ifThenElse(
@@ -3897,15 +3859,12 @@ public class Main {
 
         registry.set("P_PCV_exp0", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
                                 (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
-                                        new DataStateUpdate(a_OUT_valve, 0)),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
                                 registry.reference("P_failSafe")
                         ),
                         Controller.doAction(
@@ -3923,10 +3882,7 @@ public class Main {
 
         registry.set("P_PCV_exp", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
@@ -4006,10 +3962,7 @@ public class Main {
 
         registry.set("P_EP_PCV", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
@@ -4045,7 +3998,7 @@ public class Main {
         registry.set("P_PSV", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
                 Controller.doAction(
-                        (rg, ds) -> List.of(//new DataStateUpdate(b_powerOff, 0),
+                        (rg, ds) -> List.of(
                                 new DataStateUpdate(cycle_done, 0)),
                         registry.reference("P_final")
                 ),
@@ -4053,7 +4006,8 @@ public class Main {
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
                                 (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
-                                        new DataStateUpdate(a_OUT_valve, 1)),
+                                        new DataStateUpdate(a_OUT_valve, 1),
+                                        new DataStateUpdate(cycle_done, 0)),
                                 registry.reference("P_failSafe")
                         ),
                         Controller.doAction(
@@ -4073,11 +4027,7 @@ public class Main {
 
         registry.set("P_PSV_insp", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doAction(
-                        (rg, ds) -> List.of(//new DataStateUpdate(b_powerOff, 0),
-                                new DataStateUpdate(timer_insp, ds.get(timer_insp) + 1)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
@@ -4138,10 +4088,7 @@ public class Main {
 
         registry.set("P_IP_PSV", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
@@ -4173,10 +4120,7 @@ public class Main {
 
         registry.set("P_RM_PSV", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
@@ -4194,7 +4138,7 @@ public class Main {
                                         DataState.greaterThan(timer_RM, 0),
                                         Controller.doAction(
                                                 (rg, ds) -> List.of(new DataStateUpdate(timer_RM, ds.get(timer_RM) - 1),
-                                                        new DataStateUpdate(timer_insp, ds.get(timer_insp)-1)),
+                                                        new DataStateUpdate(timer_insp, ds.get(timer_insp)+1)),
                                                 registry.reference("P_RM_PSV")
                                         ),
                                         Controller.doAction(
@@ -4208,15 +4152,12 @@ public class Main {
 
         registry.set("P_PSV_exp0", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
                                 (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
-                                        new DataStateUpdate(a_OUT_valve, 0)),
+                                        new DataStateUpdate(a_OUT_valve, 1)),
                                 registry.reference("P_failSafe")
                         ),
                         Controller.doAction(
@@ -4235,10 +4176,7 @@ public class Main {
 
         registry.set("P_PSV_exp", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
@@ -4300,7 +4238,7 @@ public class Main {
                                                                 DataState.equalsTo(gui_req_EP, 1),
                                                                 Controller.doAction(
                                                                         (rg, ds) -> List.of(new DataStateUpdate(a_IN_valve, 0),
-                                                                                new DataStateUpdate(a_OUT_valve, 1),
+                                                                                new DataStateUpdate(a_OUT_valve, 0),
                                                                                 new DataStateUpdate(timer_EP, MAX_T_EP),
                                                                                 new DataStateUpdate(phase, 4),
                                                                                 new DataStateUpdate(timer_exp, ds.get(timer_exp) +1)),
@@ -4324,10 +4262,7 @@ public class Main {
 
         registry.set("P_EP_PSV", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.ifThenElse(
                         DataState.equalsTo(fs, 1),
                         Controller.doAction(
@@ -4339,8 +4274,11 @@ public class Main {
                                 DataState.equalsTo(gui_req_EP, 0),
                                 Controller.doAction(
                                         (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1),
-                                                new DataStateUpdate(cycle_done, 1)),
-                                        registry.reference("P_PSV")
+                                                new DataStateUpdate(cycle_done, 1),
+                                                new DataStateUpdate(rr_pcv, RR_AP),
+                                                new DataStateUpdate(p_insp_pcv, P_INSP_AP),
+                                                new DataStateUpdate(ie_pcv, IE_AP)),
+                                        registry.reference("P_PCV")
                                 ),
                                 Controller.ifThenElse(
                                         DataState.greaterThan(timer_EP, 0),
@@ -4367,7 +4305,6 @@ public class Main {
                 (rg, ds) -> List.of(new DataStateUpdate(Status, 7),
                         new DataStateUpdate(phase, 0),
                         new DataStateUpdate(counter_cycles, 0)),
-                //TODO: possibly store paramaters?
                 registry.reference("P")
         ));
 
@@ -4386,10 +4323,7 @@ public class Main {
 
         registry.set("P_failSafeI", Controller.ifThenElse(
                 DataState.equalsTo(b_powerOff, 1),
-                Controller.doTick(
-                        //(rg, ds) -> List.of(new DataStateUpdate(b_powerOff, 0)),
-                        registry.reference("P_final")
-                ),
+                Controller.doTick(registry.reference("P_final")),
                 Controller.doTick(registry.reference("P_failSafeI"))
         ));
 
@@ -4404,145 +4338,149 @@ public class Main {
         ControllerRegistry registry = new ControllerRegistry();
 
         registry.set("P_alarms", Controller.ifThenElse(
-                DataState.equalsTo(Status, 1).or(DataState.equalsTo(Status, 2)),
+                DataState.equalsTo(b_powerOff, 1),
+                Controller.doTick(registry.reference("P_Alarms_final")),
                 Controller.ifThenElse(
-                        DataState.greaterThan(s_temp, 75).or(
-                                DataState.greaterThan(s_PS_ins_pressure, MAX_P_INSP)).or(
-                                DataState.greaterThan(s_PS_exp_pressure, MAX_PEEP).or(
-                                        DataState.greaterThan(IE_toolow_counter, 4))).or(
-                                DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 3).and(
-                                        (DataState.equalsTo(a_IN_valve, 0)).negate()
-                                ))
-                        ).or(
-                                DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 1).and(
-                                        (DataState.equalsTo(a_IN_valve, 0))
-                                ))
-                        ).or(
-                                DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 1).and(
-                                        (DataState.equalsTo(a_OUT_valve, 0)).negate()
-                                ))
-                        ).or(
-                                DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 3).and(
-                                        (DataState.equalsTo(a_OUT_valve, 1)).negate()
-                                ))
-                        ).or(DataState.equalsTo(conn_air_supply, 0)),
-                        Controller.doAction(
-                                (rg, ds) -> List.of(new DataStateUpdate(fs, 1),
-                                        new DataStateUpdate(a_LED, 1),
-                                        new DataStateUpdate(a_IN_valve, 0),
-                                        new DataStateUpdate(a_OUT_valve, 1)),
-                                registry.reference("Idle_Alarms")
-                        ),
+                        DataState.equalsTo(Status, 1).or(DataState.equalsTo(Status, 2)),
                         Controller.ifThenElse(
-                                DataState.greaterOrEqualThan(nr_of_retries_p, 5),
+                                DataState.greaterThan(s_temp, 75).or(
+                                        DataState.greaterThan(s_PS_ins_pressure, MAX_P_INSP)).or(
+                                        DataState.greaterThan(s_PS_exp_pressure, MAX_PEEP).or(
+                                                DataState.greaterThan(IE_toolow_counter, 4))).or(
+                                        DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 3).and(
+                                                (DataState.equalsTo(a_IN_valve, 0)).negate()
+                                        ))
+                                ).or(
+                                        DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 1).and(
+                                                (DataState.equalsTo(a_IN_valve, 0))
+                                        ))
+                                ).or(
+                                        DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 1).and(
+                                                (DataState.equalsTo(a_OUT_valve, 0)).negate()
+                                        ))
+                                ).or(
+                                        DataState.equalsTo(phase_changed, 1).and(DataState.equalsTo(phase, 3).and(
+                                                (DataState.equalsTo(a_OUT_valve, 1)).negate()
+                                        ))
+                                ).or(DataState.equalsTo(conn_air_supply, 0)),
                                 Controller.doAction(
                                         (rg, ds) -> List.of(new DataStateUpdate(fs, 1),
                                                 new DataStateUpdate(a_LED, 1),
                                                 new DataStateUpdate(a_IN_valve, 0),
-                                                new DataStateUpdate(a_OUT_valve, 1),
-                                                new DataStateUpdate(nr_of_retries_p, 0)),
+                                                new DataStateUpdate(a_OUT_valve, 1)),
                                         registry.reference("Idle_Alarms")
                                 ),
                                 Controller.ifThenElse(
-                                        DataState.equalsTo(conn_power_source, 0),
+                                        DataState.greaterOrEqualThan(nr_of_retries_p, 5),
                                         Controller.doAction(
-                                                (rg, ds) -> List.of(new DataStateUpdate(nr_of_retries_p, ds.get(nr_of_retries_p) +1)),
-                                                registry.reference("P_Alarms")
+                                                (rg, ds) -> List.of(new DataStateUpdate(fs, 1),
+                                                        new DataStateUpdate(a_LED, 1),
+                                                        new DataStateUpdate(a_IN_valve, 0),
+                                                        new DataStateUpdate(a_OUT_valve, 1),
+                                                        new DataStateUpdate(nr_of_retries_p, 0)),
+                                                registry.reference("Idle_Alarms")
                                         ),
                                         Controller.ifThenElse(
-                                                DataState.greaterThan(counter_cycles, 0),
-                                                Controller.ifThenElse(
-                                                        (rg, ds) -> ds.get(Status) == 1,
-                                                        Controller.ifThenElse(
-                                                                (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*ds.get(p_insp_pcv)) ||
-                                                                        ds.get(comm_sens_valves_ok) == 0
-                                                                        || ds.get(V_E) < MIN_V_E || ds.get(s_PS_exp_pressure) < MIN_PEEP ||
-                                                                        ds.get(RR_ms) > MAX_RR || (ds.get(RR_ms) < MIN_RR && ds.get(RR_ms) != 0) || ds.get(timer_PSV_exp) < 0
-                                                                        || ds.get(comm_cont_gui_ok) == 0 || ds.get(V_E) > MAX_V_E || ds.get(s_OS) > PM_A_GB_FiO2 + 3 ||
-                                                                        ds.get(s_OS) < PM_A_GB_FiO2 - 3
-                                                                ,
-                                                                Controller.doAction(
-                                                                        (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
-                                                                        registry.reference("P_alarms")
-                                                                ),
-                                                                Controller.doTick(registry.reference("P_alarms"))
-                                                        ),
-                                                        Controller.ifThenElse(
-                                                                (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*ds.get(P_INSP_PSV)) || ds.get(comm_sens_valves_ok) == 0
-                                                                        || ds.get(V_E) < MIN_V_E || ds.get(s_PS_exp_pressure) < MIN_PEEP ||
-                                                                        ds.get(RR_ms) > MAX_RR || (ds.get(RR_ms) < MIN_RR && ds.get(RR_ms) != 0) || ds.get(timer_PSV_exp) < 0
-                                                                        || ds.get(comm_cont_gui_ok) == 0 || ds.get(V_E) > MAX_V_E || ds.get(s_OS) > PM_A_GB_FiO2 + 3 ||
-                                                                        ds.get(s_OS) < PM_A_GB_FiO2 - 3
-                                                                ,
-                                                                Controller.doAction(
-                                                                        (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
-                                                                        registry.reference("P_alarms")
-                                                                ),
-                                                                Controller.doTick(registry.reference("P_alarms"))
-                                                        )
+                                                DataState.equalsTo(conn_power_source, 0),
+                                                Controller.doAction(
+                                                        (rg, ds) -> List.of(new DataStateUpdate(nr_of_retries_p, ds.get(nr_of_retries_p) +1)),
+                                                        registry.reference("P_Alarms")
                                                 ),
-                                                //else (counter_cycles == 0)
                                                 Controller.ifThenElse(
-                                                        (rg, ds) -> ds.get(Status) == 1,
+                                                        DataState.greaterThan(counter_cycles, 0),
                                                         Controller.ifThenElse(
-                                                                (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*ds.get(p_insp_pcv)) || ds.get(comm_sens_valves_ok) == 0
-                                                                        || ds.get(s_PS_exp_pressure) < MIN_PEEP || ds.get(timer_PSV_exp) < 0
-                                                                        || ds.get(comm_cont_gui_ok) == 0 || ds.get(s_OS) > PM_A_GB_FiO2 + 3 || ds.get(s_OS) < PM_A_GB_FiO2 - 3
-                                                                ,
-                                                                Controller.doAction(
-                                                                        (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
-                                                                        registry.reference("P_alarms")
+                                                                (rg, ds) -> ds.get(Status) == 1,
+                                                                Controller.ifThenElse(
+                                                                        (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*ds.get(p_insp_pcv)) ||
+                                                                                ds.get(comm_sens_valves_ok) == 0
+                                                                                || ds.get(V_E) < MIN_V_E || ds.get(s_PS_exp_pressure) < MIN_PEEP ||
+                                                                                ds.get(RR_ms) > MAX_RR || (ds.get(RR_ms) < MIN_RR && ds.get(RR_ms) != 0) || ds.get(timer_PSV_exp) < 0
+                                                                                || ds.get(comm_cont_gui_ok) == 0 || ds.get(V_E) > MAX_V_E || ds.get(s_OS) > PM_A_GB_FiO2 + 3 ||
+                                                                                ds.get(s_OS) < PM_A_GB_FiO2 - 3
+                                                                        ,
+                                                                        Controller.doAction(
+                                                                                (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
+                                                                                registry.reference("P_alarms")
+                                                                        ),
+                                                                        Controller.doTick(registry.reference("P_alarms"))
                                                                 ),
-                                                                Controller.doTick(registry.reference("P_alarms"))
+                                                                Controller.ifThenElse(
+                                                                        (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*ds.get(P_INSP_PSV)) || ds.get(comm_sens_valves_ok) == 0
+                                                                                || ds.get(V_E) < MIN_V_E || ds.get(s_PS_exp_pressure) < MIN_PEEP ||
+                                                                                ds.get(RR_ms) > MAX_RR || (ds.get(RR_ms) < MIN_RR && ds.get(RR_ms) != 0) || ds.get(timer_PSV_exp) < 0
+                                                                                || ds.get(comm_cont_gui_ok) == 0 || ds.get(V_E) > MAX_V_E || ds.get(s_OS) > PM_A_GB_FiO2 + 3 ||
+                                                                                ds.get(s_OS) < PM_A_GB_FiO2 - 3
+                                                                        ,
+                                                                        Controller.doAction(
+                                                                                (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
+                                                                                registry.reference("P_alarms")
+                                                                        ),
+                                                                        Controller.doTick(registry.reference("P_alarms"))
+                                                                )
                                                         ),
+                                                        //else (counter_cycles == 0)
                                                         Controller.ifThenElse(
-                                                                (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*P_INSP_PSV) || ds.get(comm_sens_valves_ok) == 0
-                                                                        || ds.get(s_PS_exp_pressure) < MIN_PEEP || ds.get(timer_PSV_exp) < 0
-                                                                        || ds.get(comm_cont_gui_ok) == 0 || ds.get(s_OS) > PM_A_GB_FiO2 + 3 || ds.get(s_OS) < PM_A_GB_FiO2 - 3
-                                                                ,
-                                                                Controller.doAction(
-                                                                        (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
-                                                                        registry.reference("P_alarms")
+                                                                (rg, ds) -> ds.get(Status) == 1,
+                                                                Controller.ifThenElse(
+                                                                        (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*ds.get(p_insp_pcv)) || ds.get(comm_sens_valves_ok) == 0
+                                                                                || ds.get(s_PS_exp_pressure) < MIN_PEEP || ds.get(timer_PSV_exp) < 0
+                                                                                || ds.get(comm_cont_gui_ok) == 0 || ds.get(s_OS) > PM_A_GB_FiO2 + 3 || ds.get(s_OS) < PM_A_GB_FiO2 - 3
+                                                                        ,
+                                                                        Controller.doAction(
+                                                                                (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
+                                                                                registry.reference("P_alarms")
+                                                                        ),
+                                                                        Controller.doTick(registry.reference("P_alarms"))
                                                                 ),
-                                                                Controller.doTick(registry.reference("P_alarms"))
+                                                                Controller.ifThenElse(
+                                                                        (rg, ds) -> ds.get(s_PS_ins_pressure) < ((double) MIN_P_INSP /100*P_INSP_PSV) || ds.get(comm_sens_valves_ok) == 0
+                                                                                || ds.get(s_PS_exp_pressure) < MIN_PEEP || ds.get(timer_PSV_exp) < 0
+                                                                                || ds.get(comm_cont_gui_ok) == 0 || ds.get(s_OS) > PM_A_GB_FiO2 + 3 || ds.get(s_OS) < PM_A_GB_FiO2 - 3
+                                                                        ,
+                                                                        Controller.doAction(
+                                                                                (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
+                                                                                registry.reference("P_alarms")
+                                                                        ),
+                                                                        Controller.doTick(registry.reference("P_alarms"))
+                                                                )
                                                         )
                                                 )
                                         )
                                 )
-                        )
-                ),
-                Controller.ifThenElse(
-                        DataState.greaterThan(s_temp, 75).or(DataState.equalsTo(conn_air_supply, 0)),
-                        Controller.doAction(
-                                (rg, ds) -> List.of(new DataStateUpdate(fs, 1),
-                                        new DataStateUpdate(a_LED, 1),
-                                        new DataStateUpdate(a_IN_valve, 0),
-                                        new DataStateUpdate(a_OUT_valve, 1)),
-                                registry.reference("Idle_Alarms")
                         ),
                         Controller.ifThenElse(
-                                DataState.greaterOrEqualThan(nr_of_retries_p, 5),
+                                DataState.greaterThan(s_temp, 75).or(DataState.equalsTo(conn_air_supply, 0)),
                                 Controller.doAction(
                                         (rg, ds) -> List.of(new DataStateUpdate(fs, 1),
                                                 new DataStateUpdate(a_LED, 1),
                                                 new DataStateUpdate(a_IN_valve, 0),
-                                                new DataStateUpdate(a_OUT_valve, 1),
-                                                new DataStateUpdate(nr_of_retries_p, 0)),
+                                                new DataStateUpdate(a_OUT_valve, 1)),
                                         registry.reference("Idle_Alarms")
                                 ),
                                 Controller.ifThenElse(
-                                        DataState.equalsTo(conn_power_source, 0),
+                                        DataState.greaterOrEqualThan(nr_of_retries_p, 5),
                                         Controller.doAction(
-                                                (rg, ds) -> List.of(new DataStateUpdate(nr_of_retries_p, ds.get(nr_of_retries_p) +1)),
-                                                registry.reference("P_Alarms")
+                                                (rg, ds) -> List.of(new DataStateUpdate(fs, 1),
+                                                        new DataStateUpdate(a_LED, 1),
+                                                        new DataStateUpdate(a_IN_valve, 0),
+                                                        new DataStateUpdate(a_OUT_valve, 1),
+                                                        new DataStateUpdate(nr_of_retries_p, 0)),
+                                                registry.reference("Idle_Alarms")
                                         ),
                                         Controller.ifThenElse(
-                                                DataState.equalsTo(comm_sens_valves_ok, 0).or(DataState.equalsTo(comm_cont_gui_ok, 0)),
+                                                DataState.equalsTo(conn_power_source, 0),
                                                 Controller.doAction(
-                                                        (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
-                                                        registry.reference("P_alarms")
+                                                        (rg, ds) -> List.of(new DataStateUpdate(nr_of_retries_p, ds.get(nr_of_retries_p) +1)),
+                                                        registry.reference("P_Alarms")
                                                 ),
-                                                Controller.doTick(registry.reference("P_alarms"))
+                                                Controller.ifThenElse(
+                                                        DataState.equalsTo(comm_sens_valves_ok, 0).or(DataState.equalsTo(comm_cont_gui_ok, 0)),
+                                                        Controller.doAction(
+                                                                (rg, ds) -> List.of(new DataStateUpdate(a_LED, 1)),
+                                                                registry.reference("P_alarms")
+                                                        ),
+                                                        Controller.doTick(registry.reference("P_alarms"))
+                                                )
                                         )
                                 )
                         )
@@ -4568,7 +4506,6 @@ public class Main {
                         (rg, ds) -> List.of(new DataStateUpdate(Status, 7),
                                 new DataStateUpdate(phase, 0),
                                 new DataStateUpdate(a_LED, 0)),
-                        //TODO: store paramaters?
                         registry.reference("P_alarms_final")
                 )
         ));
@@ -4731,14 +4668,12 @@ public class Main {
         }
         if (state.get(Status) == 7) {//in the final state, the patient should be disconnected again
             updates.add(new DataStateUpdate(conn_patient, 0));
-            //updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 1)); //we want to be able to start breathing again
             updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 0));
         }
 
         //COMMUNICATING VALUES / COMPUTING VARIABLES
         if (state.get(cycle_done) == 1){
             updates.add(new DataStateUpdate(counter_cycles, state.get(counter_cycles)+1));
-            //updates.add(new DataStateUpdate(cycle_done, 0));
         }
         double new_RR = 0.0;
         double new_IE = 0.0;
@@ -4854,19 +4789,6 @@ public class Main {
         updates.add(new DataStateUpdate(drop_PAW_p, (state.get(p_PS_ins_pressure) - new_pressure_in)/(1)));
 
         //Non-deterministic environment updates
-        //TODO: think about when to reset the gui_req values
-        /*
-        if (state.get(counter_cycles) == 2 && state.get(p_insp_pcv) != P_INSP_AP) {
-            updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 1));
-            updates.add(new DataStateUpdate(gui_param_psv_ok, 1));
-        }
-
-        if (state.get(counter_cycles) == 4 && state.get(cycle_done) == 1) {
-            updates.add(new DataStateUpdate(b_powerOff, 1));
-            updates.add(new DataStateUpdate(gui_req_change_mode_PCV, 0));
-            updates.add(new DataStateUpdate(gui_req_change_mode_PSV, 0));
-        }*/
-
         if (state.get(p_PS_ins_pressure) == 0 && (state.get(Status) == 0 || state.get(Status) == 7) && rg.nextDouble() < 0.3) {
             updates.add(new DataStateUpdate(b_powerOn, 1));
         }
