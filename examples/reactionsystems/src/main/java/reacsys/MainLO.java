@@ -184,13 +184,14 @@ public class MainLO {
 
             DisTLFormula target_lacExpressed = new TargetDisTLFormula(
                     mu_lacExpressed,
-                    ds -> 1 - Math.min(Math.min(ds.get(Z), ds.get(Y)), ds.get(A)),
-                    0.0
+                    ds->1.0-Math.min(Math.min(ds.get(Z), ds.get(Y)), ds.get(A)),
+                    //ds -> 1-ds.get(Z),
+                            0.2
             );
             DisTLFormula target_onlyLactose = new TargetDisTLFormula(
                     mu_onlyLactose,
-                    ds -> 1 - Math.min(ds.get(lactose), 1 - ds.get(glucose)),
-                    0.0
+                    ds -> 1-Math.min(ds.get(lactose), 1 - ds.get(glucose)),
+                    0.3
             );
             DisTLFormula lacExpressionAfterOnlyLactose = new ImplicationDisTLFormula(
                     target_onlyLactose,
@@ -205,25 +206,36 @@ public class MainLO {
 
             double value = new DoubleSemanticsVisitor().eval(lacExpression).eval(1, 0, sequence);
 
-            boolean bValue = (value >= 0);
+            boolean bValue = (value >0);
             System.out.println("Evaluation of DisTL formula stating that lac operon is expressed at step n+2 " +
                     "if and only if at step n there is lactose and not glucose: " + bValue);
 
             //System.out.println("''Always'' lactose = 1 and glucose = 0 implies Z=Y=A=1 after 2 steps: " + bValue);
 
 
-        /*for(int i = 0; i < 40 ; i=i+1){
-            double value1 = new DoubleSemanticsVisitor().eval(target_onlyLactose).eval(1, i, sequence);
-            System.out.println(i+":"+ " " + value1);
+            for(int i = 0; i < 40 ; i=i+1){
+              double value1 = new DoubleSemanticsVisitor().eval(target_onlyLactose).eval(1, i, sequence);
+              System.out.println(i+":"+ " " + value1);
+            }
+
+            System.out.println("");
+            System.out.println("");
+
+            for(int i = 0; i < 40 ; i=i+1){
+              double value1 = new DoubleSemanticsVisitor().eval(target_lacExpressed).eval(1, i, sequence);
+              System.out.println(i+":"+ " " + value1);
+            }
+
+            System.out.println("");
+            System.out.println("");
+
+            for(int i = 0; i < 40 ; i=i+1){
+                double value1 = new DoubleSemanticsVisitor().eval(lacExpressionAfterOnlyLactose).eval(1, i, sequence);
+                System.out.println(i+":"+ " " + value1);
+            }
+
         }
 
-        for(int i = 0; i < 40 ; i=i+1){
-            double value1 = new DoubleSemanticsVisitor().eval(target_lacExpressed).eval(1, i, sequence);
-            System.out.println(i+":"+ " " + value1);
-        }
-
-         */
-        }
         catch (RuntimeException e) {
             e.printStackTrace();
         } catch (IOException e) {
