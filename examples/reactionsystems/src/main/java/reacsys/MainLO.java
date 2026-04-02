@@ -38,11 +38,11 @@ public class MainLO {
     public static final int crp = 9; // gene encoding signal molecule cAMP
     public static final int CAP = 10; // protein
     public static final int cAMPCAP= 11; // complex CAP - cAMP
-    public static final int lactose = 12; // lactose at past step
-    public static final int glucose = 13; // glucose at past step
+    public static final int lactose = 12; // lactose
+    public static final int glucose = 13; // glucose
 
-    public static final int lactose_N = 14; // lactose at present step
-    public static final int glucose_N = 15; // glucose at present step
+    public static final int lactose_N = 14; // lactose provided by context
+    public static final int glucose_N = 15; // glucose provided by context
 
     private static final int NUMBER_OF_VARIABLES = 16;
 
@@ -141,6 +141,7 @@ public class MainLO {
             F.add(ds -> ds.get(lactose_N));
             F.add(ds -> ds.get(glucose_N));
 
+
             printAvgData(rand, L, F, system, N, 1, 0, 41);
 
             int obs_steps=40;
@@ -204,13 +205,15 @@ public class MainLO {
                     39
             );
 
-            double value = new DoubleSemanticsVisitor().eval(lacExpression).eval(1, 0, sequence);
 
-            boolean bValue = (value >0);
-            System.out.println("Evaluation of DisTL formula stating that lac operon is expressed at step n+2 " +
-                    "if and only if at step n there is lactose and not glucose: " + bValue);
 
             //System.out.println("''Always'' lactose = 1 and glucose = 0 implies Z=Y=A=1 after 2 steps: " + bValue);
+
+
+            System.out.println("");
+            System.out.println("Robustness at several time steps of formula expressing the presence of lactose and absence of glucose:");
+            System.out.println("");
+
 
 
             for(int i = 0; i < 40 ; i=i+1){
@@ -219,6 +222,7 @@ public class MainLO {
             }
 
             System.out.println("");
+            System.out.println("Robustness at several time steps of formula expressing that lac operon is expressed: ");
             System.out.println("");
 
             for(int i = 0; i < 40 ; i=i+1){
@@ -227,12 +231,24 @@ public class MainLO {
             }
 
             System.out.println("");
+            System.out.println("Robustness at several time steps of formula expressing the presence of lactose and absence of glucose is followed by lac operon expression after 2 steps:");
             System.out.println("");
+
 
             for(int i = 0; i < 40 ; i=i+1){
                 double value1 = new DoubleSemanticsVisitor().eval(lacExpressionAfterOnlyLactose).eval(1, i, sequence);
                 System.out.println(i+":"+ " " + value1);
             }
+
+            double value = new DoubleSemanticsVisitor().eval(lacExpression).eval(1, 0, sequence);
+
+            boolean bValue = (value >0);
+            System.out.println("");
+            System.out.println("");
+            System.out.println("Robustness of the DisTL formula stating that in all time points of the interval");
+            System.out.println("if there is lactose and not glucose then lac operon is expressed after two steps: ");
+            System.out.println(value);
+
 
         }
 
@@ -336,19 +352,6 @@ public class MainLO {
             updates.add(new DataStateUpdate(A,0));
         }
 
-        /*
-        updates.add(new DataStateUpdate(lac,state.get(lac_N)));
-        updates.add(new DataStateUpdate(Z,state.get(Z_N)));
-        updates.add(new DataStateUpdate(Y,state.get(Y_N)));
-        updates.add(new DataStateUpdate(A,state.get(Z_N)));
-        updates.add(new DataStateUpdate(cya,state.get(cya_N)));
-        updates.add(new DataStateUpdate(crp,state.get(crp_N)));
-        updates.add(new DataStateUpdate(CAP,state.get(CAP_N)));
-        updates.add(new DataStateUpdate(cAMP,state.get(cAMP_N)));
-        updates.add(new DataStateUpdate(lacI,state.get(lacI_N)));
-        updates.add(new DataStateUpdate(IOP,state.get(IOP_N)));
-        updates.add(new DataStateUpdate(cAMPCAP,state.get(cAMPCAP_N)));
-        */
 
         updates.add(new DataStateUpdate(lactose,state.get(lactose_N)));
         updates.add(new DataStateUpdate(glucose,state.get(glucose_N)));
@@ -378,19 +381,6 @@ public class MainLO {
         initialValues.put(cAMPCAP, 0.0);
         initialValues.put(lactose, 0.0);
         initialValues.put(glucose, 0.0);
-        /*initialValues.put(lac_N, 0.0); //
-        initialValues.put(Z_N, 0.0);
-        initialValues.put(Y_N, 0.0);
-        initialValues.put(A_N, 0.0);
-        initialValues.put(lacI_N, 0.0); //
-        initialValues.put(I_N, 0.0); //
-        initialValues.put(IOP_N, 0.0);
-        initialValues.put(cya_N, 0.0); //
-        initialValues.put(cAMP_N, 0.0); //
-        initialValues.put(crp_N, 0.0); //
-        initialValues.put(CAP_N, 0.0); //
-        initialValues.put(cAMPCAP_N, 0.0);
-         */
         initialValues.put(lactose_N, 0.0);
         initialValues.put(glucose_N, 0.0);
         return new DataState(NUMBER_OF_VARIABLES, i -> initialValues.getOrDefault(i, Double.NaN));
