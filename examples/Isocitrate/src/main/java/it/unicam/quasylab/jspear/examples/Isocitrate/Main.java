@@ -89,6 +89,7 @@ public class Main {
     public final static int HIGH_FLOW = 60;
     public final static int H= 450;
     public final static int SIZE_DISTL = 10;
+    public final static int SIZE_ROBTL = 50;
 
     private static final int p_GB_pressure = 0;
     private static final int s_GB_pressure = 1;
@@ -244,7 +245,6 @@ public class Main {
                     1.0
             );
 
-            //TODO: ensure that sav_16 is according to Excel formula again
             RobustnessFormula Phi_sav_16 = new AlwaysRobustnessFormula(
                     new AtomicRobustnessFormula(
                             get_Sav_16Perturbation(),
@@ -253,7 +253,7 @@ public class Main {
                             eta_sav_16
                     ),
                     0,
-                    9
+                    H
             );
 
             RobustnessFormula Phi_cont_15 =
@@ -325,6 +325,8 @@ public class Main {
             L.add("comm_cont_gui_ok");
             L.add("conn_patient");
             L.add("gui_req_change_mode_PCV");
+            L.add("gui_req_change_mode_PSV");
+            L.add("gui_req_stop_vent");
 
             ArrayList<DataStateExpression> F = new ArrayList<>();
             F.add(ds->ds.get(fs));
@@ -369,6 +371,8 @@ public class Main {
             F.add(ds -> ds.get(comm_cont_gui_ok));
             F.add(ds -> ds.get(conn_patient));
             F.add(ds -> ds.get(gui_req_change_mode_PCV));
+            F.add(ds -> ds.get(gui_req_change_mode_PSV));
+            F.add(ds -> ds.get(gui_req_stop_vent));
 
             printLData(rand,L,F,system,150,1);
             System.out.println("Here the perturbed system with perturbation get_Sav6_t2");
@@ -376,14 +380,14 @@ public class Main {
 
             //Trying to simulate a perturbed sequence
             EvolutionSequence sequence_pert = sequence.apply(get_Sav_16Perturbation_sim(),0, 100);
-            /*
+
             System.out.println("Starting tests on perturbed behaiour");
-            Util.writeToCSV("./testPerturbed.csv", Util.evalDistanceExpression(sequence, sequence_pert, 0, 100, sav_6_dist_penal_no_alarm));
+            //Util.writeToCSV("./testPerturbed.csv", Util.evalDistanceExpression(sequence, sequence_pert, 0, 100, sav_6_dist_penal_no_alarm));
 
             double[][] val_test_t3_2 = new double[15][1];
             for(int i = 0; i<15; i++) {
                 int step = i*10;
-                TruthValues value1_t3_2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6_t3_2).eval(60, step, sequence);
+                TruthValues value1_t3_2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6_t3_2).eval(SIZE_ROBTL, step, sequence);
                 System.out.println("Phi_sav_6_t3_2 evaluation at step "+step+": " + value1_t3_2);
                 if (value1_t3_2 == TruthValues.TRUE) {
                     val_test_t3_2[i][0] = 1;
@@ -397,10 +401,11 @@ public class Main {
             }
 
             System.out.println();
+            /*
             double[][] val_test = new double[15][1];
             for(int i = 0; i<15; i++) {
                 int step = i*10;
-                TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6).eval(60, step, sequence);
+                TruthValues value1 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6).eval(SIZE_ROBTL, step, sequence);
                 System.out.println("Phi_sav_6 evaluation at step "+step+": " + value1);
                 if (value1 == TruthValues.TRUE) {
                     val_test[i][0] = 1;
@@ -418,7 +423,7 @@ public class Main {
             double[][] val_test_alarm  = new double[15][1];
             for(int i = 0; i<15; i++) {
                 int step = i*5;
-                TruthValues value1_alarm  = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6_alarm).eval(60, step, sequence);
+                TruthValues value1_alarm  = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6_alarm).eval(SIZE_ROBTL, step, sequence);
                 System.out.println("Phi_sav_6_alarm evaluation at step "+step+": " + value1_alarm );
                 if (value1_alarm  == TruthValues.TRUE) {
                     val_test_alarm [i][0] = 1;
@@ -433,10 +438,12 @@ public class Main {
 
             System.out.println();
 
+             */
+
             double[][] val_sav_16 = new double[10][1];
             for(int i = 0; i<10; i++) {
                 int step = i*30;
-                TruthValues value_sav_16 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_16).eval(60, step, sequence);
+                TruthValues value_sav_16 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_16).eval(SIZE_ROBTL, step, sequence);
                 System.out.println("Phi_sav_16 evaluation at step "+step+": " + value_sav_16);
                 if (value_sav_16 == TruthValues.TRUE) {
                     val_sav_16[i][0] = 1;
@@ -448,12 +455,13 @@ public class Main {
                     }
                 }
             }
+
             System.out.println();
 
-            double[][] val_sav_16_per = new double[10][1];
-            for(int i = 0; i<10; i++) {
-                int step = i*30;
-                TruthValues value_sav_16_per = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_16_per).eval(60, step, sequence);
+            double[][] val_sav_16_per = new double[31][1];
+            for(int i = 0; i<31; i++) {
+                int step = i*5;
+                TruthValues value_sav_16_per = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_16_per).eval(SIZE_ROBTL, step, sequence);
                 System.out.println("Phi_sav_16_per evaluation at step "+step+": " + value_sav_16_per);
                 if (value_sav_16_per == TruthValues.TRUE) {
                     val_sav_16_per[i][0] = 1;
@@ -467,11 +475,11 @@ public class Main {
             }
 
             System.out.println();
-
+            /*
             double[][] val_cont_15 = new double[10][1];
             for(int i = 0; i<10; i++) {
                 int step = i*1;
-                TruthValues value_cont_15 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_cont_15).eval(60, step, sequence);
+                TruthValues value_cont_15 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_cont_15).eval(SIZE_ROBTL, step, sequence);
                 System.out.println("Phi_cont_15 evaluation at step "+step+": " + value_cont_15);
                 if (value_cont_15 == TruthValues.TRUE) {
                     val_cont_15[i][0] = 1;
@@ -488,7 +496,7 @@ public class Main {
             double[][] val_cont_15_per = new double[10][1];
             for(int i = 0; i<10; i++) {
                 int step = i;
-                TruthValues value_cont_15_per = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_cont_15_per).eval(60, step, sequence);
+                TruthValues value_cont_15_per = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_cont_15_per).eval(SIZE_ROBTL, step, sequence);
                 System.out.println("Phi_cont_15_per evaluation at step "+step+": " + value_cont_15_per);
                 if (value_cont_15_per == TruthValues.TRUE) {
                     val_cont_15_per[i][0] = 1;
@@ -506,7 +514,7 @@ public class Main {
             double[][] val_basic_test = new double[10][1];
             for(int i = 0; i<10; i++) {
                 int step = i*30;
-                TruthValues value_basic_test = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_basic_test).eval(60, step, sequence);
+                TruthValues value_basic_test = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_basic_test).eval(SIZE_ROBTL, step, sequence);
                 System.out.println("Phi_basic_test evaluation at step "+step+": " + value_basic_test);
                 if (value_basic_test == TruthValues.TRUE) {
                     val_basic_test[i][0] = 1;
@@ -520,17 +528,13 @@ public class Main {
             }
             */
 
+
+
+
             //ANALYSIS WITH DisTL
             DataStateFunction mu_cont19 = (rg, ds) -> ds.apply(getDiracCont19(rg, ds));
             DataStateFunction mu_cont19_t2_p2 = (rg, ds) -> ds.apply(getDiracCont19_t2_p2(rg, ds));
-            DataStateFunction mu_test0 = (rg, ds) -> ds.apply(getDiracTest0(rg, ds));
-            DataStateFunction mu_test1 = (rg, ds) -> ds.apply(getDiracTest1(rg, ds));
-            DataStateFunction mu_test2 = (rg, ds) -> ds.apply(getDiracTest2(rg, ds));
-            DataStateFunction mu_test3 = (rg, ds) -> ds.apply(getDiracTest3(rg, ds));
-            DataStateFunction mu_test4 = (rg, ds) -> ds.apply(getDiracTest4(rg, ds));
-            DataStateFunction mu_test5 = (rg, ds) -> ds.apply(getDiracTest5(rg, ds));
-            DataStateFunction mu_test6 = (rg, ds) -> ds.apply(getDiracTest6(rg, ds));
-            DataStateFunction mu_test7 = (rg, ds) -> ds.apply(getDiracTest7(rg, ds));
+            DataStateFunction mu_cont1 = (rg, ds) -> ds.apply(getDiracCont1(rg, ds));
 
             DataStateFunction mu_cont36_3 = (rg, ds) -> ds.apply(getDiracCont36_3(rg, ds));
             DataStateFunction mu_cont36_3_part1 = (rg, ds) -> ds.apply(getDiracCont36_3_part1(rg, ds));
@@ -612,7 +616,8 @@ public class Main {
             DataStateFunction mu_cont44_2 = (rg, ds) -> ds.apply(getDiracCont44_2(rg, ds));
 
             double eta_cont19 = 0.0;
-            double eta_test0 = 0.6;
+            double eta_test0 = 0.0;
+            double eta_cont1 = 0.0;
             double eta_cont36_3 = 0.0;
             double eta_cont36_3_part1 = 0.0;
             double eta_cont1_3 = 0.0;
@@ -634,7 +639,7 @@ public class Main {
             double eta_cont25_part2 = 0.0;
             double eta_cont15 = 0.0;
             double eta_sav6 = 0.0;
-            double eta_sav16 = 0.0;
+            double eta_sav16 = 0.25;
             double eta_cont46 = 0.0;
             double eta_cont26 = 0.0;
             double eta_cont36_1 = 0.0;
@@ -658,7 +663,7 @@ public class Main {
                                     new TargetDisTLFormula(
                                             mu_cont19,
                                             Main::rho_cont19_t2_p1,
-                                            eta_cont19
+                                            0.25
                                     )
                             ),
                             new AlwaysDisTLFormula(
@@ -673,6 +678,38 @@ public class Main {
                     ),
                     0,
                     H
+            );
+            DisTLFormula phi_cont19_2_t2 = new ConjunctionDisTLFormula(
+                    new EventuallyDisTLFormula(
+                            new TargetDisTLFormula(
+                                    mu_cont19,
+                                    Main::rho_cont19_t2_p1,
+                                    0.0
+                            ),
+                            0,
+                            H
+                    ),
+                    new AlwaysDisTLFormula(
+                            new DisjunctionDisTLFormula(
+                                    new NegationDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_cont19,
+                                                    Main::rho_cont19_t2_p1,
+                                                    0.5
+                                            )
+                                    ),
+                                    new AlwaysDisTLFormula(
+                                            new BrinkDisTLFormula(
+                                                    mu_cont19_t2_p2,
+                                                    Main::rho_cont19_t2_p2,
+                                                    0.1
+                                            ),
+                                            1,
+                                            1
+                                    )
+                            ),
+                            0,
+                            H)
             );
 
             DisTLFormula phi_cont36_3_part2 = new AlwaysDisTLFormula(
@@ -873,6 +910,7 @@ public class Main {
                     ),
                     0,
                     H
+
             );
             DisTLFormula phi_sav1 = new ConjunctionDisTLFormula(
                     phi_sav1_al23,
@@ -1004,7 +1042,7 @@ public class Main {
                     )
             );
 
-            DisTLFormula phi_cont6_t3 = new AlwaysDisTLFormula(
+            DisTLFormula phi_cont6_t1 = new AlwaysDisTLFormula(
                     new DisjunctionDisTLFormula(
                             new NegationDisTLFormula(
                                     new TargetDisTLFormula(
@@ -1536,7 +1574,7 @@ public class Main {
                                     new TargetDisTLFormula(
                                             mu_sav6_2,
                                             Main::rho_sav_6_alarm,
-                                            eta_sav16
+                                            0
                                     ),
                                     0,
                                     2
@@ -1964,74 +2002,19 @@ public class Main {
             );
 
             DisTLFormula phi_cont1 = new AlwaysDisTLFormula(
-                    new DisjunctionDisTLFormula(
-                            new DisjunctionDisTLFormula(
-                                    new DisjunctionDisTLFormula(
-                                            new DisjunctionDisTLFormula(
-                                                    new DisjunctionDisTLFormula(
-                                                            new DisjunctionDisTLFormula(
-                                                                    new DisjunctionDisTLFormula(
-                                                                            //status 7
-                                                                            new TargetDisTLFormula(
-                                                                                    mu_test7,
-                                                                                    Main::rho_test7,
-                                                                                    eta_test0
-                                                                            ),
-                                                                            new TargetDisTLFormula(
-                                                                                    mu_test6,
-                                                                                    Main::rho_test6,
-                                                                                    eta_test0
-                                                                            )
-                                                                            //status 6
-                                                                    ),
-                                                                    new TargetDisTLFormula(
-                                                                            mu_test5,
-                                                                            Main::rho_test5,
-                                                                            eta_test0
-                                                                    )
-                                                                    //status 5
-                                                            ),
-                                                            new TargetDisTLFormula(
-                                                                    mu_test4,
-                                                                    Main::rho_test4,
-                                                                    eta_test0
-                                                            )
-                                                            //status 4
-                                                    ),
-                                                    new TargetDisTLFormula(
-                                                            mu_test3,
-                                                            Main::rho_test3,
-                                                            eta_test0
-                                                    )
-                                                    //status 3
-                                            ),
-                                            new TargetDisTLFormula(
-                                                    mu_test2,
-                                                    Main::rho_test2,
-                                                    eta_test0
-                                            )
-                                            //status 2
-                                    ),
-                                    new TargetDisTLFormula(
-                                            mu_test1,
-                                            Main::rho_test1,
-                                            eta_test0
-                                    )
-                                    //status 1
-                            ),
-                            new TargetDisTLFormula(
-                                    mu_test0,
-                                    Main::rho_test0,
-                                    eta_test0
-                            )
-                            //status 0
-                    ),
+                    new TargetDisTLFormula(
+                            mu_cont1,
+                            Main::rho_cont1,
+                            eta_cont1
+                    )
+                    ,
                     0,
                     H
             );
 
             double value_cont19_1 = new DoubleSemanticsVisitor().eval(phi_cont19_1).eval(SIZE_DISTL, 0, sequence);
             double value_cont19_2 = new DoubleSemanticsVisitor().eval(phi_cont19_2).eval(SIZE_DISTL, 0, sequence);
+            double value_cont19_2_t2 = new DoubleSemanticsVisitor().eval(phi_cont19_2_t2).eval(SIZE_DISTL, 0, sequence);
             double value_cont1 = new DoubleSemanticsVisitor().eval(phi_cont1).eval(SIZE_DISTL, 0, sequence);
             double value_cont36_3_part2 = new DoubleSemanticsVisitor().eval(phi_cont36_3_part2).eval(SIZE_DISTL, 0, sequence);
             double value_cont36_3_part1 = new DoubleSemanticsVisitor().eval(phi_cont36_3_part1).eval(SIZE_DISTL, 0, sequence);
@@ -2050,7 +2033,7 @@ public class Main {
 
             double value_sav17 = new DoubleSemanticsVisitor().eval(phi_sav17).eval(SIZE_DISTL, 0, sequence);
             double value_cont5 = new DoubleSemanticsVisitor().eval(phi_cont5).eval(SIZE_DISTL, 0, sequence);
-            double value_cont6_t3 = new DoubleSemanticsVisitor().eval(phi_cont6_t3).eval(SIZE_DISTL, 0, sequence);
+            double value_cont6_t1 = new DoubleSemanticsVisitor().eval(phi_cont6_t1).eval(SIZE_DISTL, 0, sequence);
             double value_cont6_t2_v2 = new DoubleSemanticsVisitor().eval(phi_cont6_t2_v2).eval(SIZE_DISTL, 0, sequence);
             double value_cont8 = new DoubleSemanticsVisitor().eval(phi_cont8).eval(SIZE_DISTL, 0, sequence);
             double value_cont10 = new DoubleSemanticsVisitor().eval(phi_cont10).eval(SIZE_DISTL, 0, sequence);
@@ -2078,12 +2061,17 @@ public class Main {
             double value_cont15 = new DoubleSemanticsVisitor().eval(phi_cont15).eval(SIZE_DISTL, 0, sequence);
             double value_sav6 = new DoubleSemanticsVisitor().eval(phi_sav6).eval(SIZE_DISTL, 0, sequence);
             double value_sav16 = new DoubleSemanticsVisitor().eval(phi_sav16).eval(SIZE_DISTL, 0, sequence);
+
+            /*
             double value_cont46_p1 = new DoubleSemanticsVisitor().eval(phi_cont46_p1).eval(SIZE_DISTL, 0, sequence);
             double value_cont46_p2 = new DoubleSemanticsVisitor().eval(phi_cont46_p2).eval(SIZE_DISTL, 0, sequence);
             double value_cont46 = new DoubleSemanticsVisitor().eval(phi_cont46).eval(SIZE_DISTL, 0, sequence);
+
             double value_cont46_r1 = new DoubleSemanticsVisitor().eval(phi_cont46_r1).eval(SIZE_DISTL, 0, sequence);
             double value_cont46_r2 = new DoubleSemanticsVisitor().eval(phi_cont46_r2).eval(SIZE_DISTL, 0, sequence);
             double value_cont46_r = new DoubleSemanticsVisitor().eval(phi_cont46_r).eval(SIZE_DISTL, 0, sequence);
+
+            */
             double value_cont26 = new DoubleSemanticsVisitor().eval(phi_cont26).eval(SIZE_DISTL, 0, sequence);
             double value_cont36_1 = new DoubleSemanticsVisitor().eval(phi_cont36_1).eval(SIZE_DISTL, 0, sequence);
             double value_cont33 = new DoubleSemanticsVisitor().eval(phi_cont33).eval(SIZE_DISTL, 0, sequence);
@@ -2094,6 +2082,7 @@ public class Main {
 
             System.out.println("Robustness of testing CONT_19_1, in 0, wrt phi_cont19_1: "+value_cont19_1);
             System.out.println("Robustness of testing CONT_19_t2, in 0, wrt phi_cont19_2: "+value_cont19_2);
+            System.out.println("Robustness of testing CONT_19_t2_t2, in 0, wrt phi_cont19_2_t2: "+value_cont19_2_t2);
             System.out.println("Robustness of testing CONT_1, in 0, wrt phi_cont1: "+value_cont1);
             System.out.println("Robustness of testing CONT_36_3_part2, in 0, wrt phi_cont36_3_part2: "+value_cont36_3_part2);
             System.out.println("Robustness of testing CONT_36_3_part1, in 0, wrt phi_cont36_3_part1: "+value_cont36_3_part1);
@@ -2112,7 +2101,7 @@ public class Main {
 
             System.out.println("Robustness of testing SAV_17, in 0, wrt phi_sav17: "+value_sav17);
             System.out.println("Robustness of testing CONT_5, in 0, wrt phi_cont5: "+value_cont5);
-            System.out.println("Robustness of testing CONT_6_t3, in 0, wrt phi_cont6_t3: "+value_cont6_t3);
+            System.out.println("Robustness of testing CONT_6_t1, in 0, wrt phi_cont6_t1: "+value_cont6_t1);
             System.out.println("Robustness of testing CONT_6_t2_v2, in 0, wrt phi_cont6_t2_v2: "+value_cont6_t2_v2);
             System.out.println("Robustness of testing CONT_8, in 0, wrt phi_cont8: "+value_cont8);
             System.out.println("Robustness of testing CONT_10, in 0, wrt phi_cont10: "+value_cont10);
@@ -2140,12 +2129,17 @@ public class Main {
             System.out.println("Robustness of testing CONT_15, in 0, wrt phi_cont15: "+value_cont15);
             System.out.println("Robustness of testing SAV_6, in 0, wrt phi_sav6: "+value_sav6);
             System.out.println("Robustness of testing SAV_16, in 0, wrt phi_sav16: "+value_sav16);
+
+            /*
             System.out.println("Robustness of testing CONT_46_p1, in 0, wrt phi_cont46_p1: "+value_cont46_p1);
             System.out.println("Robustness of testing CONT_46_p2, in 0, wrt phi_cont46_p2: "+value_cont46_p2);
             System.out.println("Robustness of testing CONT_46, in 0, wrt phi_cont46: "+value_cont46);
+
             System.out.println("Robustness of testing CONT_46_r1, in 0, wrt phi_cont46_r1: "+value_cont46_r1);
             System.out.println("Robustness of testing CONT_46_r2, in 0, wrt phi_cont46_r2: "+value_cont46_r2);
             System.out.println("Robustness of testing CONT_46_r, in 0, wrt phi_cont46_r: "+value_cont46_r);
+
+            */
             System.out.println("Robustness of testing CONT_26, in 0, wrt phi_cont26: "+value_cont26);
             System.out.println("Robustness of testing CONT_36_1, in 0, wrt phi_cont36_1: "+value_cont36_1);
             System.out.println("Robustness of testing CONT_33, in 0, wrt phi_cont33: "+value_cont33);
@@ -2513,7 +2507,7 @@ public class Main {
         updates.add(new DataStateUpdate(phase, 3));
         updates.add(new DataStateUpdate(Status, 1));
         updates.add(new DataStateUpdate(timer_triggerDelay, rg.nextInt(3)*-1));
-        updates.add(new DataStateUpdate(drop_PAW_p, rg.nextDouble()*3 + ITS_PCV));
+        updates.add(new DataStateUpdate(drop_PAW_p, rg.nextDouble()*3 + ITS_PCV+0.001));
         return updates;
     }
     public static List<DataStateUpdate> getDiracCont25_part2_1(RandomGenerator rg, DataState state){
@@ -2536,6 +2530,7 @@ public class Main {
     public static List<DataStateUpdate> getDiracCont15_1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(nr_of_retries, rg.nextDouble()*2+5));
+        updates.add(new DataStateUpdate(Status, 3));
         return updates;
     }
     public static List<DataStateUpdate> getDiracCont15_2(RandomGenerator rg, DataState state){
@@ -2644,7 +2639,7 @@ public class Main {
     public static List<DataStateUpdate> getDiracCont39_1_1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(Status, 1));
-        updates.add(new DataStateUpdate(phase, rg.nextInt(2)+1));
+        updates.add(new DataStateUpdate(phase, 1));
         return updates;
     }
     public static List<DataStateUpdate> getDiracCont39_1_2(RandomGenerator rg, DataState state){
@@ -2662,7 +2657,7 @@ public class Main {
     public static List<DataStateUpdate> getDiracCont39_2_1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(Status, 2));
-        updates.add(new DataStateUpdate(phase, rg.nextInt(2)+1));
+        updates.add(new DataStateUpdate(phase, 1));
         return updates;
     }
     public static List<DataStateUpdate> getDiracCont39_2_2(RandomGenerator rg, DataState state){
@@ -2682,45 +2677,9 @@ public class Main {
         updates.add(new DataStateUpdate(phase, 3));
         return updates;
     }
-
-    public static List<DataStateUpdate> getDiracTest0(RandomGenerator rg, DataState state){
+    public static List<DataStateUpdate> getDiracCont1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(Status, 0.0));
-        return updates;
-    }
-    public static List<DataStateUpdate> getDiracTest1(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(Status, 1.0));
-        return updates;
-    }
-    public static List<DataStateUpdate> getDiracTest2(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(Status, 2.0));
-        return updates;
-    }
-    public static List<DataStateUpdate> getDiracTest3(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(Status, 3.0));
-        return updates;
-    }
-    public static List<DataStateUpdate> getDiracTest4(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(Status, 4.0));
-        return updates;
-    }
-    public static List<DataStateUpdate> getDiracTest5(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(Status, 5.0));
-        return updates;
-    }
-    public static List<DataStateUpdate> getDiracTest6(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(Status, 6.0));
-        return updates;
-    }
-    public static List<DataStateUpdate> getDiracTest7(RandomGenerator rg, DataState state){
-        List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(Status, 7.0));
+        updates.add(new DataStateUpdate(Status, rg.nextInt(8)));
         return updates;
     }
 
@@ -2769,7 +2728,7 @@ public class Main {
         }
     }
     public static double rho_sav_16_dis_1(DataState state) {
-        if (state.get(V_E_p) >= MIN_V_E || state.get(V_E) == 0 ||
+        if (state.get(V_E_p) >= MIN_V_E || state.get(V_E_p) == 0 ||
                 (state.get(Status) != 1 && state.get(Status) != 2) || state.get(counter_cycles) == 0){
             return 1.0;
         } else {
@@ -2777,7 +2736,7 @@ public class Main {
         }
     }
     public static double rho_cont_15(DataState state) {
-        if (state.get(nr_of_retries) >= 5 & state.get(Status) != 6){
+        if (state.get(nr_of_retries) >= 5 && state.get(Status) != 6){
             return 1.0;
         } else {
             return 0.0;
@@ -2791,7 +2750,7 @@ public class Main {
         }
     }
     public static double rho_cont_15_retries(DataState state) {
-        if (state.get(nr_of_retries) < 5){
+        if (state.get(nr_of_retries) < 5 || state.get(Status) != 3){
             return 1.0;
         } else {
             return 0.0;
@@ -2813,7 +2772,7 @@ public class Main {
         }
     }
     public static double rho_cont19_t2_p1(DataState state) {
-        if (state.get(selfTest_fail) == 1 || state.get(Status) != 4){
+        if (state.get(selfTest_fail) != 1 || state.get(Status) != 4){
             return 1.0;
         } else {
             return 0.0;
@@ -3316,7 +3275,7 @@ public class Main {
         }
     }
     public static double rho_cont39_1_1(DataState state) {
-        if (state.get(Status) != 1 || (state.get(phase) != 1 && state.get(phase) != 2) ){
+        if (state.get(Status) != 1 || state.get(phase) != 1){
             return 1.0;
         } else {
             return 0.0;
@@ -3344,7 +3303,7 @@ public class Main {
         }
     }
     public static double rho_cont39_2_1(DataState state) {
-        if (state.get(Status) != 2 || (state.get(phase) != 1 && state.get(phase) != 2) ){
+        if (state.get(Status) != 2 || state.get(phase) != 1){
             return 1.0;
         } else {
             return 0.0;
@@ -3382,61 +3341,12 @@ public class Main {
             return 0.0;
         }
     }
-    public static double rho_test0(DataState state) {
-        if (state.get(Status) != 0){
-            return 1.0;
-        } else {
+    public static double rho_cont1(DataState state) {
+        if (state.get(Status) == 0 || state.get(Status) == 1 || state.get(Status) == 2 || state.get(Status) == 3
+                || state.get(Status) == 4 || state.get(Status) == 5 || state.get(Status) == 6 || state.get(Status) == 7){
             return 0.0;
-        }
-    }
-
-    public static double rho_test1(DataState state) {
-        if (state.get(Status) != 1){
-            return 1.0;
         } else {
-            return 0.0;
-        }
-    }
-    public static double rho_test2(DataState state) {
-        if (state.get(Status) != 2){
             return 1.0;
-        } else {
-            return 0.0;
-        }
-    }
-    public static double rho_test3(DataState state) {
-        if (state.get(Status) != 3){
-            return 1.0;
-        } else {
-            return 0.0;
-        }
-    }
-    public static double rho_test4(DataState state) {
-        if (state.get(Status) != 4){
-            return 1.0;
-        } else {
-            return 0.0;
-        }
-    }
-    public static double rho_test5(DataState state) {
-        if (state.get(Status) != 5){
-            return 1.0;
-        } else {
-            return 0.0;
-        }
-    }
-    public static double rho_test6(DataState state) {
-        if (state.get(Status) != 6){
-            return 1.0;
-        } else {
-            return 0.0;
-        }
-    }
-    public static double rho_test7(DataState state) {
-        if (state.get(Status) != 7){
-            return 1.0;
-        } else {
-            return 0.0;
         }
     }
 
@@ -3698,7 +3608,10 @@ public class Main {
                         Controller.ifThenElse(
                                 DataState.equalsTo(gui_req_stop_vent, 1),
                                 Controller.doAction(
-                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp)+1)),
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp)+1),
+                                                new DataStateUpdate(gui_req_stop_vent, 0),
+                                                new DataStateUpdate(counter_cycles, 0)
+                                                ),
                                         registry.reference("P_VentOff")
                                 ),
                                 Controller.ifThenElse(
@@ -3893,7 +3806,10 @@ public class Main {
                         Controller.ifThenElse(
                                 DataState.equalsTo(gui_req_stop_vent, 1),
                                 Controller.doAction(
-                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) +1)),
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) +1),
+                                                new DataStateUpdate(gui_req_stop_vent, 0),
+                                                new DataStateUpdate(counter_cycles, 0)
+                                                ),
                                         registry.reference("P_VentOff")
                                 ),
                                 Controller.ifThenElse(
@@ -4038,7 +3954,10 @@ public class Main {
                         Controller.ifThenElse(
                                 DataState.equalsTo(gui_req_stop_vent, 1),
                                 Controller.doAction(
-                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp)+1)),
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_insp, ds.get(timer_insp)+1),
+                                                new DataStateUpdate(gui_req_stop_vent, 0),
+                                                new DataStateUpdate(counter_cycles, 0)
+                                        ),
                                         registry.reference("P_VentOff")
                                 ),
                                 Controller.ifThenElse(
@@ -4187,7 +4106,10 @@ public class Main {
                         Controller.ifThenElse(
                                 DataState.equalsTo(gui_req_stop_vent, 1),
                                 Controller.doAction(
-                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1)),
+                                        (rg, ds) -> List.of(new DataStateUpdate(timer_exp, ds.get(timer_exp) + 1),
+                                                new DataStateUpdate(gui_req_stop_vent, 0),
+                                                new DataStateUpdate(counter_cycles, 0)
+                                        ),
                                         registry.reference("P_VentOff")
                                 ),
                                 Controller.ifThenElse(
@@ -4884,9 +4806,9 @@ public class Main {
 
     private static DataState sav_6Perturbation_t3_2(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
-        if (state.get(RR_ms) != 0) {
+        //if (state.get(RR_ms) != 0) {
             updates.add(new DataStateUpdate(RR_ms, MIN_RR- 1));
-        }
+        //}
         return state.apply(updates);
     }
 
