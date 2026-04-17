@@ -195,23 +195,27 @@ public class Main {
             DistanceExpression sav_6_dist = new MinIntervalDistanceExpression(sav_6, 0, 2);
             DistanceExpression sav_6_penal_no_alarm = new AtomicDistanceExpressionLeq(Main::rho_sav_6_penal_no_alarm);
             DistanceExpression sav_6_dist_penal_no_alarm =  new MaxIntervalDistanceExpression(sav_6_penal_no_alarm, 0, 2);
-            DistanceExpression sav_6_led = new AtomicDistanceExpressionLeq(Main::rho_sav_6_alarm);
-            DistanceExpression sav_6_dist_led = new MaxIntervalDistanceExpression(sav_6_led, 0, 2);
             DistanceExpression sav_16 = new AtomicDistanceExpressionLeq(Main::rho_sav_16);
             DistanceExpression sav_16_dist = new MinIntervalDistanceExpression(sav_16, 0, 3);
             DistanceExpression sav_16_penal_no_alarm = new AtomicDistanceExpressionLeq(Main::rho_sav_16_penal_no_alarm);
             DistanceExpression sav_16_dist_penal_no_alarm = new MaxIntervalDistanceExpression(sav_16_penal_no_alarm, 0, 2);
             DistanceExpression basic_test = new AtomicDistanceExpressionLeq(Main::rho_basic_test);
             DistanceExpression cont_15 = new AtomicDistanceExpressionLeq(Main::rho_cont_15);
-            DistanceExpression cont_15_dist = new MinIntervalDistanceExpression(cont_15, 13, 15   );
+            DistanceExpression cont_15_dist = new MinIntervalDistanceExpression(cont_15, 13, 15);
             DistanceExpression cont_15_penal_no_alarm = new AtomicDistanceExpressionLeq(Main::rho_cont_15_penal_no_alarm);
-            DistanceExpression cont_15_dist_penal_no_alarm = new MaxIntervalDistanceExpression(cont_15_penal_no_alarm, 13, 14   );
+            DistanceExpression cont_15_dist_penal_no_alarm = new MaxIntervalDistanceExpression(cont_15_penal_no_alarm, 13, 14);
+            DistanceExpression cont_19 = new AtomicDistanceExpressionLeq(Main::rho_cont19);
+            DistanceExpression cont_19_dist = new MaxIntervalDistanceExpression(cont_19, 0, 2);
+            DistanceExpression cont_19_per = new AtomicDistanceExpressionLeq(Main::rho_cont19_per);
+            DistanceExpression cont_19_dist_per = new MaxIntervalDistanceExpression(cont_19_per, 1, 2);
 
             double eta_sav_6 = 0.1;
             double eta_sav_16 = 0.1;
+            double eta_cont_19 = 0.1;
 
-            RobustnessFormula Phi_sav_6_t3_2 = new AtomicRobustnessFormula(get_Sav_6Perturbation_t3_2(),
-                    sav_6_dist_penal_no_alarm,
+            RobustnessFormula Phi_sav_6_per = new AtomicRobustnessFormula(
+                    get_Sav_6Perturbation_t3_2(),
+                    sav_6_penal_no_alarm,
                     RelationOperator.GREATER_OR_EQUAL_THAN,
                     1.0
             );
@@ -226,17 +230,6 @@ public class Main {
                     0,
                     H
             );
-            RobustnessFormula Phi_sav_6_alarm = new AlwaysRobustnessFormula(
-                    new AtomicRobustnessFormula(
-                         get_Sav_6Perturbation_t3_2(),
-                         sav_6_dist_led,
-                         RelationOperator.GREATER_OR_EQUAL_THAN,
-                         1
-                    ),
-                    0,
-                    0
-            );
-
 
             RobustnessFormula Phi_sav_16_per = new AtomicRobustnessFormula(
                     get_Sav_16Perturbation(),
@@ -270,6 +263,20 @@ public class Main {
                     1.0
             );
 
+            RobustnessFormula Phi_cont_19 = new AtomicRobustnessFormula(
+                    get_cont_19Perturbation(),
+                    cont_19_dist,
+                    RelationOperator.LESS_OR_EQUAL_THAN,
+                    eta_cont_19
+            );
+
+            RobustnessFormula Phi_cont_19_per = new AtomicRobustnessFormula(
+                    get_cont_19Perturbation(),
+                    cont_19_dist_per,
+                    RelationOperator.GREATER_OR_EQUAL_THAN,
+                    1.0
+            );
+
 
             RobustnessFormula Phi_basic_test = new AtomicRobustnessFormula(
                     get_test_Perturbation(),
@@ -288,6 +295,7 @@ public class Main {
             L.add("a_in");
             L.add("a_out");
             L.add("Status");
+            L.add("init_succ");
             L.add("phase");
             L.add("phase_changed");
             L.add("PAW/s_PS_insp");
@@ -334,6 +342,7 @@ public class Main {
             F.add(ds->ds.get(a_IN_valve));
             F.add(ds->ds.get(a_OUT_valve));
             F.add(ds->ds.get(Status));
+            F.add(ds -> ds.get(init_succ));
             F.add(ds->ds.get(phase));
             F.add(ds -> ds.get(phase_changed));
             F.add(ds->ds.get(s_PS_ins_pressure));
@@ -384,24 +393,24 @@ public class Main {
             System.out.println("Starting tests on perturbed behaiour");
             //Util.writeToCSV("./testPerturbed.csv", Util.evalDistanceExpression(sequence, sequence_pert, 0, 100, sav_6_dist_penal_no_alarm));
 
-            double[][] val_test_t3_2 = new double[15][1];
+            double[][] val_test_sav6_per = new double[15][1];
             for(int i = 0; i<15; i++) {
                 int step = i*10;
-                TruthValues value1_t3_2 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6_t3_2).eval(SIZE_ROBTL, step, sequence);
-                System.out.println("Phi_sav_6_t3_2 evaluation at step "+step+": " + value1_t3_2);
-                if (value1_t3_2 == TruthValues.TRUE) {
-                    val_test_t3_2[i][0] = 1;
+                TruthValues value1_sav6_per = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6_per).eval(SIZE_ROBTL, step, sequence);
+                System.out.println("Phi_sav_6_per evaluation at step "+step+": " + value1_sav6_per);
+                if (value1_sav6_per == TruthValues.TRUE) {
+                    val_test_sav6_per[i][0] = 1;
                 } else {
-                    if (value1_t3_2 == TruthValues.UNKNOWN) {
-                        val_test_t3_2[i][0] = 0;
+                    if (value1_sav6_per == TruthValues.UNKNOWN) {
+                        val_test_sav6_per[i][0] = 0;
                     } else {
-                        val_test_t3_2[i][0] = -1;
+                        val_test_sav6_per[i][0] = -1;
                     }
                 }
             }
 
             System.out.println();
-            /*
+
             double[][] val_test = new double[15][1];
             for(int i = 0; i<15; i++) {
                 int step = i*10;
@@ -420,25 +429,7 @@ public class Main {
 
             System.out.println();
 
-            double[][] val_test_alarm  = new double[15][1];
-            for(int i = 0; i<15; i++) {
-                int step = i*5;
-                TruthValues value1_alarm  = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_sav_6_alarm).eval(SIZE_ROBTL, step, sequence);
-                System.out.println("Phi_sav_6_alarm evaluation at step "+step+": " + value1_alarm );
-                if (value1_alarm  == TruthValues.TRUE) {
-                    val_test_alarm [i][0] = 1;
-                } else {
-                    if (value1_alarm  == TruthValues.UNKNOWN) {
-                        val_test_alarm [i][0] = 0;
-                    } else {
-                        val_test_alarm [i][0] = -1;
-                    }
-                }
-            }
-
-            System.out.println();
-
-             */
+             /*
 
             double[][] val_sav_16 = new double[10][1];
             for(int i = 0; i<10; i++) {
@@ -475,7 +466,7 @@ public class Main {
             }
 
             System.out.println();
-            /*
+
             double[][] val_cont_15 = new double[10][1];
             for(int i = 0; i<10; i++) {
                 int step = i*1;
@@ -510,6 +501,40 @@ public class Main {
             }
 
             System.out.println();
+            */
+            double[][] val_cont_19 = new double[20][1];
+            for(int i = 0; i<20; i++) {
+                int step = i*1;
+                TruthValues value_cont_19 = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_cont_19).eval(SIZE_ROBTL, step, sequence);
+                System.out.println("Phi_cont_19 evaluation at step "+step+": " + value_cont_19);
+                if (value_cont_19 == TruthValues.TRUE) {
+                    val_cont_19[i][0] = 1;
+                } else {
+                    if (value_cont_19 == TruthValues.UNKNOWN) {
+                        val_cont_19[i][0] = 0;
+                    } else {
+                        val_cont_19[i][0] = -1;
+                    }
+                }
+            }
+            System.out.println();
+
+            double[][] val_cont_19_per = new double[20][1];
+            for(int i = 0; i<20; i++) {
+                int step = i*1;
+                TruthValues value_cont_19_per = new ThreeValuedSemanticsVisitor(rand,50,1.96).eval(Phi_cont_19_per).eval(SIZE_ROBTL, step, sequence);
+                System.out.println("Phi_cont_19_per evaluation at step "+step+": " + value_cont_19_per);
+                if (value_cont_19_per == TruthValues.TRUE) {
+                    val_cont_19_per[i][0] = 1;
+                } else {
+                    if (value_cont_19_per == TruthValues.UNKNOWN) {
+                        val_cont_19_per[i][0] = 0;
+                    } else {
+                        val_cont_19_per[i][0] = -1;
+                    }
+                }
+            }
+            /*
 
             double[][] val_basic_test = new double[10][1];
             for(int i = 0; i<10; i++) {
@@ -545,8 +570,6 @@ public class Main {
             DataStateFunction mu_cont38_part2 = (rg, ds) -> ds.apply(getDiracCont1_3(rg, ds));
             DataStateFunction mu_cont38_part3 = (rg, ds) -> ds.apply(getDiracCont38_part3(rg, ds));
             DataStateFunction mu_cont38_t2_p1 = (rg, ds) -> ds.apply(getDiracCont38_t2_p1(rg, ds));
-            DataStateFunction mu_cont38_t2_p2 = (rg, ds) -> ds.apply(getDiracCont38_t2_p2(rg, ds));
-            DataStateFunction mu_cont38_t2_p3 = (rg, ds) -> ds.apply(getDiracCont38_t2_p3(rg, ds));
             DataStateFunction mu_sav22 = (rg, ds) -> ds.apply(getDiracSav22(rg, ds));
             DataStateFunction mu_sav22_2 = (rg, ds) -> ds.apply(getDiracSav22_2(rg, ds));
             DataStateFunction mu_sav22_p2 = (rg, ds) -> ds.apply(getDiracSav22_p2(rg, ds));
@@ -583,6 +606,7 @@ public class Main {
             DataStateFunction mu_cont25_part2_1 = (rg, ds) -> ds.apply(getDiracCont25_part2_1(rg, ds));
             DataStateFunction mu_cont25_part2_2 = (rg, ds) -> ds.apply(getDiracCont25_part2_2(rg, ds));
             DataStateFunction mu_cont25_part2_3 = (rg, ds) -> ds.apply(getDiracCont25_part2_3(rg, ds));
+            DataStateFunction mu_cont25_part2_t1 = (rg, ds) -> ds.apply(getDiracCont25_part2_t1(rg, ds));
             DataStateFunction mu_cont25_part1_p1_1 = (rg, ds) -> ds.apply(getDiracCont25_part1_p1_1(rg, ds));
             DataStateFunction mu_cont25_part1_p1_2 = (rg, ds) -> ds.apply(getDiracCont25_part1_p1_2(rg, ds));
             DataStateFunction mu_cont25_part1_p1_3 = (rg, ds) -> ds.apply(getDiracCont25_part1_p1_3(rg, ds));
@@ -590,6 +614,7 @@ public class Main {
             DataStateFunction mu_cont25_part1_p3_1 = (rg, ds) -> ds.apply(getDiracCont25_part1_p3_1(rg, ds));
             DataStateFunction mu_cont15_1 = (rg, ds) -> ds.apply(getDiracCont15_1(rg, ds));
             DataStateFunction mu_cont15_2 = (rg, ds) -> ds.apply(getDiracCont15_2(rg, ds));
+            DataStateFunction mu_cont15_t2 = (rg, ds) -> ds.apply(getDiracCont15_t2(rg, ds));
             DataStateFunction mu_sav6_1 = (rg, ds) -> ds.apply(getDiracSav6_1(rg, ds));
             DataStateFunction mu_sav6_2 = (rg, ds) -> ds.apply(getDiracSav6_2(rg, ds));
             DataStateFunction mu_sav16_1 = (rg, ds) -> ds.apply(getDiracSav16_1(rg, ds));
@@ -663,7 +688,7 @@ public class Main {
                                     new TargetDisTLFormula(
                                             mu_cont19,
                                             Main::rho_cont19_t2_p1,
-                                            0.25
+                                            0.1
                                     )
                             ),
                             new AlwaysDisTLFormula(
@@ -748,7 +773,7 @@ public class Main {
                                     new TargetDisTLFormula(
                                             mu_cont1_3_t2_p1,
                                             Main::rho_cont1_3_t2_p1,
-                                            eta_cont1_3
+                                            0.8
                                     )
                             ),
                             new TargetDisTLFormula(
@@ -787,29 +812,11 @@ public class Main {
 
             DisTLFormula phi_cont38_t2 = new AlwaysDisTLFormula(
               new DisjunctionDisTLFormula(
-                      new ConjunctionDisTLFormula(
-                              new NegationDisTLFormula(
-                                      new TargetDisTLFormula(
-                                              mu_cont38_t2_p1,
-                                              Main::rho_cont38_t2_p1,
-                                              eta_cont38
-                                      )
-                              ),
-                              new ConjunctionDisTLFormula(
-                                      new NegationDisTLFormula(
-                                              new TargetDisTLFormula(
-                                                      mu_cont38_t2_p2,
-                                                      Main::rho_cont38_t2_p2,
-                                                      eta_cont38
-                                              )
-                                      ),
-                                      new NegationDisTLFormula(
-                                              new TargetDisTLFormula(
-                                                      mu_cont38_t2_p3,
-                                                      Main::rho_cont38_t2_p3,
-                                                      eta_cont38
-                                              )
-                                      )
+                      new NegationDisTLFormula(
+                              new TargetDisTLFormula(
+                                      mu_cont38_t2_p1,
+                                      Main::rho_cont38_t2_p1,
+                                      eta_cont38
                               )
                       ),
                       new TargetDisTLFormula(
@@ -889,6 +896,40 @@ public class Main {
                     0,
                     H
             );
+            DisTLFormula phi_sav1_al23_t2 = new ConjunctionDisTLFormula(
+                new EventuallyDisTLFormula(
+                        new TargetDisTLFormula(
+                                mu_sav1_al23,
+                                Main::rho_sav1_al23,
+                                0
+                        ),
+                        0,
+                        H
+                ),
+                new AlwaysDisTLFormula(
+                        new DisjunctionDisTLFormula(
+                                new NegationDisTLFormula(
+                                        new TargetDisTLFormula(
+                                                mu_sav1_al23,
+                                                Main::rho_sav1_al23,
+                                                0.5
+                                        )
+                                ),
+                                new EventuallyDisTLFormula(
+                                        new TargetDisTLFormula(
+                                                mu_sav6_2,
+                                                Main::rho_sav_6_alarm,
+                                                0.1
+                                        ),
+                                        0,
+                                        2
+                                )
+                        ),
+                        0,
+                        H
+                )
+            );
+
             DisTLFormula phi_sav1_al24 = new AlwaysDisTLFormula(
                     new DisjunctionDisTLFormula(
                             new NegationDisTLFormula(
@@ -911,6 +952,40 @@ public class Main {
                     0,
                     H
 
+            );
+            DisTLFormula phi_sav1_al24_t2 = new ConjunctionDisTLFormula(
+                    new EventuallyDisTLFormula(
+                            new TargetDisTLFormula(
+                                    mu_sav1_al24,
+                                    Main::rho_sav1_al24,
+                                    0.0
+                            ),
+                            0,
+                            H
+                    ),
+                    new AlwaysDisTLFormula(
+                            new DisjunctionDisTLFormula(
+                                    new NegationDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_sav1_al24,
+                                                    Main::rho_sav1_al24,
+                                                    0.5
+                                            )
+                                    ),
+                                    new EventuallyDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_sav6_2,
+                                                    Main::rho_sav_6_alarm,
+                                                    0.1
+                                            ),
+                                            0,
+                                            2
+                                    )
+                            ),
+                            0,
+                            H
+
+                    )
             );
             DisTLFormula phi_sav1 = new ConjunctionDisTLFormula(
                     phi_sav1_al23,
@@ -989,6 +1064,40 @@ public class Main {
                     H
             );
 
+            DisTLFormula phi_sav17_t2 = new ConjunctionDisTLFormula(
+                    new EventuallyDisTLFormula(
+                            new TargetDisTLFormula(
+                                    mu_sav17_1,
+                                    Main::rho_sav17,
+                                    0
+                            ),
+                            0,
+                            H
+                    ),
+                    new AlwaysDisTLFormula(
+                            new DisjunctionDisTLFormula(
+                                    new NegationDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_sav17_1,
+                                                    Main::rho_sav17,
+                                                    0.5
+                                            )
+                                    ),
+                                    new EventuallyDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_sav6_2,
+                                                    Main::rho_sav_6_alarm,
+                                                    0.1
+                                            ),
+                                            0,
+                                            2
+                                    )
+                            ),
+                            0,
+                            H
+                    )
+            );
+
             DisTLFormula phi_cont5 = new AlwaysDisTLFormula(
                     new DisjunctionDisTLFormula(
                             new NegationDisTLFormula(
@@ -1064,6 +1173,39 @@ public class Main {
                     0,
                     H
             );
+            DisTLFormula phi_cont6_t3 = new ConjunctionDisTLFormula(
+                    new EventuallyDisTLFormula(
+                            new TargetDisTLFormula(
+                                    mu_cont6_t1,
+                                    Main::rho_cont6_t2_part2,
+                                    0.0
+                            ),
+                            0,
+                            H
+                    ),
+                    new AlwaysDisTLFormula(
+                            new DisjunctionDisTLFormula(
+                                    new NegationDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_cont6_t1,
+                                                    Main::rho_cont6_t2_part2,
+                                                    0.5
+                                            )
+                                    ),
+                                    new EventuallyDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_cont6_t2_part3,
+                                                    Main::rho_cont6_t2_part3,
+                                                    0.1
+                                            ),
+                                            0,
+                                            2
+                                    )
+                            ),
+                            0,
+                            H
+                    )
+            );
             DisTLFormula phi_cont8 = new AlwaysDisTLFormula(
                     new DisjunctionDisTLFormula(
                             new NegationDisTLFormula(
@@ -1116,7 +1258,7 @@ public class Main {
                                     new TargetDisTLFormula(
                                             mu_cont3_1,
                                             Main::rho_cont3_1,
-                                            eta_cont3
+                                            0.4
                                     )
                             ),
                             new EventuallyDisTLFormula(
@@ -1131,6 +1273,40 @@ public class Main {
                     ),
                     0,
                     H
+            );
+
+            DisTLFormula phi_cont3_t2 = new ConjunctionDisTLFormula(
+                    new EventuallyDisTLFormula(
+                            new TargetDisTLFormula(
+                                    mu_cont3_1,
+                                    Main::rho_cont3_1,
+                                    0.05
+                            ),
+                            0,
+                            H
+                    ),
+                    new AlwaysDisTLFormula(
+                            new DisjunctionDisTLFormula(
+                                    new NegationDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_cont3_1,
+                                                    Main::rho_cont3_1,
+                                                    0.5
+                                            )
+                                    ),
+                                    new EventuallyDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_cont3_2,
+                                                    Main::rho_cont3_2,
+                                                    0.1
+                                            ),
+                                            0,
+                                            2
+                                    )
+                            ),
+                            0,
+                            H
+                    )
             );
 
             DisTLFormula phi_cont4_part1 = new AlwaysDisTLFormula(
@@ -1156,6 +1332,40 @@ public class Main {
               H
             );
 
+            DisTLFormula phi_cont4_part1_t2 = new ConjunctionDisTLFormula(
+                    new EventuallyDisTLFormula(
+                            new TargetDisTLFormula(
+                                    mu_cont4_part1_1,
+                                    Main::rho_cont4_part1_1,
+                                    0
+                            ),
+                            0,
+                            H
+                    ),
+                    new AlwaysDisTLFormula(
+                            new DisjunctionDisTLFormula(
+                                    new NegationDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_cont4_part1_1,
+                                                    Main::rho_cont4_part1_1,
+                                                    0.5
+                                            )
+                                    ),
+                                    new EventuallyDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_cont4_part1_2,
+                                                    Main::rho_cont4_part1_2,
+                                                    0.1
+                                            ),
+                                            0,
+                                            2
+                                    )
+                            ),
+                            0,
+                            H
+                    )
+            );
+
             DisTLFormula phi_cont4_part2 = new AlwaysDisTLFormula(
                     new DisjunctionDisTLFormula(
                             new NegationDisTLFormula(
@@ -1177,6 +1387,40 @@ public class Main {
                     ),
                     0,
                     H
+            );
+
+            DisTLFormula phi_cont4_part2_t2 = new ConjunctionDisTLFormula(
+                    new EventuallyDisTLFormula(
+                            new TargetDisTLFormula(
+                                    mu_cont4_part2_1,
+                                    Main::rho_cont4_part2_1,
+                                    0.0
+                            ),
+                            0,
+                            H
+                    ),
+                    new AlwaysDisTLFormula(
+                            new DisjunctionDisTLFormula(
+                                    new NegationDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_cont4_part2_1,
+                                                    Main::rho_cont4_part2_1,
+                                                    0.5
+                                            )
+                                    ),
+                                    new EventuallyDisTLFormula(
+                                            new TargetDisTLFormula(
+                                                    mu_cont4_part1_2,
+                                                    Main::rho_cont4_part1_2,
+                                                    0.1
+                                            ),
+                                            0,
+                                            2
+                                    )
+                            ),
+                            0,
+                            H
+                    )
             );
 
             DisTLFormula phi_cont4 = new ConjunctionDisTLFormula(
@@ -1516,6 +1760,16 @@ public class Main {
                     H
             );
 
+            DisTLFormula phi_cont25_part2_t2 = new AlwaysDisTLFormula(
+                    new TargetDisTLFormula(
+                            mu_cont25_part2_t1,
+                            Main::rho_cont25_part2_t1,
+                            eta_cont25_part2
+                    ),
+                    0,
+                    H
+            );
+
             DisTLFormula phi_cont15 = new AlwaysDisTLFormula(
                     new DisjunctionDisTLFormula(
                             new NegationDisTLFormula(
@@ -1534,6 +1788,16 @@ public class Main {
                                     0,
                                     2
                             )
+                    ),
+                    0,
+                    H
+            );
+
+            DisTLFormula phi_cont15_t2 = new EventuallyDisTLFormula(
+                    new TargetDisTLFormula(
+                            mu_cont15_t2,
+                            Main::rho_cont_15_retriesonly,
+                            eta_cont15
                     ),
                     0,
                     H
@@ -1561,6 +1825,16 @@ public class Main {
                     0,
                     H
             );
+            DisTLFormula phi_sav6_t2 = new EventuallyDisTLFormula(
+                    new TargetDisTLFormula(
+                            mu_sav6_1,
+                            Main::rho_sav_6_dis_1,
+                            eta_sav6
+                    ),
+                    0,
+                    H
+            );
+
             DisTLFormula phi_sav16 = new AlwaysDisTLFormula(
                     new DisjunctionDisTLFormula(
                             new NegationDisTLFormula(
@@ -1579,6 +1853,16 @@ public class Main {
                                     0,
                                     2
                             )
+                    ),
+                    0,
+                    H
+            );
+
+            DisTLFormula phi_sav16_t2 = new EventuallyDisTLFormula(
+                    new TargetDisTLFormula(
+                            mu_sav16_1,
+                            Main::rho_sav_16_dis_1,
+                            eta_sav16
                     ),
                     0,
                     H
@@ -1899,6 +2183,15 @@ public class Main {
                     0,
                     H
             );
+            DisTLFormula phi_cont36_1_t2 = new EventuallyDisTLFormula(
+                    new TargetDisTLFormula(
+                            mu_cont36_1_1,
+                            Main::rho_cont36_1_1,
+                            eta_cont36_1
+                    ),
+                    0,
+                    H
+            );
 
             DisTLFormula phi_cont33 = new AlwaysDisTLFormula(
                     new DisjunctionDisTLFormula(
@@ -2000,14 +2293,22 @@ public class Main {
                     0,
                     H
             );
+            DisTLFormula phi_cont44_t2 = new EventuallyDisTLFormula(
+                    new TargetDisTLFormula(
+                            mu_cont44_1,
+                            Main::rho_cont44_1,
+                            eta_cont44
+                    ),
+                    0,
+                    H
+            );
 
             DisTLFormula phi_cont1 = new AlwaysDisTLFormula(
                     new TargetDisTLFormula(
                             mu_cont1,
                             Main::rho_cont1,
                             eta_cont1
-                    )
-                    ,
+                    ),
                     0,
                     H
             );
@@ -2025,21 +2326,28 @@ public class Main {
             double value_sav22 = new DoubleSemanticsVisitor().eval(phi_sav22).eval(SIZE_DISTL, 0, sequence);
             double value_sav22_p2 = new DoubleSemanticsVisitor().eval(phi_sav22_p2).eval(SIZE_DISTL, 0, sequence);
             double value_sav1_al23 = new DoubleSemanticsVisitor().eval(phi_sav1_al23).eval(SIZE_DISTL, 0, sequence);
+            double value_sav1_al23_t2 = new DoubleSemanticsVisitor().eval(phi_sav1_al23_t2).eval(SIZE_DISTL, 0, sequence);
             double value_sav1_al24 = new DoubleSemanticsVisitor().eval(phi_sav1_al24).eval(SIZE_DISTL, 0, sequence);
+            double value_sav1_al24_t2 = new DoubleSemanticsVisitor().eval(phi_sav1_al24_t2).eval(SIZE_DISTL, 0, sequence);
             double value_sav1 = new DoubleSemanticsVisitor().eval(phi_sav1).eval(SIZE_DISTL, 0, sequence);
             double value_sav1_al23_p = new DoubleSemanticsVisitor().eval(phi_sav1_al23_p).eval(SIZE_DISTL, 0, sequence);
             double value_sav1_al24_p = new DoubleSemanticsVisitor().eval(phi_sav1_al24_p).eval(SIZE_DISTL, 0, sequence);
             double value_sav1_p = new DoubleSemanticsVisitor().eval(phi_sav1_p).eval(SIZE_DISTL, 0, sequence);
 
             double value_sav17 = new DoubleSemanticsVisitor().eval(phi_sav17).eval(SIZE_DISTL, 0, sequence);
+            double value_sav17_t2 = new DoubleSemanticsVisitor().eval(phi_sav17_t2).eval(SIZE_DISTL, 0, sequence);
             double value_cont5 = new DoubleSemanticsVisitor().eval(phi_cont5).eval(SIZE_DISTL, 0, sequence);
             double value_cont6_t1 = new DoubleSemanticsVisitor().eval(phi_cont6_t1).eval(SIZE_DISTL, 0, sequence);
             double value_cont6_t2_v2 = new DoubleSemanticsVisitor().eval(phi_cont6_t2_v2).eval(SIZE_DISTL, 0, sequence);
+            double value_cont6_t3 = new DoubleSemanticsVisitor().eval(phi_cont6_t3).eval(SIZE_DISTL, 0, sequence);
             double value_cont8 = new DoubleSemanticsVisitor().eval(phi_cont8).eval(SIZE_DISTL, 0, sequence);
             double value_cont10 = new DoubleSemanticsVisitor().eval(phi_cont10).eval(SIZE_DISTL, 0, sequence);
             double value_cont3 = new DoubleSemanticsVisitor().eval(phi_cont3).eval(SIZE_DISTL, 0, sequence);
+            double value_cont3_t2 = new DoubleSemanticsVisitor().eval(phi_cont3_t2).eval(SIZE_DISTL, 0, sequence);
             double value_cont4_part1 = new DoubleSemanticsVisitor().eval(phi_cont4_part1).eval(SIZE_DISTL, 0, sequence);
+            double value_cont4_part1_t2 = new DoubleSemanticsVisitor().eval(phi_cont4_part1_t2).eval(SIZE_DISTL, 0, sequence);
             double value_cont4_part2 = new DoubleSemanticsVisitor().eval(phi_cont4_part2).eval(SIZE_DISTL, 0, sequence);
+            double value_cont4_part2_t2 = new DoubleSemanticsVisitor().eval(phi_cont4_part2_t2).eval(SIZE_DISTL, 0, sequence);
             double value_cont4 = new DoubleSemanticsVisitor().eval(phi_cont4).eval(SIZE_DISTL, 0, sequence);
             double value_cont21_part1 = new DoubleSemanticsVisitor().eval(phi_cont21_part1).eval(SIZE_DISTL, 0, sequence);
             double value_cont21_part2 = new DoubleSemanticsVisitor().eval(phi_cont21_part2).eval(SIZE_DISTL, 0, sequence);
@@ -2058,9 +2366,13 @@ public class Main {
             double value_cont25_part1_p3 = new DoubleSemanticsVisitor().eval(phi_cont25_part1_p3).eval(SIZE_DISTL, 0, sequence);
             double value_cont25_part1 = new DoubleSemanticsVisitor().eval(phi_cont25_part1).eval(SIZE_DISTL, 0, sequence);
             double value_cont25_part2 = new DoubleSemanticsVisitor().eval(phi_cont25_part2).eval(SIZE_DISTL, 0, sequence);
+            double value_cont25_part2_t2 = new DoubleSemanticsVisitor().eval(phi_cont25_part2_t2).eval(SIZE_DISTL, 0, sequence);
             double value_cont15 = new DoubleSemanticsVisitor().eval(phi_cont15).eval(SIZE_DISTL, 0, sequence);
+            double value_cont15_t2 = new DoubleSemanticsVisitor().eval(phi_cont15_t2).eval(SIZE_DISTL, 0, sequence);
             double value_sav6 = new DoubleSemanticsVisitor().eval(phi_sav6).eval(SIZE_DISTL, 0, sequence);
+            double value_sav6_t2 = new DoubleSemanticsVisitor().eval(phi_sav6_t2).eval(SIZE_DISTL, 0, sequence);
             double value_sav16 = new DoubleSemanticsVisitor().eval(phi_sav16).eval(SIZE_DISTL, 0, sequence);
+            double value_sav16_t2 = new DoubleSemanticsVisitor().eval(phi_sav16_t2).eval(SIZE_DISTL, 0, sequence);
 
             /*
             double value_cont46_p1 = new DoubleSemanticsVisitor().eval(phi_cont46_p1).eval(SIZE_DISTL, 0, sequence);
@@ -2074,11 +2386,13 @@ public class Main {
             */
             double value_cont26 = new DoubleSemanticsVisitor().eval(phi_cont26).eval(SIZE_DISTL, 0, sequence);
             double value_cont36_1 = new DoubleSemanticsVisitor().eval(phi_cont36_1).eval(SIZE_DISTL, 0, sequence);
+            double value_cont36_1_t2 = new DoubleSemanticsVisitor().eval(phi_cont36_1_t2).eval(SIZE_DISTL, 0, sequence);
             double value_cont33 = new DoubleSemanticsVisitor().eval(phi_cont33).eval(SIZE_DISTL, 0, sequence);
             double value_cont39_1 = new DoubleSemanticsVisitor().eval(phi_cont39_1).eval(SIZE_DISTL, 0, sequence);
             double value_cont39_1_t2 = new DoubleSemanticsVisitor().eval(phi_cont39_1_t2).eval(SIZE_DISTL, 0, sequence);
             double value_cont39_2 = new DoubleSemanticsVisitor().eval(phi_cont39_2).eval(SIZE_DISTL, 0, sequence);
             double value_cont44 = new DoubleSemanticsVisitor().eval(phi_cont44).eval(SIZE_DISTL, 0, sequence);
+            double value_cont44_t2 = new DoubleSemanticsVisitor().eval(phi_cont44_t2).eval(SIZE_DISTL, 0, sequence);
 
             System.out.println("Robustness of testing CONT_19_1, in 0, wrt phi_cont19_1: "+value_cont19_1);
             System.out.println("Robustness of testing CONT_19_t2, in 0, wrt phi_cont19_2: "+value_cont19_2);
@@ -2093,21 +2407,28 @@ public class Main {
             System.out.println("Robustness of testing SAV_22, in 0, wrt phi_sav22: "+value_sav22);
             System.out.println("Robustness of testing SAV_22_p2, in 0, wrt phi_sav22_p2: "+value_sav22_p2);
             System.out.println("Robustness of testing SAV_1_al23, in 0, wrt phi_sav1_al23: "+value_sav1_al23);
+            System.out.println("Robustness of testing SAV_1_al23_t2, in 0, wrt phi_sav1_al23_t2: "+value_sav1_al23_t2);
             System.out.println("Robustness of testing SAV_1_al24, in 0, wrt phi_sav1_al24: "+value_sav1_al24);
+            System.out.println("Robustness of testing SAV_1_al24_t2, in 0, wrt phi_sav1_al24_t2: "+value_sav1_al24_t2);
             System.out.println("Robustness of testing SAV_1, in 0, wrt phi_sav1: "+value_sav1);
             System.out.println("Robustness of testing SAV_1_al23_p, in 0, wrt phi_sav1_al23_p: "+value_sav1_al23_p);
             System.out.println("Robustness of testing SAV_1_al24_p, in 0, wrt phi_sav1_al24_p: "+value_sav1_al24_p);
             System.out.println("Robustness of testing SAV_1_p, in 0, wrt phi_sav1_p: "+value_sav1_p);
 
             System.out.println("Robustness of testing SAV_17, in 0, wrt phi_sav17: "+value_sav17);
+            System.out.println("Robustness of testing SAV_17_t2, in 0, wrt phi_sav17_t2: "+value_sav17_t2);
             System.out.println("Robustness of testing CONT_5, in 0, wrt phi_cont5: "+value_cont5);
             System.out.println("Robustness of testing CONT_6_t1, in 0, wrt phi_cont6_t1: "+value_cont6_t1);
             System.out.println("Robustness of testing CONT_6_t2_v2, in 0, wrt phi_cont6_t2_v2: "+value_cont6_t2_v2);
+            System.out.println("Robustness of testing CONT_6_t3, in 0, wrt phi_cont6_t3: "+value_cont6_t3);
             System.out.println("Robustness of testing CONT_8, in 0, wrt phi_cont8: "+value_cont8);
             System.out.println("Robustness of testing CONT_10, in 0, wrt phi_cont10: "+value_cont10);
             System.out.println("Robustness of testing CONT_3, in 0, wrt phi_cont3: "+value_cont3);
+            System.out.println("Robustness of testing CONT_3_t2, in 0, wrt phi_cont3_t2: "+value_cont3_t2);
             System.out.println("Robustness of testing CONT_4_part1, in 0, wrt phi_cont4_part1: "+value_cont4_part1);
+            System.out.println("Robustness of testing CONT_4_part1_t2, in 0, wrt phi_cont4_part1_t2: "+value_cont4_part1_t2);
             System.out.println("Robustness of testing CONT_4_part2, in 0, wrt phi_cont4_part2: "+value_cont4_part2);
+            System.out.println("Robustness of testing CONT_4_part2_t2, in 0, wrt phi_cont4_part2_t2: "+value_cont4_part2_t2);
             System.out.println("Robustness of testing CONT_4, in 0, wrt phi_cont4: "+value_cont4);
             System.out.println("Robustness of testing CONT_21_part1, in 0, wrt phi_cont21_part1: "+value_cont21_part1);
             System.out.println("Robustness of testing CONT_21_part2, in 0, wrt phi_cont21_part2: "+value_cont21_part2);
@@ -2126,9 +2447,14 @@ public class Main {
             System.out.println("Robustness of testing CONT_25_part1_p3, in 0, wrt phi_cont25_part1_p3: "+value_cont25_part1_p3);
             System.out.println("Robustness of testing CONT_25_part1, in 0, wrt phi_cont25_part1: "+value_cont25_part1);
             System.out.println("Robustness of testing CONT_25_part2, in 0, wrt phi_cont25_part2: "+value_cont25_part2);
+            System.out.println("Robustness of testing CONT_25_part2_t2, in 0, wrt phi_cont25_part2_t2: "+value_cont25_part2_t2);
             System.out.println("Robustness of testing CONT_15, in 0, wrt phi_cont15: "+value_cont15);
+            System.out.println("Robustness of testing CONT_15_t2, in 0, wrt phi_cont15_t2: "+value_cont15_t2);
             System.out.println("Robustness of testing SAV_6, in 0, wrt phi_sav6: "+value_sav6);
+            System.out.println("Robustness of testing SAV_6_t2, in 0, wrt phi_sav6_t2: "+value_sav6_t2);
             System.out.println("Robustness of testing SAV_16, in 0, wrt phi_sav16: "+value_sav16);
+            System.out.println("Robustness of testing SAV_16_t2, in 0, wrt phi_sav16_t2: "+value_sav16_t2);
+
 
             /*
             System.out.println("Robustness of testing CONT_46_p1, in 0, wrt phi_cont46_p1: "+value_cont46_p1);
@@ -2142,11 +2468,13 @@ public class Main {
             */
             System.out.println("Robustness of testing CONT_26, in 0, wrt phi_cont26: "+value_cont26);
             System.out.println("Robustness of testing CONT_36_1, in 0, wrt phi_cont36_1: "+value_cont36_1);
+            System.out.println("Robustness of testing CONT_36_1_t2, in 0, wrt phi_cont36_1_t2: "+value_cont36_1_t2);
             System.out.println("Robustness of testing CONT_33, in 0, wrt phi_cont33: "+value_cont33);
             System.out.println("Robustness of testing CONT_39_1, in 0, wrt phi_cont39_1: "+value_cont39_1);
             System.out.println("Robustness of testing CONT_39_1_t2, in 0, wrt phi_cont39_1_t2: "+value_cont39_1_t2);
             System.out.println("Robustness of testing CONT_39_2, in 0, wrt phi_cont39_2: "+value_cont39_2);
             System.out.println("Robustness of testing CONT_44, in 0, wrt phi_cont44: "+value_cont44);
+            System.out.println("Robustness of testing CONT_44_t2, in 0, wrt phi_cont44_t2: "+value_cont44_t2);
             //Util.writeToCSV("./slow_novel_03.csv",val_test);
 
         } catch (RuntimeException e) {
@@ -2246,7 +2574,7 @@ public class Main {
     }
     public static List<DataStateUpdate> getDiracCont38_t2_p1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(Status, 3.0));
+        updates.add(new DataStateUpdate(Status, rg.nextInt(3)+3));
         return updates;
     }
     public static List<DataStateUpdate> getDiracCont38_t2_p2(RandomGenerator rg, DataState state){
@@ -2527,15 +2855,27 @@ public class Main {
         updates.add(new DataStateUpdate(timer_exp, rg.nextDouble()*(60/(state.get(rr_pcv)*(1+state.get(ie_pcv))))));
         return updates;
     }
+    public static List<DataStateUpdate> getDiracCont25_part2_t1(RandomGenerator rg, DataState state){
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(phase, 3));
+        updates.add(new DataStateUpdate(Status, 1));
+        updates.add(new DataStateUpdate(timer_exp, rg.nextDouble()*(60/(state.get(rr_pcv)*(1+state.get(ie_pcv))))));
+        return updates;
+    }
     public static List<DataStateUpdate> getDiracCont15_1(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
-        updates.add(new DataStateUpdate(nr_of_retries, rg.nextDouble()*2+5));
+        updates.add(new DataStateUpdate(nr_of_retries, rg.nextInt(3)+5));
         updates.add(new DataStateUpdate(Status, 3));
         return updates;
     }
     public static List<DataStateUpdate> getDiracCont15_2(RandomGenerator rg, DataState state){
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(Status,6));
+        return updates;
+    }
+    public static List<DataStateUpdate> getDiracCont15_t2(RandomGenerator rg, DataState state){
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(nr_of_retries, rg.nextInt(3)+5));
         return updates;
     }
     public static List<DataStateUpdate> getDiracSav6_1(RandomGenerator rg, DataState state){
@@ -2763,9 +3103,23 @@ public class Main {
             return 0.0;
         }
     }
+    public static double rho_cont_15_retriesonly(DataState state) {
+        if (state.get(nr_of_retries) < 5 ){
+            return 1.0;
+        } else {
+            return 0.0;
+        }
+    }
 
     public static double rho_cont19(DataState state) {
         if (state.get(selfTest_fail) == 1 && state.get(Status) == 5){
+            return 1.0;
+        } else {
+            return 0.0;
+        }
+    }
+    public static double rho_cont19_per(DataState state) {
+        if (state.get(selfTest_fail) == 1){
             return 1.0;
         } else {
             return 0.0;
@@ -2821,27 +3175,12 @@ public class Main {
         }
     }
     public static double rho_cont38_t2_p1(DataState state) {
-        if (state.get(Status) != 3){
+        if (state.get(Status) != 3 && state.get(Status) != 4 && state.get(Status) != 5){
             return 1.0;
         } else {
             return 0.0;
         }
     }
-    public static double rho_cont38_t2_p2(DataState state) {
-        if (state.get(Status) != 4){
-            return 1.0;
-        } else {
-            return 0.0;
-        }
-    }
-    public static double rho_cont38_t2_p3(DataState state) {
-        if (state.get(Status) != 5){
-            return 1.0;
-        } else {
-            return 0.0;
-        }
-    }
-
 
     public static double rho_cont36_3(DataState state) {
         if (state.get(timer_exp) == 0 && state.get(Status) == 2 && state.get(phase) == 3 && state.get(timer_triggerDelay) < 0.4){
@@ -3154,6 +3493,13 @@ public class Main {
     }
     public static double rho_cont25_part2_3(DataState state) {
         if (state.get(timer_exp) > 60/(state.get(rr_pcv)*(1+state.get(ie_pcv)))){
+            return 1.0;
+        } else {
+            return 0.0;
+        }
+    }
+    public static double rho_cont25_part2_t1(DataState state) {
+        if (state.get(timer_exp) > 60/(state.get(rr_pcv)*(1+state.get(ie_pcv))) && state.get(Status) == 1 && state.get(phase) == 3){
             return 1.0;
         } else {
             return 0.0;
@@ -4806,8 +5152,15 @@ public class Main {
 
     private static DataState sav_6Perturbation_t3_2(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
-        //if (state.get(RR_ms) != 0) {
+        if (rho_sav_6_penal_no_alarm(state) == 1.0) {
+            updates.add(new DataStateUpdate(RR_ms, 0));
+        } else {
             updates.add(new DataStateUpdate(RR_ms, MIN_RR- 1));
+        }
+        //if (state.get(RR_ms) >= MIN_RR || state.get(RR_ms) == 0) {
+        //    updates.add(new DataStateUpdate(RR_ms, MIN_RR- 1));
+        //} else {
+        //   updates.add(new DataStateUpdate(RR_ms, 0));
         //}
         return state.apply(updates);
     }
@@ -4833,6 +5186,15 @@ public class Main {
     private static DataState cont_15Perturbation(RandomGenerator rg, DataState state) {
         List<DataStateUpdate> updates = new LinkedList<>();
         updates.add(new DataStateUpdate(comm_sens_valves_ok, 0));
+        return state.apply(updates);
+    }
+    private static Perturbation get_cont_19Perturbation() {
+        return new AtomicPerturbation(0, Main::cont_19Perturbation);
+    }
+
+    private static DataState cont_19Perturbation(RandomGenerator rg, DataState state) {
+        List<DataStateUpdate> updates = new LinkedList<>();
+        updates.add(new DataStateUpdate(out_valve_ok, 0));
         return state.apply(updates);
     }
 
