@@ -575,7 +575,7 @@ public class TwoLanesTwoCars {
         registry.set("Control",
                 Controller.ifThenElse(
                         DataState.greaterThan(my_timer,0),
-                        Controller.doTick(registry.reference("Controller")
+                        Controller.doTick(registry.reference("Control")
                         ),
                 Controller.ifThenElse(
                         DataState.equalsTo(my_lane,1),
